@@ -5,6 +5,7 @@
  */
 
 import type { AgentVerdict, P2Input } from '../types.js';
+import { callAgent } from './call-agent.js';
 
 export const CROSS_REF_PROMPT = `You are a cross-reference verification agent. Your job is to assess whether a claim is independently corroborated.
 
@@ -23,14 +24,8 @@ Return JSON only:
 }`;
 
 export async function runCrossRefAgent(
-  _input: P2Input,
-  _apiKey: string,
+  input: P2Input,
+  apiKey: string,
 ): Promise<AgentVerdict> {
-  return {
-    agent: 'cross-ref',
-    verdict: 'uncertain',
-    confidence: 0,
-    reasoning: 'Not yet implemented',
-    evidence: [],
-  };
+  return callAgent('cross-ref', CROSS_REF_PROMPT, input, apiKey);
 }

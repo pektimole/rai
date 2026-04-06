@@ -5,6 +5,7 @@
  */
 
 import type { AgentVerdict, P2Input } from '../types.js';
+import { callAgent } from './call-agent.js';
 
 export const PROVENANCE_PROMPT = `You are a provenance verification agent. Your job is to assess the origin and timing of a claim.
 
@@ -23,15 +24,8 @@ Return JSON only:
 }`;
 
 export async function runProvenanceAgent(
-  _input: P2Input,
-  _apiKey: string,
+  input: P2Input,
+  apiKey: string,
 ): Promise<AgentVerdict> {
-  // TODO: implement with Claude API call
-  return {
-    agent: 'provenance',
-    verdict: 'uncertain',
-    confidence: 0,
-    reasoning: 'Not yet implemented',
-    evidence: [],
-  };
+  return callAgent('provenance', PROVENANCE_PROMPT, input, apiKey);
 }

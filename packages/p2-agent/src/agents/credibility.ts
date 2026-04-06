@@ -5,6 +5,7 @@
  */
 
 import type { AgentVerdict, CredibilityTier, P2Input, SourceCredibility } from '../types.js';
+import { callAgent } from './call-agent.js';
 
 export const CREDIBILITY_SEED: SourceCredibility[] = [
   { url_pattern: 'github.com/*/security', tier: 'official', weight: 0.9 },
@@ -24,6 +25,13 @@ export const CREDIBILITY_SEED: SourceCredibility[] = [
 ];
 
 export const CREDIBILITY_PROMPT = `You are a source credibility agent. Your job is to assess the trustworthiness of the source making a claim.
+
+You will receive a claim and its source. You also have access to a source credibility index:
+- Official (weight 0.9): company blogs, CVE databases, SEC filings, GitHub security advisories
+- Established media (weight 0.7): VentureBeat, TechCrunch, Fortune, Ars Technica
+- Community (weight 0.5): HackerNews, Reddit, dev.to
+- Social (weight 0.3): Twitter/X, Telegram
+- Anonymous (weight 0.1): Pastebin, anonymous forums
 
 Analyze:
 1. What is the track record of this source?
@@ -47,14 +55,15 @@ export function lookupCredibility(url: string): CredibilityTier {
 }
 
 export async function runCredibilityAgent(
-  _input: P2Input,
-  _apiKey: string,
+  input: P2Input,
+  apiKey: string,
 ): Promise<AgentVerdict> {
-  return {
-    agent: 'credibility',
-    verdict: 'uncertain',
-    confidence: 0,
-    reasoning: 'Not yet implemented',
-    evidence: [],
-  };
+  // Enrich the prompt with credibility lookup if source URL is available
+  let enrichedPrompt = CREDIBILITY_PROMPT;
+  if (input.source_url) {
+    const tier = lookupCredibility(input.source_url);
+    const entry = CREDIBILITY_SEED.find(e => input.source_url!.includes(e.url_pattern));
+    enrichedPrompt += `\n\nSource credibility lookup result: tier="${tier}", weight=${entry?.weight ?? 0.1}`;
+  }
+  return callAgent('credibility', enrichedPrompt, input, apiKey);
 }

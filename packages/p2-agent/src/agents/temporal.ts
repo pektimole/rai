@@ -4,6 +4,7 @@
  */
 
 import type { AgentVerdict, P2Input } from '../types.js';
+import { callAgent } from './call-agent.js';
 
 export const TEMPORAL_PROMPT = `You are a temporal context agent. Your job is to assess whether the timing of a claim or counter-claim is suspicious.
 
@@ -22,14 +23,8 @@ Return JSON only:
 }`;
 
 export async function runTemporalAgent(
-  _input: P2Input,
-  _apiKey: string,
+  input: P2Input,
+  apiKey: string,
 ): Promise<AgentVerdict> {
-  return {
-    agent: 'temporal',
-    verdict: 'uncertain',
-    confidence: 0,
-    reasoning: 'Not yet implemented',
-    evidence: [],
-  };
+  return callAgent('temporal', TEMPORAL_PROMPT, input, apiKey);
 }
