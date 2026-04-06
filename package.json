@@ -1,0 +1,14 @@
+{
+  "name": "rai",
+  "private": true,
+  "description": "RA(I) — AI Interaction Firewall",
+  "workspaces": [
+    "packages/core",
+    "packages/p2-agent",
+    "packages/extension"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces --if-present"
+  }
+}
