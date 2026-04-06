@@ -3,6 +3,8 @@
   "name": "RAI - AI Interaction Firewall",
   "version": "0.1.0",
   "description": "Ambient protection for every AI interaction. Zero data leaves your device.",
+  "author": "Tim-Ole Pek",
+  "homepage_url": "https://github.com/pektimole/rai",
   "permissions": ["activeTab", "storage"],
   "host_permissions": [
     "https://claude.ai/*",
