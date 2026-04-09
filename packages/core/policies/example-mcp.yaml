@@ -1,0 +1,24 @@
+# RAI ActionGate policy: example MCP server gating
+# Apply to any MCP server by pointing --policy at this file.
+
+version: 1
+adapter: mcp
+server_name: example-server
+fail_closed: false  # blocklist mode: allow unless explicitly blocked
+
+blocked_tools:
+  - delete_file
+  - drop_database
+  - execute_sql
+
+blocked_arg_patterns:
+  # Block sensitive file access across all tools
+  "*":
+    - "\\.env"
+    - "/etc/shadow"
+    - "/etc/passwd"
+    - "password.*admin"
+  # Tool-specific patterns
+  read_file:
+    - "\\.ssh/"
+    - "\\.aws/"
