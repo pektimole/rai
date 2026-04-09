@@ -34,4 +34,10 @@ export interface ScanResponse {
   confidence: number;
   threat_layers: ThreatSignal[];
   explanation: string;
+  /** True when P1 (Claude API) was invoked for this scan. */
+  p1_invoked?: boolean;
+  /** P1 round-trip latency in milliseconds. */
+  p1_latency_ms?: number;
+  /** Model used for P1 (e.g. "claude-haiku-4-5-20251001"). */
+  p1_model?: string;
 }

@@ -103,6 +103,77 @@
     .toggle input:checked + .toggle-slider::before {
       transform: translateX(16px);
     }
+    .api-key-section {
+      padding: 8px 0;
+      border-top: 1px solid #f0f0f0;
+      margin-top: 4px;
+    }
+    .api-key-label {
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .api-key-sub {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 6px;
+    }
+    .api-key-row {
+      display: flex;
+      gap: 6px;
+    }
+    .api-key-input {
+      flex: 1;
+      font-size: 12px;
+      padding: 4px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .api-key-input:focus {
+      outline: none;
+      border-color: #DC2626;
+    }
+    .api-key-btn {
+      font-size: 11px;
+      padding: 4px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: #DC2626;
+      color: white;
+      white-space: nowrap;
+    }
+    .api-key-btn:hover {
+      background: #B91C1C;
+    }
+    .api-key-btn.clear {
+      background: #888;
+    }
+    .api-key-btn.clear:hover {
+      background: #666;
+    }
+    .api-key-status {
+      font-size: 11px;
+      margin-top: 4px;
+    }
+    .api-key-status.active {
+      color: #166534;
+    }
+    .api-key-status.none {
+      color: #888;
+    }
+    .p1-badge {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 8px;
+      background: #FEE2E2;
+      color: #991B1B;
+      margin-left: 6px;
+    }
+    .p1-badge.active {
+      background: #DCFCE7;
+      color: #166534;
+    }
     .footer {
       font-size: 11px;
       color: #aaa;
@@ -117,6 +188,7 @@
   <div class="header">
     <div class="logo">RA<span>(I)</span></div>
     <div class="status" id="status">Active</div>
+    <span class="p1-badge" id="p1-badge">P0 only</span>
   </div>
   <div class="stats">
     <div class="stat">
@@ -138,7 +210,19 @@
       <span class="toggle-slider"></span>
     </label>
   </div>
-  <div class="footer">Zero data leaves your device.</div>
+  <div class="api-key-section">
+    <div class="api-key-label">Claude API Key (BYOK)</div>
+    <div class="api-key-sub">Enables P1 deep scan via your own Anthropic key</div>
+    <div class="api-key-row" id="api-key-input-row">
+      <input type="password" class="api-key-input" id="api-key" placeholder="sk-ant-..." autocomplete="off">
+      <button class="api-key-btn" id="api-key-save">Save</button>
+    </div>
+    <div class="api-key-row" id="api-key-active-row" style="display:none">
+      <div class="api-key-status active">Key saved. P1 active.</div>
+      <button class="api-key-btn clear" id="api-key-clear">Remove</button>
+    </div>
+  </div>
+  <div class="footer" id="footer-text">Zero data leaves your device.</div>
   <script src="popup.ts" type="module"></script>
 </body>
 </html>
