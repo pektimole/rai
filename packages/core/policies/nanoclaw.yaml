@@ -1,0 +1,17 @@
+# RAI ActionGate policy: NanoClaw context write-back
+# Mirrors the production 5-layer Write Gate (in service since 2026-03-21).
+# Expand by appending to this file, never by code change.
+
+version: 1
+adapter: fs-git
+root: /home/tim/no5-context
+
+defaults:
+  max_content_bytes: 50000
+  max_depth: 2
+  allowed_extensions: [.md]
+
+groups:
+  whatsapp_main:
+    allowed_subdirs: [proposals, pending-decisions, spikes]
+    blocked_basenames: [00-WAKE.md, 00-README.md, REGISTRY.md]
