@@ -113,6 +113,7 @@ _This is the authoritative schema. All code, specs, and outputs must use this nu
 | L1 | Misinformation / unintentional | Content that is false or misleading but not adversarial. Low-confidence facts passed as certain, hallucination amplification. | P1 (Claude-powered) |
 | L2 | Cascade risk | Content that passed clean in isolation but triggers on cross-pipeline context (prior_scan_ids match). Requires P2. | P2 |
 | L3 | Systemic harm | Coordinated multi-message pattern, compound injection across sessions. | P2/P3 |
+| L4 | Agent action / unauthorized side-effect | Agent attempts a tool call, file write, shell exec, or MCP invocation outside its permitted scope -- regardless of whether the originating content was clean. Protects environment, not conversation. | ActionGate (spec: 28-rai-actiongate-spec.md) |
 
 ---
 
