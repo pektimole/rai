@@ -17,6 +17,7 @@ Monorepo with three packages:
 - `docs/19-rai-context.md` — product spec, threat model, integration points
 - `docs/25-rai-extension-spec.md` — browser extension architecture
 - `docs/26-rai-p2-spec.md` — P2 multi-agent consensus design
+- `docs/28-rai-actiongate-spec.md` — L4 agent action firewall (lifts NanoClaw Write Gate into reusable policy engine)
 
 ## Threat Layer Schema
 
@@ -28,6 +29,7 @@ Monorepo with three packages:
 | L1 | Misinformation | P1 |
 | L2 | Cascade risk | P2 |
 | L3 | Systemic harm | P2 |
+| L4 | Agent action / unauthorized side-effect | ActionGate (spec) |
 
 ## Key decisions
 
