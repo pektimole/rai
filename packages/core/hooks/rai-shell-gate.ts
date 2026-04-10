@@ -31,6 +31,7 @@ import {
   type ShellAction,
   type ShellPolicyYaml,
 } from '../action-gate-shell';
+import { getDefaultAuditLog } from '../audit-log';
 
 // Policy file location: next to this script in ../policies/
 const POLICY_PATH =
@@ -85,7 +86,25 @@ async function main(): Promise<void> {
     workingDir: input.cwd || process.cwd(),
   };
 
+  const startUs = performance.now();
   const verdict = evaluateShell(action, policy);
+  const evalUs = Math.round((performance.now() - startUs) * 1000);
+
+  // Audit log
+  try {
+    getDefaultAuditLog().log({
+      adapter: 'shell',
+      decision: verdict.decision,
+      rule: verdict.rule,
+      reason: verdict.reason,
+      action_summary: command.length > 200 ? command.slice(0, 200) + '...' : command,
+      source: 'claude-code',
+      policy_file: POLICY_PATH,
+      eval_us: evalUs,
+    });
+  } catch {
+    // Never let audit log errors break the hook
+  }
 
   if (verdict.decision === 'deny') {
     outputDecision('deny', `[ActionGate L4] ${verdict.reason} (rule: ${verdict.rule})`);
