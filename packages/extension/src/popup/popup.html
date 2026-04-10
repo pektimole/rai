@@ -152,6 +152,12 @@
     .api-key-btn.clear:hover {
       background: #666;
     }
+    .api-key-trust {
+      font-size: 10px;
+      color: #666;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
     .api-key-status {
       font-size: 11px;
       margin-top: 4px;
@@ -217,8 +223,9 @@
       <input type="password" class="api-key-input" id="api-key" placeholder="sk-ant-..." autocomplete="off">
       <button class="api-key-btn" id="api-key-save">Save</button>
     </div>
+    <div class="api-key-trust" id="api-key-trust-line">Stored locally on this device only. Never sent to RAI. Calls go directly to Anthropic. <a href="https://github.com/pektimole/rai" target="_blank" style="color:#888;text-decoration:underline">Verify in source code</a></div>
     <div class="api-key-row" id="api-key-active-row" style="display:none">
-      <div class="api-key-status active">Key saved. P1 active.</div>
+      <div class="api-key-status active">Key saved locally. P1 active.</div>
       <button class="api-key-btn clear" id="api-key-clear">Remove</button>
     </div>
   </div>
