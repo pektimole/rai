@@ -262,13 +262,15 @@ The Write Gate is a standalone RAI module candidate for P1+ commercialization.
 
 | Phase | Deliverable | Effort | Status |
 |---|---|---|---|
-| P0 | rai-scan.ts -- hardcoded regex/keyword, L-2/L-1/L0 only | 1-2 days | **Live** |
-| P0+ | Secure Write Gate -- context_update IPC with 5-layer defense | 1 day | **Shipped 2026-03-21** |
-| P1 | Claude-powered scan layer (rai-scan-p1.ts) -- Haiku default, Sonnet escalation on low confidence (<0.65), full output schema, async path, P0 pre-filter | 3-5 days | **Shipped 2026-03-29, model switch 2026-04-05** |
-| P1+ | Write Gate as standalone module (enterprise packaging) | 1 week | Roadmap |
-| P1-ext | Browser Extension -- first consumer product | 1-2 weeks | Next after P1 |
-| P2 | Multi-agent consensus: 4 independent agent chains (provenance, cross-ref, temporal, credibility) + consensus merge. Full spec: `26-rai-p2-spec.md` | 1 day | **Spec written 2026-04-05** |
-| P3 | Logging + threat dashboard (Notion DB) | 1 week | Pending P2 |
+| P0 | rai-scan.ts: hardcoded regex/keyword, L-2/L-1/L0 only | 1-2 days | **Shipped 2025-09** |
+| P0+ | Secure Write Gate: context_update IPC with 5-layer defense | 1 day | **Shipped 2026-03-21** |
+| P1 | Claude-powered scan (rai-scan-p1.ts): Haiku default, Sonnet escalation on <0.65, async path, P0 pre-filter | 3-5 days | **Shipped 2026-03-29, e2e verified 2026-04-01** |
+| P1-ext | Browser Extension: CWS approved, P0 Free + P1 BYOK, 3 platforms (Claude, ChatGPT, Gemini) | 1-2 weeks | **Shipped 2026-04-06, P1 BYOK wired 2026-04-09** |
+| P2 | Multi-agent consensus: 4 independent chains (provenance, cross-ref, temporal, credibility) + consensus merge. Spec: `26-rai-p2-spec.md` | 1 day | **Code-complete 2026-04-07, 22 tests** |
+| P2+ / ActionGate | L4 agent action firewall: fs-git (live VPS) + shell (live Claude Code hook) + MCP proxy + YAML policy engine. Spec: `28-rai-actiongate-spec.md` | 3 days | **Shipped 2026-04-09, 95 tests** |
+| P3 | Audit log (JSONL, wired into shell hook) + scan_id correlation across P0/P1/P2/L4 | 2h | **Shipped 2026-04-10, 8 tests** |
+| P3+ | Threat dashboard (Notion DB visualization of audit log) | 1 week | Planned |
+| P4 | Backend: user accounts, subscription/billing, managed P1 endpoint (Premium tier), CWS install tracking, email capture backend | TBD | Planned |
 
 ### P1 Architecture (shipped 2026-03-29, e2e verified 2026-04-01)
 
@@ -484,3 +486,89 @@ _Source: ~/eval/claw-code -- ultraworkers/claw-code Rust workspace. Lokal geclon
 | `lane_events.rs` | Sentinel Event-Architektur | Event-first Architektur: maschinenlesbare, normalisierte Events statt Log-Text-Parsing. Exakt Sentinels Betriebsmodell ("event-first, not log-first"). |
 | `recovery_recipes.rs` | OL-071 VPS | Klassifizierte Recovery-Muster fuer Infra- vs. Code-Fehler. Direkt anwendbar auf VPS PM2/systemd-Crash-Loop-Diagnose. |
 
+
+---
+
+## TraceSafe vs ActionGate Overlap Analysis (2026-04-09)
+
+_Spike doc: evaluating ActionGate (OL-088) implementation dependencies against TraceSafe guardrail framework_
+
+### Context
+
+**TraceSafe: A Systematic Assessment of LLM Guardrails on Multi-Step Tool-Calling Trajectories**
+
+Research paper evaluating guardrail effectiveness when LLMs execute multi-step tool sequences. Directly addresses L4 threat class (agent action / unauthorized side-effect) that ActionGate is designed to handle.
+
+### Question 1: Does TraceSafe trajectory evaluation cover L4 action scope?
+
+**Assessment: Partial overlap, different granularity**
+
+TraceSafe likely evaluates:
+- Multi-step tool-calling sequences 
+- Policy adherence across action chains
+- Trajectory-level risk assessment vs single-action risk
+
+ActionGate evaluates:
+- Individual action authorization (deterministic policy)
+- Real-time action gating (microseconds, not batch analysis)
+- Surface-specific constraints (fs/shell/mcp/http adapters)
+
+**Overlap:** Both assess tool-calling safety, but TraceSafe is trajectory-analysis-oriented (research evaluation) while ActionGate is real-time-enforcement-oriented (production gating).
+
+**Relevance:** TraceSafe's trajectory patterns could inform ActionGate policy templates, especially for multi-step attack vectors (e.g., benign file write + malicious commit + force push sequence).
+
+### Question 2: Can TraceSafe test harness substitute for claw-code mock-anthropic-service in ActionGate Step 7?
+
+**Assessment: Unlikely direct substitution, possible adaptation**
+
+ActionGate Step 7 needs:
+- Mock agent runtime that generates realistic tool calls
+- Controllable test scenarios (valid/invalid action sequences)  
+- Performance benchmarks (microsecond policy evaluation)
+- Integration testing with surface adapters (fs/shell/mcp/http)
+
+TraceSafe test harness likely provides:
+- Multi-step tool-calling trajectory generation
+- Guardrail evaluation framework
+- Systematic test case coverage
+
+**Gap:** TraceSafe is probably research-oriented (batch evaluation of guardrail systems) rather than production-oriented (real-time policy engine testing).
+
+**Adaptation potential:** TraceSafe's trajectory generation could be valuable for creating realistic ActionGate test cases, but the evaluation framework would need significant modification to test deterministic policy engines rather than probabilistic guardrails.
+
+**Recommendation:** Review TraceSafe's trajectory generation methodology. If it produces realistic multi-step tool sequences, that component could supplement (not replace) the mock-anthropic-service for ActionGate testing.
+
+### Question 3: Any policy primitives worth lifting into ActionGate spec?
+
+**Assessment: Policy pattern insights likely valuable**
+
+TraceSafe's systematic assessment probably identifies:
+- Common multi-step attack patterns
+- Policy boundary failures in existing guardrails
+- Trajectory-level risk indicators
+
+ActionGate could benefit from:
+- **Multi-action sequence patterns:** If TraceSafe identifies common dangerous multi-step patterns (e.g., info gathering → privilege escalation → data exfiltration), ActionGate could implement sequence-aware policies
+- **Cross-surface correlation:** Patterns that span multiple adapters (fs write + shell exec + http request)
+- **Escalation triggers:** When individual safe actions combine into unsafe trajectories
+
+**Specific integration points:**
+- ActionGate audit log correlation: tag related actions by sequence_id to enable trajectory-level analysis
+- Policy templates: lift TraceSafe's identified risky patterns into YAML policy defaults
+- Sentinel integration: trajectory-level risk scores could trigger P2 or cross-session memory updates
+
+### Synthesis
+
+**Direct substitution:** No. TraceSafe is research evaluation; ActionGate needs production testing.
+
+**Valuable adaptation:** Yes. Three components:
+1. **Trajectory generation** → ActionGate test case creation
+2. **Multi-step attack patterns** → ActionGate policy templates  
+3. **Sequence correlation** → ActionGate audit log enhancement
+
+**Next step:** If TraceSafe paper is accessible, scan for:
+- Tool-calling trajectory generation methodology
+- Catalog of identified multi-step attack patterns
+- Policy evaluation framework architecture
+
+**Impact on ActionGate timeline:** Doesn't unblock Step 7 test harness dependency, but could significantly enrich policy defaults and test coverage if integrated during Steps 2-3 (YAML policy loader + evaluate() API).
