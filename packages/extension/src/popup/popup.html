@@ -32,27 +32,20 @@
       margin-left: auto;
     }
     .stats {
-      display: flex;
-      gap: 16px;
       padding: 10px 0;
       border-top: 1px solid #f0f0f0;
       border-bottom: 1px solid #f0f0f0;
       margin-bottom: 12px;
     }
-    .stat {
+    .stat-line {
+      font-size: 13px;
+      color: #555;
       text-align: center;
-      flex: 1;
     }
-    .stat-value {
-      font-size: 20px;
+    .stat-line .threat-count {
+      color: #DC2626;
       font-weight: 600;
     }
-    .stat-label {
-      font-size: 11px;
-      color: #888;
-      margin-top: 2px;
-    }
-    .stat-value.threats { color: #DC2626; }
     .setting {
       display: flex;
       align-items: center;
@@ -197,14 +190,7 @@
     <span class="p1-badge" id="p1-badge">P0 only</span>
   </div>
   <div class="stats">
-    <div class="stat">
-      <div class="stat-value" id="scans">0</div>
-      <div class="stat-label">Scans</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value threats" id="threats">0</div>
-      <div class="stat-label">Threats</div>
-    </div>
+    <div class="stat-line" id="stat-line">0 scans</div>
   </div>
   <div class="setting">
     <div>
@@ -220,7 +206,7 @@
     <div class="api-key-label">Claude API Key (BYOK)</div>
     <div class="api-key-sub">Enables P1 deep scan via your own Anthropic key</div>
     <div class="api-key-row" id="api-key-input-row">
-      <input type="password" class="api-key-input" id="api-key" placeholder="sk-ant-..." autocomplete="off">
+      <input type="password" class="api-key-input" id="api-key" placeholder="Paste your API key" autocomplete="off">
       <button class="api-key-btn" id="api-key-save">Save</button>
     </div>
     <div class="api-key-trust" id="api-key-trust-line">Stored locally on this device only. Never sent to RAI. Calls go directly to Anthropic. <a href="https://github.com/pektimole/rai" target="_blank" style="color:#888;text-decoration:underline">Verify in source code</a></div>

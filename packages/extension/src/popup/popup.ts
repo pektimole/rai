@@ -14,14 +14,15 @@ chrome.storage.local.get(
 
     const scanCount = d.scan_count || 0;
     const threatCount = d.threats_detected || 0;
-    if (scans) scans.textContent = String(scanCount);
-    if (threats) threats.textContent = String(threatCount);
-
-    // Fix singular/plural labels
-    const scanLabel = document.querySelector('.stat:first-child .stat-label');
-    const threatLabel = document.querySelector('.stat:last-child .stat-label');
-    if (scanLabel) scanLabel.textContent = scanCount === 1 ? 'Scan' : 'Scans';
-    if (threatLabel) threatLabel.textContent = threatCount === 1 ? 'Threat' : 'Threats';
+    const statLine = document.getElementById('stat-line');
+    if (statLine) {
+      const scanText = `${scanCount} ${scanCount === 1 ? 'scan' : 'scans'}`;
+      if (threatCount > 0) {
+        statLine.innerHTML = `${scanText} · <span class="threat-count">${threatCount} ${threatCount === 1 ? 'threat' : 'threats'} found</span>`;
+      } else {
+        statLine.textContent = scanText;
+      }
+    }
     if (toggle) toggle.checked = d.strict_mode ?? false;
 
     // API key state

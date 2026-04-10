@@ -138,7 +138,7 @@ export function showOverlay(
   banner.className = `rai-banner ${isBlock ? 'rai-banner-block' : 'rai-banner-warn'}`;
 
   const threats = result.threat_layers
-    .map((t) => `${friendlyLayer(t.layer)}: ${t.label} (${friendlySeverity(t.severity)})`)
+    .map((t) => `${t.label} (${friendlySeverity(t.severity)})`)
     .join(', ');
 
   const friendlyExplanation = isBlock
