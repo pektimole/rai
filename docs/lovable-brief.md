@@ -1,6 +1,6 @@
 # RAI Landing Page Brief for Lovable
 _Feed this to Lovable for the ray-guard-watch.lovable.app redesign._
-_Last updated: 2026-04-09_
+_Last updated: 2026-04-10_
 
 ---
 
@@ -120,7 +120,8 @@ BYOK (hidden tier): Free extension + user's own Anthropic API key. Not promoted 
 - **22 regex patterns** across 3 threat layers
 - **Fail-open design**: errors never block user workflow
 - **Policy-as-code**: YAML config, version-pinned, hot-reloadable
-- **87 tests** in core package, integration-tested through full proxy pipeline
+- **95 tests** in core package, integration-tested through full proxy pipeline
+- **Audit log**: every ActionGate verdict logged to JSONL, queryable with jq
 
 ---
 
@@ -153,3 +154,68 @@ Tertiary: **Star on GitHub** (github.com/pektimole/rai)
 - Threat layer visualization (L-2 through L4, color-coded)
 - Live demo section showing overlay in action (screenshot or animation)
 - Trust signals: open source, zero data, Manifest V3, test count
+
+---
+
+## Current landing page state (ray-guard-watch.lovable.app)
+
+The current site has a main page plus /professionals and /consumer variants. This brief replaces the content strategy. Here is what needs reworking:
+
+### What's already there (keep/adapt)
+- Basic brand identity (RA(I) name, tagline)
+- 3-page structure (main, professionals, consumer)
+- General "AI firewall" positioning
+
+### What's missing or outdated
+
+**Product content:**
+- ActionGate is not mentioned at all (the biggest differentiator)
+- Multi-agent consensus (P2) not explained
+- Extension features are incomplete (P1 BYOK not shown)
+- Audit log not mentioned
+- No MCP proxy feature section
+- No Claude Code integration section
+
+**Infrastructure not yet built:**
+- No backend/API for account management
+- No user authentication system
+- No subscription/billing integration
+- No Chrome extension promo flow (deep link to CWS, install tracking)
+- No email capture backend (form exists but no storage/drip)
+
+**Content gaps:**
+- FAQ section needed (use Notion Feature Registry "FAQ" tag for source material)
+- Customer docs / setup guides needed (ActionGate guide exists at docs/actiongate-guide.md)
+- No competitive comparison section
+- No "how it works" visual flow
+
+### Recommended page structure for redesign
+
+**Main page (/):**
+1. Hero: tagline + one-liner + Install Extension CTA
+2. "Three layers of protection" (Content Firewall / Multi-Agent / ActionGate)
+3. Extension demo (screenshot or animation of overlay in action)
+4. Trust signals bar (open source, 95 tests, zero data, Manifest V3)
+5. Pricing table (Free / Pro / Premium)
+6. FAQ accordion
+7. Footer: GitHub, CWS link, email capture
+
+**Professionals (/professionals):**
+1. ActionGate focus: Claude Code hook, MCP proxy, YAML policies
+2. Audit log section
+3. Integration examples (settings.json snippet, MCP config snippet)
+4. "Built for the agentic dev stack" positioning
+
+**Consumer (/consumer):**
+1. Extension focus: paste/submit/response scanning
+2. Platform coverage (Claude, ChatGPT, Gemini)
+3. BYOK upgrade path
+4. Privacy-first messaging
+
+### What Lovable should NOT build (yet)
+- Backend auth/accounts (separate workstream)
+- Payment integration (separate workstream)
+- CWS install tracking (needs backend)
+- Email drip automation (needs backend)
+
+Focus the Lovable session on **content, layout, and static pages**. The backend comes later.
