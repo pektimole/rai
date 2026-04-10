@@ -138,14 +138,18 @@ export function showOverlay(
   banner.className = `rai-banner ${isBlock ? 'rai-banner-block' : 'rai-banner-warn'}`;
 
   const threats = result.threat_layers
-    .map((t) => `${t.layer}: ${t.label} (${t.severity})`)
+    .map((t) => `${friendlyLayer(t.layer)}: ${t.label} (${friendlySeverity(t.severity)})`)
     .join(', ');
+
+  const friendlyExplanation = isBlock
+    ? 'We blocked this. It was trying to trick the AI into sharing your data.'
+    : result.explanation;
 
   banner.innerHTML = `
     <span class="rai-icon">${isBlock ? '\uD83D\uDEE1\uFE0F' : '\u26A0\uFE0F'}</span>
     <div class="rai-body">
       <div class="rai-title">RAI: ${isBlock ? 'Blocked' : 'Warning'}</div>
-      <div class="rai-explanation">${escapeHtml(result.explanation)}</div>
+      <div class="rai-explanation">${escapeHtml(friendlyExplanation)}</div>
       ${threats ? `<div class="rai-threats">${escapeHtml(threats)}</div>` : ''}
     </div>
     <button class="rai-dismiss" aria-label="Dismiss">\u2715</button>
@@ -195,7 +199,7 @@ export function showSendBlocker(
     <span class="rai-icon">\uD83D\uDEE1\uFE0F</span>
     <div class="rai-send-blocker-text">
       <div class="rai-send-blocker-title">RAI: Send blocked</div>
-      <div class="rai-send-blocker-sub">${escapeHtml(result.explanation)} Clear or edit the content to proceed.</div>
+      <div class="rai-send-blocker-sub">${escapeHtml(result.verdict === 'blocked' ? 'This content contains a threat. Clear or edit it to proceed.' : result.explanation)}</div>
     </div>
     <button class="rai-send-blocker-btn rai-send-blocker-btn-dismiss" data-action="dismiss">I understand the risk</button>
     <button class="rai-send-blocker-btn" data-action="clear">Clear input</button>
@@ -243,4 +247,27 @@ function escapeHtml(str: string): string {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+function friendlyLayer(layer: string): string {
+  const map: Record<string, string> = {
+    'L-2': 'Infrastructure',
+    'L-1': 'Model integrity',
+    'L0': 'Injection',
+    'L1': 'Misinformation',
+    'L2': 'Cascade risk',
+    'L3': 'Systemic',
+    'L4': 'Agent action',
+  };
+  return map[layer] || layer;
+}
+
+function friendlySeverity(severity: string): string {
+  const map: Record<string, string> = {
+    'critical': 'Critical',
+    'high': 'High',
+    'medium': 'Medium',
+    'low': 'Low',
+  };
+  return map[severity] || severity;
 }

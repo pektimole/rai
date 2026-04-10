@@ -12,8 +12,16 @@ chrome.storage.local.get(
     const threats = document.getElementById('threats');
     const toggle = document.getElementById('strict-toggle') as HTMLInputElement | null;
 
-    if (scans) scans.textContent = String(d.scan_count || 0);
-    if (threats) threats.textContent = String(d.threats_detected || 0);
+    const scanCount = d.scan_count || 0;
+    const threatCount = d.threats_detected || 0;
+    if (scans) scans.textContent = String(scanCount);
+    if (threats) threats.textContent = String(threatCount);
+
+    // Fix singular/plural labels
+    const scanLabel = document.querySelector('.stat:first-child .stat-label');
+    const threatLabel = document.querySelector('.stat:last-child .stat-label');
+    if (scanLabel) scanLabel.textContent = scanCount === 1 ? 'Scan' : 'Scans';
+    if (threatLabel) threatLabel.textContent = threatCount === 1 ? 'Threat' : 'Threats';
     if (toggle) toggle.checked = d.strict_mode ?? false;
 
     // API key state
