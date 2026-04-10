@@ -194,6 +194,29 @@ function init(): void {
   hookPaste(adapter);
   hookSubmit(adapter);
   hookResponses(adapter);
+  hookP1Upgrades(adapter);
+}
+
+// Listen for P1 verdict upgrades from the background service worker.
+// P0 verdict arrives synchronously via sendResponse. If P1 later produces
+// a higher-severity verdict, it arrives here via tabs.sendMessage.
+function hookP1Upgrades(adapter: PlatformAdapter): void {
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.action !== 'scan_upgrade') return;
+
+    const result = message as ScanResponse;
+    if (result.verdict === 'clean') return;
+
+    const input = adapter.getInputElement();
+
+    if (result.verdict === 'blocked') {
+      sendBlocked = true;
+      showOverlay(result, input ?? undefined);
+      showSendBlocker(adapter, result, () => { sendBlocked = false; });
+    } else if (result.verdict === 'flagged') {
+      showOverlay(result, input ?? undefined);
+    }
+  });
 }
 
 init();

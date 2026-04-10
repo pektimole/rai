@@ -3,9 +3,8 @@
  * Receives scan requests from content scripts, runs P0, optionally P1 (BYOK).
  *
  * Flow:
- * 1. P0 runs instantly (<5ms)
- * 2. If API key exists AND shouldEscalateToP1(): run P1, return merged verdict
- * 3. Otherwise return P0 verdict
+ * 1. P0 runs instantly (<5ms), verdict sent immediately
+ * 2. If API key exists AND shouldEscalateToP1(): run P1 async, send updated verdict via tabs.sendMessage
  */
 
 import { scanP0 } from '../shared/rai-scan-p0.js';
@@ -18,14 +17,6 @@ const BADGE_COLORS = {
   flagged: '#FF9800',
   blocked: '#F44336',
 } as const;
-
-function getApiKey(): Promise<string | null> {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(['anthropic_api_key'], (data) => {
-      resolve((data.anthropic_api_key as string) || null);
-    });
-  });
-}
 
 function updateBadge(tabId: number | undefined, verdict: ScanResponse['verdict']): void {
   if (!tabId) return;
@@ -57,66 +48,57 @@ chrome.runtime.onMessage.addListener(
 
     const tabId = sender.tab?.id;
 
-    // Run async scan pipeline
-    (async () => {
-      // Step 1: P0 (instant)
-      const p0 = scanP0(message.content);
+    // Step 1: P0 runs synchronously, always returns immediately
+    const p0 = scanP0(message.content);
 
-      // Step 2: Check for P1 escalation
-      const apiKey = await getApiKey();
-      const shouldP1 = apiKey && shouldEscalateToP1(p0.verdict, p0.confidence);
+    updateBadge(tabId, p0.verdict);
+    updateStats(p0.verdict);
 
-      if (shouldP1) {
-        // Run P1
-        const p0Patterns = p0.threat_layers.map((t) => t.label);
-        const p1 = await scanP1(
-          apiKey,
-          message.content,
-          message.source,
-          p0.verdict,
-          p0Patterns,
-        );
-
-        // Merge verdicts
-        const merged = mergeVerdicts(p0, p1);
-
-        updateBadge(tabId, merged.verdict);
-        updateStats(merged.verdict);
-
-        sendResponse({
-          verdict: merged.verdict,
-          confidence: merged.confidence,
-          threat_layers: merged.threat_layers,
-          explanation: merged.explanation,
-          p1_invoked: true,
-          p1_latency_ms: p1.latency_ms,
-          p1_model: p1.model_used,
-        });
-      } else {
-        // P0 only
-        updateBadge(tabId, p0.verdict);
-        updateStats(p0.verdict);
-
-        sendResponse({
-          verdict: p0.verdict,
-          confidence: p0.confidence,
-          threat_layers: p0.threat_layers,
-          explanation: p0.explanation,
-        });
-      }
-    })().catch((err) => {
-      console.error('[RAI] scan pipeline error:', err);
-      // Fail open: return P0 result
-      const p0 = scanP0(message.content);
-      sendResponse({
-        verdict: p0.verdict,
-        confidence: p0.confidence,
-        threat_layers: p0.threat_layers,
-        explanation: p0.explanation,
-      });
+    // Always send P0 verdict immediately (no async delay)
+    sendResponse({
+      verdict: p0.verdict,
+      confidence: p0.confidence,
+      threat_layers: p0.threat_layers,
+      explanation: p0.explanation,
     });
 
-    return true; // async response
+    // Step 2: P1 runs async in background, sends upgrade via tabs.sendMessage
+    chrome.storage.local.get(['anthropic_api_key'], (data) => {
+      const apiKey = (data.anthropic_api_key as string) || null;
+      if (!apiKey || !shouldEscalateToP1(p0.verdict, p0.confidence)) return;
+      if (!tabId) return;
+
+      const p0Patterns = p0.threat_layers.map((t) => t.label);
+
+      scanP1(apiKey, message.content, message.source, p0.verdict, p0Patterns)
+        .then((p1) => {
+          const merged = mergeVerdicts(p0, p1);
+
+          // Only send upgrade if P1 changed the verdict
+          if (merged.verdict !== p0.verdict || merged.confidence !== p0.confidence) {
+            updateBadge(tabId, merged.verdict);
+            updateStats(merged.verdict);
+
+            // Send P1 upgrade to content script
+            chrome.tabs.sendMessage(tabId, {
+              action: 'scan_upgrade',
+              verdict: merged.verdict,
+              confidence: merged.confidence,
+              threat_layers: merged.threat_layers,
+              explanation: merged.explanation,
+              p1_invoked: true,
+              p1_latency_ms: p1.latency_ms,
+              p1_model: p1.model_used,
+            } satisfies ScanResponse & { action: string });
+          }
+        })
+        .catch((err) => {
+          console.error('[RAI P1] background scan failed:', err);
+          // Fail open: P0 verdict already sent
+        });
+    });
+
+    return false; // Response already sent synchronously
   },
 );
 
