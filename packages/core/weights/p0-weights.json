@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "version": 1,
+    "updated": "2026-04-12T00:00:00Z",
+    "source": "initial extraction from rai-scan-p0.ts"
+  },
+  "severity_overrides": {},
+  "verdict_thresholds": {
+    "block_confidence": 0.93,
+    "block_confidence_infra": 0.97,
+    "flag_confidence_high": 0.80,
+    "flag_confidence_low": 0.60,
+    "clean_confidence": 0.95
+  },
+  "pattern_weights": {
+    "Mount path reference": 1.0,
+    "Context file reference": 1.0,
+    "Credential / data exfiltration attempt": 1.0,
+    "Context file manipulation": 1.0,
+    "MCP tool call injection": 1.0,
+    "Persona replacement": 1.0,
+    "System prompt injection": 1.0,
+    "Training override attempt": 1.0,
+    "Behavioral drift injection": 1.0,
+    "Direct prompt injection": 1.0,
+    "Jailbreak attempt": 1.0,
+    "Anthropic API key exposure": 1.0,
+    "OpenAI API key exposure": 1.0,
+    "GitHub token exposure": 1.0,
+    "Bearer token exposure": 1.0,
+    "Password exposure": 1.0
+  }
+}

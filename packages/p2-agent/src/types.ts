@@ -56,3 +56,20 @@ export interface ScanHistoryEntry {
   claim_hash: string;
   source_url?: string;
 }
+
+/** Adaptive weights for P2 consensus, loaded from p2-weights.json. */
+export interface P2Weights {
+  agent_weights: {
+    provenance: number;
+    'cross-ref': number;
+    temporal: number;
+    credibility: number;
+  };
+  consensus_thresholds: {
+    confirmed_threat_min_supporting: number;
+    likely_threat_min_supporting: number;
+    false_positive_min_contradicting: number;
+    likely_safe_min_contradicting: number;
+    human_review_min_uncertain: number;
+  };
+}

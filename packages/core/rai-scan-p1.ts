@@ -9,6 +9,8 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { readEnvFile } from "./env.js";
+import { loadP1Weights } from "./threat-weights.js";
+import { getDefaultScanLog } from "./scan-log.js";
 
 // ─── Types (canonical schema from 19-ray-context.md) ─────────────────────────
 
@@ -151,7 +153,8 @@ export async function scanP1(input: ScanInput): Promise<ScanOutput> {
 
   const MODEL_HAIKU = "claude-haiku-4-5-20251001";
   const MODEL_SONNET = "claude-sonnet-4-20250514";
-  const ESCALATION_THRESHOLD = 0.65;
+  const p1Weights = loadP1Weights();
+  const ESCALATION_THRESHOLD = p1Weights.escalation_threshold;
 
   let raw: string;
   try {
@@ -205,6 +208,22 @@ export async function scanP1(input: ScanInput): Promise<ScanOutput> {
   }
 
   const action = deriveAction(parsed.verdict, parsed.threat_layers ?? []);
+  const latency_ms = Date.now() - startMs;
+
+  // Log verdict for Phantom training data
+  try {
+    getDefaultScanLog().logScan({
+      timestamp: new Date().toISOString(),
+      scan_id: input.scan_id,
+      tier: 'p1',
+      channel: input.source.channel,
+      verdict: parsed.verdict,
+      confidence: parsed.confidence,
+      recommended_action: action,
+      threat_layers: (parsed.threat_layers ?? []).map(t => ({ layer: t.layer, label: t.label, severity: t.severity })),
+      latency_ms,
+    });
+  } catch { /* never block scan pipeline on log failure */ }
 
   return {
     scan_id: input.scan_id,
@@ -215,7 +234,7 @@ export async function scanP1(input: ScanInput): Promise<ScanOutput> {
     explanation: parsed.explanation,
     raw_signals: parsed.raw_signals ?? [],
     p1_invoked: true,
-    latency_ms: Date.now() - startMs,
+    latency_ms,
   };
 }
 
@@ -276,7 +295,8 @@ function failOpen(scan_id: string, startMs: number): ScanOutput {
 export function shouldEscalateToP1(p0Verdict: Verdict, p0Confidence: number): boolean {
   if (p0Verdict === "flagged") return true;
   if (p0Verdict === "blocked") return false;
-  if (p0Confidence < 0.6) return true;
+  const threshold = loadP1Weights().p0_trigger_threshold;
+  if (p0Confidence < threshold) return true;
   return false;
 }
 

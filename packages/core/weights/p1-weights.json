@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "version": 1,
+    "updated": "2026-04-12T00:00:00Z",
+    "source": "initial extraction from rai-scan-p1.ts"
+  },
+  "escalation_threshold": 0.65,
+  "p0_trigger_threshold": 0.60,
+  "layer_severity_weights": {
+    "L-2": { "base_weight": 1.0, "critical_multiplier": 1.0 },
+    "L-1": { "base_weight": 1.0, "critical_multiplier": 1.0 },
+    "L0": { "base_weight": 1.0, "critical_multiplier": 1.0 },
+    "L1": { "base_weight": 1.0, "critical_multiplier": 1.0 },
+    "L2": { "base_weight": 1.0, "critical_multiplier": 1.0 },
+    "L3": { "base_weight": 1.0, "critical_multiplier": 1.0 }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "_meta": {
+    "version": 1,
+    "updated": "2026-04-12T00:00:00Z",
+    "source": "initial extraction from consensus.ts + credibility.ts"
+  },
+  "agent_weights": {
+    "provenance": 1.0,
+    "cross-ref": 1.0,
+    "temporal": 1.0,
+    "credibility": 1.0
+  },
+  "consensus_thresholds": {
+    "confirmed_threat_min_supporting": 3,
+    "likely_threat_min_supporting": 2,
+    "false_positive_min_contradicting": 3,
+    "likely_safe_min_contradicting": 2,
+    "human_review_min_uncertain": 3
+  },
+  "credibility_index": {
+    "github.com/*/security": { "tier": "official", "weight": 0.9 },
+    "cve.org": { "tier": "official", "weight": 0.9 },
+    "nvd.nist.gov": { "tier": "official", "weight": 0.9 },
+    "sec.gov": { "tier": "official", "weight": 0.9 },
+    "venturebeat.com": { "tier": "established", "weight": 0.7 },
+    "techcrunch.com": { "tier": "established", "weight": 0.7 },
+    "fortune.com": { "tier": "established", "weight": 0.7 },
+    "arstechnica.com": { "tier": "established", "weight": 0.7 },
+    "news.ycombinator.com": { "tier": "community", "weight": 0.5 },
+    "reddit.com": { "tier": "community", "weight": 0.5 },
+    "dev.to": { "tier": "community", "weight": 0.5 },
+    "twitter.com": { "tier": "social", "weight": 0.3 },
+    "x.com": { "tier": "social", "weight": 0.3 },
+    "pastebin.com": { "tier": "anonymous", "weight": 0.1 }
+  },
+  "p2_trigger": {
+    "p1_confidence_threshold": 0.70,
+    "trigger_layers": ["L1", "L2"]
+  }
+}
