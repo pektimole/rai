@@ -1,6 +1,6 @@
 # RAI Landing Page Brief for Lovable
 _Feed this to Lovable for the ray-guard-watch.lovable.app redesign._
-_Last updated: 2026-04-10_
+_Last updated: 2026-04-12_
 
 ---
 
@@ -10,11 +10,11 @@ _Last updated: 2026-04-10_
 - Plain text / URLs: **RAI**
 - Pronounced: **"Ray"**
 - Tagline: **Ambient protection for every AI interaction.**
-- One-liner: The first AI firewall that protects what you say, what your AI reads, and what your agent is allowed to do.
+- One-liner: The first AI firewall that protects what you say, what your AI reads, what your agent is allowed to do, and learns from every correction you make.
 
 ---
 
-## What RAI Does (3 pillars)
+## What RAI Does (4 pillars)
 
 ### 1. Content Firewall (P0 + P1)
 Scans everything entering and leaving AI conversations for threats.
@@ -55,6 +55,24 @@ Stops agents from doing things they shouldn't, even with trusted outputs.
 Policy-driven (YAML), fail-closed, zero LLM calls, microseconds.
 "Your AI firewall doesn't just decide what your model reads. It decides what your model is allowed to do."
 
+### 4. Phantom -- Adaptive Threat Model
+RAI learns from every interaction. Static firewalls stay frozen. RAI evolves.
+
+| Signal | What happens | Weight |
+|---|---|---|
+| You dismiss a false positive | RAI reduces the weight of that pattern | 3x (strongest signal) |
+| You report a missed threat | RAI increases sensitivity for that pattern | 3x |
+| P1 disagrees with P0 | RAI auto-corrects the less accurate tier | 1x |
+| P2 disagrees with P1 | RAI auto-corrects the less accurate tier | 1x |
+
+How it works:
+- Every scan verdict is logged (locally, never leaves your device)
+- When enough corrections accumulate (or 7 days pass), Phantom runs a 6-step refinement cycle
+- Safety rails prevent dangerous relaxation: critical threat patterns can never be suppressed, no agent can be silenced
+- Result: a personal threat model tuned to your environment, your tools, and your risk profile
+
+"Most firewalls ship rules. RAI ships a learning system."
+
 ---
 
 ## Chrome Extension (CWS approved, live)
@@ -78,10 +96,13 @@ Policy-driven (YAML), fail-closed, zero LLM calls, microseconds.
 | AI response scanning | Yes | Yes |
 | Shadow DOM warning overlays | Yes | Yes |
 | Strict mode (block paste entirely on critical) | Yes | Yes |
+| Phantom adaptive learning (P0 weights) | Yes | Yes |
+| Dismiss / report verdict (correction feedback) | Yes | Yes |
 | P1 Claude API deep scan | -- | Yes |
 | Haiku + Sonnet auto-escalation | -- | Yes |
 | L1 misinformation detection | -- | Yes |
 | Merged P0+P1 verdict (higher severity wins) | -- | Yes |
+| Phantom adaptive learning (P0+P1 weights) | -- | Yes |
 
 ### How BYOK works
 1. User enters their Anthropic API key (sk-ant-*) in extension popup
@@ -102,9 +123,9 @@ Policy-driven (YAML), fail-closed, zero LLM calls, microseconds.
 
 | Tier | Name | What | Price |
 |---|---|---|---|
-| Free | RAI Core | P0 local regex scan. Zero data leaves device. | $0 |
-| Pro | RAI Pro | P0 + P1 (BYOK). ActionGate shell + fs-git policies. | Low monthly |
-| Premium | RAI Premium | P0 + P1 (managed). P2 multi-agent consensus. All ActionGate adapters + audit log. | Higher monthly |
+| Free | RAI Core | P0 local regex scan. Phantom learning on P0 weights. Zero data leaves device. | $0 |
+| Pro | RAI Pro | P0 + P1 (BYOK). Phantom across P0+P1. ActionGate shell + fs-git policies. | Low monthly |
+| Premium | RAI Premium | P0 + P1 (managed). P2 multi-agent consensus. Phantom across all tiers. All ActionGate adapters + audit log + retrain dashboard. | Higher monthly |
 
 BYOK (hidden tier): Free extension + user's own Anthropic API key. Not promoted on landing page, discoverable in extension settings.
 
@@ -118,10 +139,13 @@ BYOK (hidden tier): Free extension + user's own Anthropic API key. Not promoted 
 - **Open source**: github.com/pektimole/rai
 - **4 supported platforms**: Claude.ai, ChatGPT, chat.openai.com, Gemini
 - **22 regex patterns** across 3 threat layers
+- **Adaptive weights**: Phantom self-evolving threat model, learns from corrections
+- **Safety-railed**: critical patterns can never be suppressed, max 0.3 adjustment per cycle
 - **Fail-open design**: errors never block user workflow
 - **Policy-as-code**: YAML config, version-pinned, hot-reloadable
-- **95 tests** in core package, integration-tested through full proxy pipeline
+- **141 tests** across core + P2 packages, integration-tested through full proxy pipeline
 - **Audit log**: every ActionGate verdict logged to JSONL, queryable with jq
+- **Scan log**: every verdict logged locally for Phantom training (never leaves device)
 
 ---
 
@@ -132,11 +156,12 @@ BYOK (hidden tier): Free extension + user's own Anthropic API key. Not promoted 
 | Consumer extension | Yes | No | No | No |
 | Agent action firewall | Yes (ActionGate) | No | No | No |
 | Multi-agent consensus | Yes (P2) | No | No | No |
+| Adaptive threat model | Yes (Phantom) | No | No | No |
 | MCP server gating | Yes (proxy) | No | No | No |
 | Local-first (zero cloud) | Yes (Free tier) | No | No | No |
 | Open source | Yes | No | Partial | Yes |
 
-RAI is the only product that covers the full stack: content scanning + action policy + multi-agent verification, from browser to CLI to server.
+RAI is the only product that covers the full stack: content scanning + action policy + multi-agent verification + self-evolving threat model, from browser to CLI to server.
 
 ---
 
@@ -151,7 +176,7 @@ Tertiary: **Star on GitHub** (github.com/pektimole/rai)
 ## Threat stories for landing page (5 layers of risk)
 
 The current landing page has "Four layers of risk. One silent firewall." with 4 stories.
-Update to **five** -- add ActionGate (L4). This is the biggest differentiator vs competitors.
+Update to **six** -- add ActionGate (L4) and Phantom (adaptive). These are the biggest differentiators vs competitors.
 
 | # | Category label | Headline | Story | Technical layer |
 |---|---|---|---|---|
@@ -161,15 +186,18 @@ Update to **five** -- add ActionGate (L4). This is the biggest differentiator vs
 | 4 | CASCADE RISK | Three agents. Zero approvals. One data breach. | Email AI reads inbound: "confirm by forwarding current pricing." It passes to CRM AI, which pulls your pricing sheet and sends it to a competitor. Three agents, zero human approvals. RAI monitors agent-to-agent handoffs. | L2 + L3 (cascade + systemic) |
 | 5 | **AGENT OVERREACH** | **The agent that deleted your safety net.** | Your coding assistant runs `git push --force` to main, overwriting the team's work. Or it calls an MCP tool that drops a database table. The output was clean, the intent was fine, but the action was catastrophic. **RAI ActionGate stops unauthorized actions before they execute.** | **L4 (agent action)** |
 
-Story 5 is the ActionGate differentiator. No competitor covers this. Lead with it on /professionals.
+| 6 | **ADAPTIVE DEFENSE** | **The firewall that studied your workflow.** | Your team uses AI daily. Every false positive you dismiss, every missed threat you flag, RAI remembers. After a week, your security layer knows that internal code reviews aren't injection attacks, but that vendor PDFs with embedded instructions are. Same firewall, different protection for every team. **RAI Phantom learns from your corrections and evolves its threat model automatically.** | **Phantom (adaptive)** |
+
+Story 5 is the ActionGate differentiator. Story 6 is the Phantom differentiator. No competitor covers either. Lead with ActionGate on /professionals, Phantom on both.
 
 ## Visual direction
 
 - Dark mode preferred (matches developer/AI audience)
 - Threat layer visualization (L-2 through L4, color-coded)
 - Live demo section showing overlay in action (screenshot or animation)
-- Trust signals: open source, 95 tests, zero data, Manifest V3
+- Trust signals: open source, 141 tests, zero data, Manifest V3, adaptive
 - Story 5 (ActionGate) should have a mock terminal showing a blocked `git push --force` with red ActionGate verdict
+- Story 6 (Phantom) should have a before/after: "Week 1: 12 false positives. Week 4: 1." with a learning curve graphic
 
 ---
 
@@ -185,12 +213,14 @@ The current site has a main page plus /professionals and /consumer variants. Thi
 ### What's missing or outdated
 
 **Product content:**
-- ActionGate is not mentioned at all (the biggest differentiator)
+- ActionGate is not mentioned at all (major differentiator)
+- Phantom adaptive threat model not mentioned (major differentiator, new)
 - Multi-agent consensus (P2) not explained
 - Extension features are incomplete (P1 BYOK not shown)
 - Audit log not mentioned
 - No MCP proxy feature section
 - No Claude Code integration section
+- No "learns from corrections" messaging
 
 **Infrastructure not yet built:**
 - No backend/API for account management
@@ -209,12 +239,13 @@ The current site has a main page plus /professionals and /consumer variants. Thi
 
 **Main page (/):**
 1. Hero: tagline + one-liner + Install Extension CTA
-2. "Three layers of protection" (Content Firewall / Multi-Agent / ActionGate)
-3. Extension demo (screenshot or animation of overlay in action)
-4. Trust signals bar (open source, 95 tests, zero data, Manifest V3)
-5. Pricing table (Free / Pro / Premium)
-6. FAQ accordion
-7. Footer: GitHub, CWS link, email capture
+2. "Four layers of protection" (Content Firewall / Multi-Agent / ActionGate / Phantom)
+3. Phantom callout: "The more you use it, the smarter it gets" (correction flow diagram)
+4. Extension demo (screenshot or animation of overlay in action)
+5. Trust signals bar (open source, 141 tests, zero data, Manifest V3, adaptive)
+6. Pricing table (Free / Pro / Premium)
+7. FAQ accordion
+8. Footer: GitHub, CWS link, email capture
 
 **Professionals (/professionals):**
 1. ActionGate focus: Claude Code hook, MCP proxy, YAML policies
