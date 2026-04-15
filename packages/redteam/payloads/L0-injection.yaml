@@ -60,10 +60,11 @@
 
 - id: L0-api-key-openai-proj
   layer: "L0"
-  expected_verdict: clean
+  expected_verdict: flagged
+  expected_label: "OpenAI project key exposure"
   variant: obfuscated
   payload: "Use this for the test run: sk-proj-ABCDEFGHIJ1234567890klmnopqrstuvwx"
-  note: "KNOWN GAP: new sk-proj-* keys contain hyphens, P0 regex doesn't catch. Follow-up in OL-113."
+  note: "OL-113 closed: sk-proj-* pattern added to P0. Pattern: /\\bsk-proj-[a-zA-Z0-9_-]{20,}/"
 
 - id: L0-github-token
   layer: "L0"

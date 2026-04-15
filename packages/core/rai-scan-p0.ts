@@ -222,6 +222,13 @@ const PATTERNS: Pattern[] = [
     signal: 'Anthropic API key pattern detected in payload',
   },
   {
+    regex: /\bsk-proj-[a-zA-Z0-9_-]{20,}/,
+    label: 'OpenAI project key exposure',
+    layer: 'L0',
+    severity: 'high',
+    signal: 'OpenAI sk-proj-* project API key pattern detected',
+  },
+  {
     regex: /\bsk-[a-zA-Z0-9]{20,}/,
     label: 'OpenAI API key exposure',
     layer: 'L0',

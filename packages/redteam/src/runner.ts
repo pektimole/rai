@@ -11,7 +11,13 @@
  */
 
 import { randomUUID } from 'crypto';
-import { rayScan, scanP1, shouldEscalateToP1 } from '@rai/core';
+import {
+  rayScan,
+  scanP1,
+  shouldEscalateToP1,
+  ScanLog,
+  type CorrectionEntry,
+} from '@rai/core';
 import type { Payload, PayloadResult, SuiteReport, ThreatLayer, Variant } from './types.js';
 
 export interface RunOptions {
@@ -19,6 +25,12 @@ export interface RunOptions {
   enable_p1?: boolean;
   /** Session ID for scan context. Default: random UUID. */
   session_id?: string;
+  /**
+   * If true, log divergences (actual != expected) as corrections to scan-log
+   * at 0.5x sample weight. Feeds Phantom training data from synthetic runs.
+   * Default: false (explicit opt-in to avoid polluting scan-log during dev runs).
+   */
+  write_corrections?: boolean;
 }
 
 /** Run a single payload through P0 (+ optional P1). */
@@ -91,6 +103,26 @@ export async function runPayload(
   const labelMissed =
     payload.expected_label !== undefined &&
     !actualLabels.some((l) => l === payload.expected_label);
+
+  // Synthetic-to-Phantom wiring: on divergence, log a correction at 0.5x weight.
+  // Payload's expected_verdict is the known-truth label for training.
+  if (!pass && options.write_corrections === true) {
+    const correction: CorrectionEntry = {
+      timestamp: new Date().toISOString(),
+      scan_id: scanId,
+      corrected_tier: tierUsed === 'p0+p1' ? 'p1' : 'p0',
+      corrected_verdict: payload.expected_verdict,
+      correction_source: 'manual', // synthetic = treated as manual for audit clarity
+      reason: `redteam synthetic: payload ${payload.id} expected ${payload.expected_verdict}, got ${actualVerdict}`,
+      sample_weight: 0.5, // half weight — known-truth but not user-confirmed
+    };
+    try {
+      // Fresh instance to honor current process env (important for tests).
+      new ScanLog().logCorrection(correction);
+    } catch {
+      // Never block the runner on scan-log write failure
+    }
+  }
 
   return {
     payload_id: payload.id,

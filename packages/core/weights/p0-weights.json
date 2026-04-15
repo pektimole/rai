@@ -25,6 +25,7 @@
     "Direct prompt injection": 1.0,
     "Jailbreak attempt": 1.0,
     "Anthropic API key exposure": 1.0,
+    "OpenAI project key exposure": 1.0,
     "OpenAI API key exposure": 1.0,
     "GitHub token exposure": 1.0,
     "Bearer token exposure": 1.0,

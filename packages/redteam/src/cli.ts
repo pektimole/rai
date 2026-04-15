@@ -15,11 +15,22 @@ import { loadPayloads } from './loader.js';
 import { runSuite } from './runner.js';
 import type { ThreatLayer } from './types.js';
 
-function parseArgs(argv: string[]): { p1: boolean; layer: ThreatLayer | null; json: boolean } {
-  const out = { p1: false, layer: null as ThreatLayer | null, json: false };
+function parseArgs(argv: string[]): {
+  p1: boolean;
+  layer: ThreatLayer | null;
+  json: boolean;
+  writeCorrections: boolean;
+} {
+  const out = {
+    p1: false,
+    layer: null as ThreatLayer | null,
+    json: false,
+    writeCorrections: false,
+  };
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === '--p1') out.p1 = true;
     else if (argv[i] === '--json') out.json = true;
+    else if (argv[i] === '--write-corrections') out.writeCorrections = true;
     else if (argv[i] === '--layer' && argv[i + 1]) {
       out.layer = argv[++i] as ThreatLayer;
     }
@@ -36,10 +47,16 @@ async function main(): Promise<void> {
   }
 
   if (!args.json) {
-    console.log(`RAI red-team suite: ${payloads.length} payloads, P1=${args.p1 ? 'on' : 'off'}`);
+    console.log(
+      `RAI red-team suite: ${payloads.length} payloads, P1=${args.p1 ? 'on' : 'off'}` +
+        (args.writeCorrections ? ', write-corrections=on (divergences → scan-log)' : ''),
+    );
   }
 
-  const report = await runSuite(payloads, { enable_p1: args.p1 });
+  const report = await runSuite(payloads, {
+    enable_p1: args.p1,
+    write_corrections: args.writeCorrections,
+  });
 
   if (args.json) {
     console.log(JSON.stringify(report, null, 2));
