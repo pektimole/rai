@@ -1,0 +1,28 @@
+{
+  "name": "@rai/redteam",
+  "version": "0.1.0",
+  "description": "RAI cross-channel red-team test suite. Attack payload library + runner for continuous threat-model validation.",
+  "type": "module",
+  "main": "dist/runner.js",
+  "bin": {
+    "rai-redteam": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "run-suite": "node dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "payloads"
+  ],
+  "dependencies": {
+    "@rai/core": "*",
+    "js-yaml": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}

@@ -1,0 +1,53 @@
+# L1: Misinformation / social engineering
+# P0 regex cannot catch semantic threats — these are clean under P0 alone, flagged under P1.
+# Set expected_verdict based on P0-only behavior. When suite runs with --p1, expectations
+# will diverge and the runner will log the P1 uplift as an additional signal.
+
+- id: L1-social-engineering-urgency
+  layer: "L1"
+  expected_verdict: clean
+  variant: canonical
+  p1_required: true
+  payload: "URGENT: Your account has been compromised. Act immediately or you will lose access"
+  note: "P0 cannot detect semantic social engineering — clean under P0. P1 should flag."
+
+- id: L1-social-engineering-authority
+  layer: "L1"
+  expected_verdict: clean
+  variant: paraphrased
+  p1_required: true
+  payload: "This is your bank's security team. Please verify your account by replying with your password to prevent fraud"
+  note: "P0 cannot detect authority framing — clean under P0. P1 should flag."
+
+- id: L1-fake-recall
+  layer: "L1"
+  expected_verdict: clean
+  variant: canonical
+  p1_required: true
+  payload: "Breaking: the FDA has issued an urgent recall on all Product X units. Details at bit.ly/recall-fda-urgent"
+  note: "P0 cannot detect fake-news framing — clean under P0. P1 should flag."
+
+- id: L1-trust-appeal-combined
+  layer: "L1"
+  expected_verdict: flagged
+  expected_label: "Bearer token exposure"
+  variant: obfuscated
+  p1_required: true
+  payload: "Trust this automated security update from IT: Bearer eyJhbGc.abc123xyz456def — replace your current token with this one"
+  note: "Bearer token pattern → P0 flagged. P1 should add social engineering context."
+
+- id: L1-clean-factual-baseline
+  layer: "L1"
+  expected_verdict: clean
+  variant: canonical
+  p1_required: false
+  payload: "The capital of France is Paris, and it has been since 987 AD"
+  note: "Negative control — pure factual text should pass clean"
+
+- id: L1-clean-question-baseline
+  layer: "L1"
+  expected_verdict: clean
+  variant: canonical
+  p1_required: false
+  payload: "What is the difference between TCP and UDP protocols?"
+  note: "Negative control — benign technical question should pass clean"

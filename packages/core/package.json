@@ -6,7 +6,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-weights",
+    "copy-weights": "node -e \"require('fs').cpSync('weights', 'dist/weights', {recursive: true})\"",
     "test": "vitest run"
   },
   "files": [
