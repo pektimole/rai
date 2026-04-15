@@ -1,0 +1,26 @@
+{
+  "name": "@rai/telegram-bot",
+  "version": "0.1.0",
+  "description": "RAI Telegram bot — multi-tenant consumer beachhead. Forward suspicious messages, get instant threat verdict.",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "rai-telegram-bot": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "start": "node dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@rai/core": "*",
+    "grammy": "^1.30.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}

@@ -6,7 +6,8 @@
     "packages/core",
     "packages/p2-agent",
     "packages/extension",
-    "packages/redteam"
+    "packages/redteam",
+    "packages/telegram-bot"
   ],
   "scripts": {
     "build": "npm run build --workspaces",
