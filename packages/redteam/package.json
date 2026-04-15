@@ -8,7 +8,7 @@
     "rai-redteam": "dist/cli.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node dist/bundle.js",
     "test": "vitest run",
     "run-suite": "node dist/cli.js"
   },
