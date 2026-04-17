@@ -6,7 +6,8 @@
  * for traceability. No cross-user data access by design.
  */
 
-import { rayScan, ScanLog } from '@rai/core';
+import { rayScan } from '@rai/core';
+import { recordScan } from './stats.js';
 
 export interface ScanResult {
   verdict: 'clean' | 'flagged' | 'blocked';
@@ -52,6 +53,9 @@ export async function scanForChat(text: string, chatId: number): Promise<ScanRes
     payload: { type: 'text', content: text },
     context: { session_id: sessionId, host_environment: 'api' },
   });
+
+  // Record metrics (never blocks scan response on write failure)
+  try { recordScan(chatId, result.verdict); } catch { /* noop */ }
 
   return {
     verdict: result.verdict,

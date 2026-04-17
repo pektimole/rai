@@ -17,6 +17,7 @@
 
 import { Bot } from 'grammy';
 import { scanForChat, WELCOME_MESSAGE, HELP_MESSAGE } from './handler.js';
+import { formatStatsReply } from './stats.js';
 
 const token = process.env.RAI_TELEGRAM_BOT_TOKEN;
 if (!token) {
@@ -32,6 +33,10 @@ bot.command('start', (ctx) => {
 
 bot.command('help', (ctx) => {
   return ctx.reply(HELP_MESSAGE, { parse_mode: 'Markdown' });
+});
+
+bot.command('stats', (ctx) => {
+  return ctx.reply(formatStatsReply(), { parse_mode: 'Markdown' });
 });
 
 bot.command('privacy', (ctx) => {
