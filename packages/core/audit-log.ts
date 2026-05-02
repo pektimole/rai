@@ -15,7 +15,13 @@ import * as path from 'path';
 // Types
 // ---------------------------------------------------------------------------
 
-export type AuditAdapter = 'fs-git' | 'shell' | 'mcp' | 'http' | 'browser-dom';
+export type AuditAdapter =
+  | 'fs-git'
+  | 'shell'
+  | 'mcp'
+  | 'http'
+  | 'browser-dom'
+  | 'native-messaging-host';
 
 export interface AuditEntry {
   /** ISO-8601 timestamp. */
@@ -27,7 +33,7 @@ export interface AuditEntry {
   /** Which ActionGate adapter produced this verdict. */
   adapter: AuditAdapter;
   /** The verdict decision. */
-  decision: 'allow' | 'deny' | 'sanitize';
+  decision: 'allow' | 'deny' | 'sanitize' | 'warn';
   /** The rule that produced the verdict. */
   rule: string;
   /** Human-readable reason. */
@@ -80,7 +86,7 @@ export class AuditLog {
    */
   log(fields: {
     adapter: AuditAdapter;
-    decision: 'allow' | 'deny' | 'sanitize';
+    decision: 'allow' | 'deny' | 'sanitize' | 'warn';
     rule: string;
     reason: string;
     action_summary: string;

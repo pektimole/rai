@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "RAI - AI Interaction Firewall",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Ambient protection for every AI interaction. Zero data leaves your device.",
   "author": "Tim-Ole Pek",
   "homepage_url": "https://github.com/pektimole/rai",
@@ -10,7 +10,8 @@
     "https://claude.ai/*",
     "https://chatgpt.com/*",
     "https://chat.openai.com/*",
-    "https://gemini.google.com/*"
+    "https://gemini.google.com/*",
+    "https://myaccount.google.com/*"
   ],
   "background": {
     "service_worker": "src/background/service-worker.ts",
@@ -25,6 +26,11 @@
         "https://gemini.google.com/*"
       ],
       "js": ["src/content/injector.ts"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://myaccount.google.com/connections*"],
+      "js": ["src/content/google-grants.ts"],
       "run_at": "document_idle"
     }
   ],

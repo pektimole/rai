@@ -202,6 +202,25 @@
       <span class="toggle-slider"></span>
     </label>
   </div>
+  <div class="api-key-section" id="grants-section">
+    <div class="api-key-label">AI grants on your Google account</div>
+    <div class="api-key-sub" id="grants-sub">No baseline yet. Visit myaccount.google.com/connections.</div>
+    <div id="grants-list" style="font-size:11px;color:#444;line-height:1.5;margin-bottom:8px"></div>
+    <div class="api-key-label" style="margin-top:8px;font-size:12px">Telegram push (optional)</div>
+    <div class="api-key-sub">Buzz your phone when a new AI tool gets a sensitive Google scope. Bot token + your chat id.</div>
+    <div class="api-key-row" id="tg-input-row">
+      <input type="password" class="api-key-input" id="tg-token" placeholder="Bot token" autocomplete="off">
+    </div>
+    <div class="api-key-row" id="tg-chat-row" style="margin-top:4px">
+      <input type="text" class="api-key-input" id="tg-chat-id" placeholder="Chat id" autocomplete="off">
+      <button class="api-key-btn" id="tg-save">Save</button>
+    </div>
+    <div class="api-key-row" id="tg-active-row" style="display:none;margin-top:4px">
+      <div class="api-key-status active" id="tg-status-text">Telegram push active.</div>
+      <button class="api-key-btn clear" id="tg-clear">Remove</button>
+    </div>
+    <div class="api-key-trust">Stored locally on this device only. Calls go directly to Telegram, never to RAI servers.</div>
+  </div>
   <div class="api-key-section">
     <div class="api-key-label">Claude API Key (BYOK)</div>
     <div class="api-key-sub">Enables P1 deep scan via your own Anthropic key</div>

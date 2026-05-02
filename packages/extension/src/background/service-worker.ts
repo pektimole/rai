@@ -10,6 +10,14 @@
 import { scanP0 } from '../shared/rai-scan-p0.js';
 import { scanP1, shouldEscalateToP1, mergeVerdicts } from '../shared/rai-scan-p1.js';
 import type { ScanRequest, ScanResponse } from '../shared/types.js';
+import {
+  normaliseSnapshot,
+  diffSnapshots,
+  notifiableFromDiff,
+  inferScopes,
+  type ObservedGrant,
+  type GrantDiff,
+} from '../shared/google-grants.js';
 
 // Badge colors
 const BADGE_COLORS = {
@@ -108,3 +116,142 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
     chrome.action.setBadgeText({ text: '', tabId });
   }
 });
+
+// ---------------------------------------------------------------------------
+// OAuth Grant Watcher (Phase C) -- handles snapshots from google-grants.ts
+// ---------------------------------------------------------------------------
+
+interface GrantsObservedMessage {
+  action: 'grants_observed';
+  url: string;
+  grants: ObservedGrant[];
+  ts: string;
+}
+
+interface StoredGrantsState {
+  grants_baseline?: ObservedGrant[];
+  grants_diff_history?: Array<{
+    ts: string;
+    diff: GrantDiff;
+  }>;
+  grants_last_seen_ts?: string;
+  grants_total_observed?: number;
+}
+
+const GRANTS_DIFF_HISTORY_CAP = 20;
+
+function loadGrantsState(): Promise<StoredGrantsState> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(
+      [
+        'grants_baseline',
+        'grants_diff_history',
+        'grants_last_seen_ts',
+        'grants_total_observed',
+      ],
+      (data) => resolve(data as StoredGrantsState),
+    );
+  });
+}
+
+function setGrantsBadge(tabId: number | undefined, hasNew: boolean): void {
+  if (!tabId) return;
+  if (hasNew) {
+    chrome.action.setBadgeText({ text: '!', tabId });
+    chrome.action.setBadgeBackgroundColor({ color: '#FF9800', tabId });
+  }
+}
+
+/**
+ * Enrich an observed snapshot with scope inference. The content script
+ * supplies the bare visible label; here we run inferScopes against the
+ * display string so the diff layer can see scope-tag deltas.
+ */
+function enrichWithScopes(grants: ObservedGrant[]): ObservedGrant[] {
+  return grants.map((g) => ({
+    ...g,
+    scopes: g.scopes.length > 0 ? g.scopes : inferScopes(g.display ?? g.name),
+  }));
+}
+
+chrome.runtime.onMessage.addListener((message, sender) => {
+  if ((message as GrantsObservedMessage).action !== 'grants_observed') return false;
+
+  const m = message as GrantsObservedMessage;
+  const tabId = sender.tab?.id;
+
+  void (async () => {
+    const enriched = enrichWithScopes(m.grants);
+    const current = normaliseSnapshot(enriched);
+
+    const state = await loadGrantsState();
+    const previous = normaliseSnapshot(state.grants_baseline ?? []);
+
+    const diff = diffSnapshots(previous, current);
+    const notifiable = notifiableFromDiff(diff);
+
+    const hasMeaningfulChange =
+      diff.added.length > 0 ||
+      diff.removed.length > 0 ||
+      diff.scope_changed.length > 0;
+
+    const newHistory = [...(state.grants_diff_history ?? [])];
+    if (hasMeaningfulChange) {
+      newHistory.unshift({ ts: m.ts, diff });
+      newHistory.length = Math.min(newHistory.length, GRANTS_DIFF_HISTORY_CAP);
+    }
+
+    chrome.storage.local.set({
+      grants_baseline: current,
+      grants_diff_history: newHistory,
+      grants_last_seen_ts: m.ts,
+      grants_total_observed: current.length,
+    });
+
+    if (notifiable.length > 0) {
+      setGrantsBadge(tabId, true);
+      console.log(
+        '[RAI grants] notifiable:',
+        notifiable.map((g) => `${g.ai_vendor_key}(${g.risk})`).join(', '),
+      );
+      void pushGrantsToTelegram(notifiable);
+    }
+  })();
+
+  return false;
+});
+
+interface TelegramConfig {
+  rai_telegram_bot_token?: string;
+  rai_telegram_chat_id?: string;
+}
+
+async function pushGrantsToTelegram(
+  notifiable: Array<{ display?: string; name: string; ai_vendor_key: string; risk: string; scopes: string[] }>,
+): Promise<void> {
+  const cfg = await new Promise<TelegramConfig>((resolve) => {
+    chrome.storage.local.get(
+      ['rai_telegram_bot_token', 'rai_telegram_chat_id'],
+      (data) => resolve(data as TelegramConfig),
+    );
+  });
+  const token = cfg.rai_telegram_bot_token;
+  const chatId = cfg.rai_telegram_chat_id;
+  if (!token || !chatId) return;
+
+  const lines = notifiable.map(
+    (g) =>
+      `· ${g.display ?? g.name} (${g.ai_vendor_key}, ${g.risk}) scopes=${g.scopes.join(',') || 'unknown'}`,
+  );
+  const text = `RAI · OAuth grant change\n${lines.join('\n')}`;
+
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text }),
+    });
+  } catch (err) {
+    console.warn('[RAI grants] telegram push failed:', err);
+  }
+}
