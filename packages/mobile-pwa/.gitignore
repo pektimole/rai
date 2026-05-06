@@ -1,0 +1,4 @@
+Node_modules
+dist
+dev-dist
+*.log
