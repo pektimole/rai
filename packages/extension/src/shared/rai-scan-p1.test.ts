@@ -32,9 +32,9 @@ describe('Extension P1 system prompt — OL-124 pattern classes', () => {
     },
   );
 
-  it('frames L1 as Misinformation OR epistemic manipulation', () => {
+  it('frames L1 as AI-provenance / non-human-generated content', () => {
     expect(P1_SOURCE).toMatch(
-      /L1: Misinformation\s*\/\s*epistemic manipulation/i,
+      /L1: AI-provenance\s*\/\s*non-human-generated/i,
     );
   });
 

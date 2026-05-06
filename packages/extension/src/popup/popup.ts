@@ -1,3 +1,24 @@
+interface LatestScanShape {
+  scan_id: string;
+  ts: string;
+  content: string;
+  source_url?: string;
+  page_title?: string;
+  verdict: 'clean' | 'flagged' | 'blocked';
+  confidence: number;
+  threat_layers: Array<{ layer: string; label: string; signal: string; severity: string }>;
+  explanation: string;
+  p1_invoked: boolean;
+  p1_latency_ms?: number;
+  p1_model?: string;
+  judgment?: 'agree' | 'disagree' | 'borderline';
+}
+
+interface CorpusRowShape {
+  type: 'scan' | 'judgment';
+  [key: string]: unknown;
+}
+
 // Load stats and settings
 chrome.storage.local.get(
   [
@@ -11,6 +32,8 @@ chrome.storage.local.get(
     'grants_total_observed',
     'rai_telegram_bot_token',
     'rai_telegram_chat_id',
+    'latest_scan',
+    'corpus',
   ],
   (data) => {
     const d = data as {
@@ -24,6 +47,8 @@ chrome.storage.local.get(
       grants_total_observed?: number;
       rai_telegram_bot_token?: string;
       rai_telegram_chat_id?: string;
+      latest_scan?: LatestScanShape;
+      corpus?: CorpusRowShape[];
     };
     const scans = document.getElementById('scans');
     const threats = document.getElementById('threats');
@@ -54,6 +79,10 @@ chrome.storage.local.get(
 
     // Telegram BYOK state
     updateTelegramUI(!!(d.rai_telegram_bot_token && d.rai_telegram_chat_id));
+
+    // Latest right-click scan
+    renderLatestScan(d.latest_scan);
+    renderCorpusLine(d.corpus);
   },
 );
 
@@ -202,3 +231,143 @@ function updateApiKeyUI(hasKey: boolean): void {
       : 'Zero data leaves your device.';
   }
 }
+
+// ---------------------------------------------------------------------------
+// Latest scan + label buttons + export
+// ---------------------------------------------------------------------------
+
+function renderLatestScan(latest: LatestScanShape | undefined): void {
+  const empty = document.getElementById('latest-empty');
+  const body = document.getElementById('latest-body');
+  const verdictPill = document.getElementById('latest-verdict');
+  const conf = document.getElementById('latest-conf');
+  const content = document.getElementById('latest-content');
+  const signals = document.getElementById('latest-signals');
+  const explanation = document.getElementById('latest-explanation');
+  const labelRow = document.getElementById('label-row');
+  const labelConfirm = document.getElementById('label-confirm');
+  const meta = document.getElementById('latest-meta');
+
+  if (!latest) {
+    if (empty) empty.style.display = 'block';
+    if (body) body.style.display = 'none';
+    if (verdictPill) {
+      verdictPill.textContent = '—';
+      verdictPill.className = 'latest-verdict-pill';
+    }
+    if (conf) conf.textContent = '';
+    return;
+  }
+
+  if (empty) empty.style.display = 'none';
+  if (body) body.style.display = 'block';
+
+  if (verdictPill) {
+    verdictPill.textContent = latest.verdict;
+    verdictPill.className = `latest-verdict-pill ${latest.verdict}`;
+  }
+  if (conf) conf.textContent = `conf ${latest.confidence.toFixed(2)}`;
+  if (content) {
+    const snippet = latest.content.length > 240 ? latest.content.slice(0, 240) + '…' : latest.content;
+    content.textContent = snippet;
+  }
+  if (signals) {
+    if (latest.threat_layers.length === 0) {
+      signals.innerHTML = '<div style="opacity:0.6">No signals.</div>';
+    } else {
+      signals.innerHTML = latest.threat_layers
+        .map(
+          (t) =>
+            `<div class="latest-signal-row"><span class="latest-signal-layer">${escapeHtml(t.layer)}</span><span>${escapeHtml(t.signal)} <span style="color:#999;font-size:10px">(${escapeHtml(t.severity)})</span></span></div>`,
+        )
+        .join('');
+    }
+  }
+  if (explanation) {
+    explanation.textContent = latest.explanation || '';
+    explanation.style.display = latest.explanation ? 'block' : 'none';
+  }
+  if (meta) {
+    const parts: string[] = [];
+    parts.push(new Date(latest.ts).toLocaleString());
+    if (latest.p1_invoked && latest.p1_model && latest.p1_model !== 'none') {
+      parts.push(`P1 ${latest.p1_model.replace('claude-', '').split('-')[0]} ${latest.p1_latency_ms}ms`);
+    } else {
+      parts.push('P0 only');
+    }
+    if (latest.page_title) parts.push(latest.page_title);
+    meta.textContent = parts.join(' · ');
+  }
+
+  if (latest.judgment) {
+    if (labelRow) labelRow.style.display = 'none';
+    if (labelConfirm) {
+      labelConfirm.style.display = 'block';
+      labelConfirm.textContent = `✓ labelled: ${latest.judgment}`;
+    }
+  } else {
+    if (labelRow) labelRow.style.display = 'flex';
+    if (labelConfirm) labelConfirm.style.display = 'none';
+  }
+}
+
+function renderCorpusLine(corpus: CorpusRowShape[] | undefined): void {
+  const line = document.getElementById('corpus-line');
+  if (!line) return;
+  const rows = corpus ?? [];
+  const scans = rows.filter((r) => r.type === 'scan').length;
+  const judgments = rows.filter((r) => r.type === 'judgment').length;
+  if (scans === 0 && judgments === 0) {
+    line.textContent = '';
+    return;
+  }
+  line.textContent = `${scans} scan${scans === 1 ? '' : 's'} · ${judgments} label${judgments === 1 ? '' : 's'} stored locally`;
+}
+
+document.querySelectorAll<HTMLButtonElement>('#label-row .label-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const judgment = btn.dataset.judgment as 'agree' | 'disagree' | 'borderline' | undefined;
+    if (!judgment) return;
+    chrome.storage.local.get(['latest_scan'], (data) => {
+      const latest = (data.latest_scan as LatestScanShape | undefined) ?? undefined;
+      if (!latest) return;
+      chrome.runtime.sendMessage(
+        { action: 'rai_label_latest', scan_id: latest.scan_id, judgment },
+        () => {
+          chrome.storage.local.get(['latest_scan', 'corpus'], (d2) => {
+            renderLatestScan(d2.latest_scan as LatestScanShape | undefined);
+            renderCorpusLine(d2.corpus as CorpusRowShape[] | undefined);
+          });
+        },
+      );
+    });
+  });
+});
+
+document.getElementById('export-corpus-btn')?.addEventListener('click', () => {
+  chrome.storage.local.get(['corpus'], (data) => {
+    const rows = (data.corpus as CorpusRowShape[] | undefined) ?? [];
+    const jsonl = rows.map((r) => JSON.stringify(r)).join('\n') + (rows.length ? '\n' : '');
+    const blob = new Blob([jsonl], { type: 'application/x-ndjson' });
+    const url = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rai-labelled-corpus-${stamp}.jsonl`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+});
+
+// Live-update latest scan view if storage changes while popup is open
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'local') return;
+  if (changes.latest_scan) {
+    renderLatestScan(changes.latest_scan.newValue as LatestScanShape | undefined);
+  }
+  if (changes.corpus) {
+    renderCorpusLine(changes.corpus.newValue as CorpusRowShape[] | undefined);
+  }
+});

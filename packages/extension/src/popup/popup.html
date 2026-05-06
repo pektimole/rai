@@ -181,6 +181,130 @@
       padding-top: 8px;
       border-top: 1px solid #f0f0f0;
     }
+    .latest-section {
+      padding: 10px;
+      border: 1px solid #f0f0f0;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      background: #fafafa;
+    }
+    .latest-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .latest-verdict-pill {
+      font-size: 11px;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .latest-verdict-pill.clean { background: #DCFCE7; color: #166534; }
+    .latest-verdict-pill.flagged { background: #FEF3C7; color: #92400E; }
+    .latest-verdict-pill.blocked { background: #FEE2E2; color: #991B1B; }
+    .latest-conf {
+      font-size: 11px;
+      color: #888;
+      margin-left: auto;
+    }
+    .latest-content {
+      font-size: 11px;
+      color: #444;
+      background: white;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      padding: 6px 8px;
+      max-height: 60px;
+      overflow: hidden;
+      margin-bottom: 6px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .latest-signals {
+      font-size: 11px;
+      color: #555;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .latest-signal-row {
+      display: flex;
+      gap: 6px;
+      align-items: baseline;
+    }
+    .latest-signal-layer {
+      font-family: monospace;
+      font-size: 10px;
+      color: #999;
+      min-width: 24px;
+    }
+    .latest-explanation {
+      font-size: 11px;
+      color: #666;
+      font-style: italic;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .label-row {
+      display: flex;
+      gap: 4px;
+    }
+    .label-btn {
+      flex: 1;
+      font-size: 11px;
+      padding: 5px 4px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .label-btn:hover { background: #f5f5f5; border-color: #999; }
+    .label-btn:active { transform: scale(0.97); }
+    .label-confirm {
+      font-size: 11px;
+      color: #166534;
+      text-align: center;
+      padding: 6px 0;
+      font-weight: 600;
+    }
+    .latest-empty {
+      font-size: 11px;
+      color: #888;
+      line-height: 1.5;
+    }
+    .latest-empty code {
+      background: #eee;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 10px;
+    }
+    .latest-meta {
+      font-size: 10px;
+      color: #aaa;
+      margin-top: 6px;
+    }
+    .export-btn {
+      width: 100%;
+      font-size: 11px;
+      padding: 5px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+    .export-btn:hover { background: #f5f5f5; }
+    .corpus-line {
+      font-size: 10px;
+      color: #888;
+      text-align: center;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -191,6 +315,30 @@
   </div>
   <div class="stats">
     <div class="stat-line" id="stat-line">0 scans</div>
+  </div>
+  <div class="latest-section" id="latest-section">
+    <div class="latest-header">
+      <span>Latest scan</span>
+      <span class="latest-verdict-pill" id="latest-verdict">—</span>
+      <span class="latest-conf" id="latest-conf"></span>
+    </div>
+    <div id="latest-empty" class="latest-empty">
+      Right-click selected text on any page → <strong>Scan with RA(I)</strong>.
+    </div>
+    <div id="latest-body" style="display:none">
+      <div class="latest-content" id="latest-content"></div>
+      <div class="latest-signals" id="latest-signals"></div>
+      <div class="latest-explanation" id="latest-explanation"></div>
+      <div class="label-row" id="label-row">
+        <button class="label-btn" data-judgment="agree">👍 agree</button>
+        <button class="label-btn" data-judgment="disagree">👎 disagree</button>
+        <button class="label-btn" data-judgment="borderline">🤷 borderline</button>
+      </div>
+      <div class="label-confirm" id="label-confirm" style="display:none"></div>
+      <div class="latest-meta" id="latest-meta"></div>
+    </div>
+    <button class="export-btn" id="export-corpus-btn">Export labelled corpus (JSONL)</button>
+    <div class="corpus-line" id="corpus-line"></div>
   </div>
   <div class="setting">
     <div>

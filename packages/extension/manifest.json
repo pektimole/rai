@@ -5,7 +5,7 @@
   "description": "Ambient protection for every AI interaction. Zero data leaves your device.",
   "author": "Tim-Ole Pek",
   "homepage_url": "https://github.com/pektimole/rai",
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "contextMenus", "notifications"],
   "host_permissions": [
     "https://claude.ai/*",
     "https://chatgpt.com/*",

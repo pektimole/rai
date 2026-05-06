@@ -2,7 +2,7 @@
  * rai-scan-p1.test.ts -- Regression tests for the P1 system prompt.
  *
  * No live LLM call here -- just static structure checks against the SYSTEM_PROMPT
- * string. Locks in the OL-124 epistemic manipulation pattern classes and the
+ * string. Locks in the OL-124 AI-provenance fingerprint classes and the
  * canonical threat layer enumeration so future edits cannot silently drop them.
  */
 
@@ -37,7 +37,7 @@ describe('P1 system prompt — canonical threat layer enumeration', () => {
   });
 });
 
-describe('P1 system prompt — OL-124 epistemic manipulation pattern classes', () => {
+describe('P1 system prompt — OL-124 AI-provenance fingerprint classes', () => {
   it.each(NAMED_PATTERN_CLASSES)(
     'declares "%s" by exact name',
     (className) => {
@@ -45,19 +45,23 @@ describe('P1 system prompt — OL-124 epistemic manipulation pattern classes', (
     },
   );
 
-  it('frames L1 as Misinformation OR epistemic manipulation', () => {
+  it('frames L1 as AI-provenance / non-human-generated content', () => {
     expect(P1_SOURCE).toMatch(
-      /L1: Misinformation\s*\/\s*epistemic manipulation/i,
+      /L1: AI-provenance\s*\/\s*non-human-generated/i,
     );
+  });
+
+  it('names the human poster as conduit, not threat', () => {
+    expect(P1_SOURCE).toMatch(/conduit,\s*not\s*threat/i);
   });
 
   it('instructs the model to report the class name in the signal field', () => {
     expect(P1_SOURCE).toMatch(/signal.{0,80}exactly as written/i);
   });
 
-  it('caps epistemic-manipulation severity below high (warn, not block)', () => {
+  it('caps AI-provenance fingerprint severity below high (warn, not block)', () => {
     expect(P1_SOURCE).toMatch(
-      /epistemic-manipulation patterns is typically low or medium/i,
+      /AI-provenance fingerprints is typically low or medium/i,
     );
   });
 });

@@ -9,7 +9,7 @@
 
 import { scanP0 } from '../shared/rai-scan-p0.js';
 import { scanP1, shouldEscalateToP1, mergeVerdicts } from '../shared/rai-scan-p1.js';
-import type { ScanRequest, ScanResponse } from '../shared/types.js';
+import type { ScanRequest, ScanResponse, ThreatSignal, Verdict } from '../shared/types.js';
 import {
   normaliseSnapshot,
   diffSnapshots,
@@ -115,6 +115,224 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.status === 'loading') {
     chrome.action.setBadgeText({ text: '', tabId });
   }
+});
+
+// ---------------------------------------------------------------------------
+// Right-click "Scan with RA(I)" — selection -> P0 (+P1) -> latest_scan + corpus
+// ---------------------------------------------------------------------------
+
+const RAI_MENU_ID = 'rai-scan-selection';
+const CORPUS_CAP = 1000;
+
+interface CorpusScanRow {
+  type: 'scan';
+  scan_id: string;
+  ts: string;
+  source: 'extension';
+  source_url?: string;
+  page_title?: string;
+  content_hash: string;
+  content: string;
+  verdict: Verdict;
+  confidence: number;
+  signals: string[];
+  threat_layers: ThreatSignal[];
+  p1_invoked: boolean;
+  p1_latency_ms?: number;
+  p1_model?: string;
+}
+
+interface CorpusJudgmentRow {
+  type: 'judgment';
+  scan_id: string;
+  ts: string;
+  judgment: 'agree' | 'disagree' | 'borderline';
+}
+
+type CorpusRow = CorpusScanRow | CorpusJudgmentRow;
+
+interface LatestScan {
+  scan_id: string;
+  ts: string;
+  content: string;
+  source_url?: string;
+  page_title?: string;
+  verdict: Verdict;
+  confidence: number;
+  threat_layers: ThreatSignal[];
+  explanation: string;
+  p1_invoked: boolean;
+  p1_latency_ms?: number;
+  p1_model?: string;
+  judgment?: 'agree' | 'disagree' | 'borderline';
+}
+
+function uuid(): string {
+  return (crypto as Crypto & { randomUUID(): string }).randomUUID();
+}
+
+async function sha256Hex(s: string): Promise<string> {
+  const buf = new TextEncoder().encode(s);
+  const digest = await crypto.subtle.digest('SHA-256', buf);
+  return (
+    'sha256:' +
+    Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
+  );
+}
+
+function ensureContextMenu(): void {
+  // Re-create idempotently. removeAll then create avoids duplicate-id errors.
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: RAI_MENU_ID,
+      title: 'Scan with RA(I)',
+      contexts: ['selection'],
+    });
+  });
+}
+
+chrome.runtime.onInstalled.addListener(ensureContextMenu);
+chrome.runtime.onStartup.addListener(ensureContextMenu);
+
+async function appendCorpusRows(rows: CorpusRow[]): Promise<void> {
+  const data = await chrome.storage.local.get(['corpus']);
+  const existing = (data.corpus as CorpusRow[] | undefined) ?? [];
+  const next = [...existing, ...rows];
+  // Trim oldest, keeping last CORPUS_CAP rows
+  const trimmed = next.length > CORPUS_CAP ? next.slice(next.length - CORPUS_CAP) : next;
+  await chrome.storage.local.set({ corpus: trimmed });
+}
+
+function notifyVerdict(latest: LatestScan): void {
+  if (typeof chrome.notifications === 'undefined') return;
+  const emoji = latest.verdict === 'clean' ? '✅' : latest.verdict === 'flagged' ? '🚩' : '⛔';
+  const lines: string[] = [];
+  lines.push(`conf ${latest.confidence.toFixed(2)}`);
+  if (latest.threat_layers.length) {
+    lines.push(latest.threat_layers.slice(0, 3).map((t) => `${t.layer}:${t.signal}`).join(' · '));
+  }
+  lines.push('Click the RA(I) icon to label.');
+  chrome.notifications.create({
+    type: 'basic',
+    iconUrl: 'src/assets/icons/icon-128.png',
+    title: `${emoji} RA(I): ${latest.verdict}`,
+    message: lines.join('\n'),
+    priority: latest.verdict === 'clean' ? 0 : 1,
+  });
+}
+
+async function handleRightClickScan(content: string, tab: chrome.tabs.Tab | undefined): Promise<void> {
+  const trimmed = content.trim();
+  if (!trimmed) return;
+
+  const tabId = tab?.id;
+  const scanId = uuid();
+  const ts = new Date().toISOString();
+
+  // P0 first (instant, local)
+  const p0 = scanP0(trimmed);
+  updateBadge(tabId, p0.verdict);
+  updateStats(p0.verdict);
+
+  // Read API key for P1 escalation
+  const data = await chrome.storage.local.get(['anthropic_api_key']);
+  const apiKey = (data.anthropic_api_key as string) || null;
+
+  let merged: { verdict: Verdict; confidence: number; threat_layers: ThreatSignal[]; explanation: string } = {
+    verdict: p0.verdict,
+    confidence: p0.confidence,
+    threat_layers: p0.threat_layers,
+    explanation: p0.explanation,
+  };
+  let p1_invoked = false;
+  let p1_latency_ms: number | undefined;
+  let p1_model: string | undefined;
+
+  if (apiKey && shouldEscalateToP1(p0.verdict, p0.confidence)) {
+    const p0Patterns = p0.threat_layers.map((t) => t.label);
+    try {
+      const p1 = await scanP1(apiKey, trimmed, 'input', p0.verdict, p0Patterns);
+      p1_invoked = true;
+      p1_latency_ms = p1.latency_ms;
+      p1_model = p1.model_used;
+      merged = mergeVerdicts(p0, p1);
+      updateBadge(tabId, merged.verdict);
+      updateStats(merged.verdict);
+    } catch (err) {
+      console.error('[RAI right-click P1] failed:', err);
+    }
+  }
+
+  const content_hash = await sha256Hex(trimmed);
+
+  const latest: LatestScan = {
+    scan_id: scanId,
+    ts,
+    content: trimmed,
+    source_url: tab?.url,
+    page_title: tab?.title,
+    verdict: merged.verdict,
+    confidence: merged.confidence,
+    threat_layers: merged.threat_layers,
+    explanation: merged.explanation,
+    p1_invoked,
+    p1_latency_ms,
+    p1_model,
+  };
+
+  const corpusRow: CorpusScanRow = {
+    type: 'scan',
+    scan_id: scanId,
+    ts,
+    source: 'extension',
+    source_url: tab?.url,
+    page_title: tab?.title,
+    content_hash,
+    content: trimmed,
+    verdict: merged.verdict,
+    confidence: merged.confidence,
+    signals: merged.threat_layers.map((t) => t.signal),
+    threat_layers: merged.threat_layers,
+    p1_invoked,
+    p1_latency_ms,
+    p1_model,
+  };
+
+  await chrome.storage.local.set({ latest_scan: latest });
+  await appendCorpusRows([corpusRow]);
+
+  notifyVerdict(latest);
+}
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId !== RAI_MENU_ID) return;
+  const text = (info.selectionText ?? '').trim();
+  if (!text) return;
+  void handleRightClickScan(text, tab);
+});
+
+// Popup -> service worker: append a judgment row, mutate latest_scan in place
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  const m = message as { action?: string; scan_id?: string; judgment?: 'agree' | 'disagree' | 'borderline' };
+  if (m.action !== 'rai_label_latest') return false;
+  if (!m.scan_id || !m.judgment) {
+    sendResponse({ ok: false, error: 'missing scan_id or judgment' });
+    return false;
+  }
+  void (async () => {
+    const ts = new Date().toISOString();
+    await appendCorpusRows([{ type: 'judgment', scan_id: m.scan_id!, ts, judgment: m.judgment! }]);
+    const data = await chrome.storage.local.get(['latest_scan']);
+    const latest = data.latest_scan as LatestScan | undefined;
+    if (latest && latest.scan_id === m.scan_id) {
+      latest.judgment = m.judgment;
+      await chrome.storage.local.set({ latest_scan: latest });
+    }
+    sendResponse({ ok: true });
+  })();
+  return true; // async sendResponse
 });
 
 // ---------------------------------------------------------------------------
