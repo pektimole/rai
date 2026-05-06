@@ -20,10 +20,21 @@ _Note: filename is 19-rai-context.md -- rename to 19-rai-context.md + REGISTRY u
 
 ## What RAI Is
 
-RAI is the AI interaction firewall for No5 and NanoClaw. It sits between inbound content and the agent context, scanning for injection, manipulation, and cascade risk before anything reaches Claude.
+RAI is a personal ambient AI trust layer.
+
+Not a firewall in the traditional inward-defensive sense. A persistent, passive presence verification and threat detection layer running beneath every AI interaction, protecting in two directions:
+
+1. **Inward:** protecting the user's AI stack from attack (prompt injection, supply chain compromise, model poisoning, agent action overreach -- L-2 through L4)
+2. **Outward:** protecting the user from synthetic agents operating in their environment without disclosure (AI-managed DMs, cloned voices, engagement-bait, fake personas -- L5)
+
+The consumer product is the outward direction (L5). The technical moat is the inward infrastructure underneath (L-2 through L4).
 
 Primary deployment: NanoClaw (No5 ambient layer on VPS).
-Future deployments: browser extension, standalone API, enterprise SaaS.
+Live surfaces: Browser extension (Chrome, 3 platforms) + Telegram bot + WhatsApp + Claude Code ActionGate.
+Next surface: PWA (mobile share target + clipboard scan, Claude Code sprint, OL-RAI-PWA-001).
+Future: standalone API, enterprise SaaS, regulated sector contracts.
+
+_Category updated 2026-05-04. Previous framing ("AI interaction firewall") was technically correct but positioned RAI as inward-only. Consumer product frame requires the outward direction to be primary._
 
 ---
 
@@ -110,10 +121,23 @@ _This is the authoritative schema. All code, specs, and outputs must use this nu
 | L-2 | Infrastructure / supply chain | Compromised tool, MCP server, or upstream context file. Instruction to modify no5-context files, credential exfil, mount path reference. | P0 + P1 |
 | L-1 | Model poisoning / drift | Engineered content designed to shift agent behavior over time. Persona replacement, role override, gradual context corruption. | P0 + P1 |
 | L0 | Prompt injection | Direct instruction override in message content. "Ignore previous instructions", jailbreak patterns, system prompt leakage attempts. Also covers unintentional exposure: PII, credential strings, API keys forwarded without sanitization. | P0 + P1 |
-| L1 | Misinformation / unintentional | Content that is false or misleading but not adversarial. Low-confidence facts passed as certain, hallucination amplification. | P1 (Claude-powered) |
+| L1 | AI-provenance / non-human-generated | Content carrying non-human authorship signals (AI-generated text, synthetic patterns). Provenance is the discriminator. Downstream risk paths: (a) misinformation propagation (false/low-confidence facts at scale), (b) AI-system-processing artifacts when other AI agents consume this content, (c) source/training-data pollution of information ecosystems. Author is treated as conduit, not threat. | P1 (Claude-powered) |
 | L2 | Cascade risk | Content that passed clean in isolation but triggers on cross-pipeline context (prior_scan_ids match). Requires P2. | P2 |
 | L3 | Systemic harm | Coordinated multi-message pattern, compound injection across sessions. | P2/P3 |
 | L4 | Agent action / unauthorized side-effect | Agent attempts a tool call, file write, shell exec, or MCP invocation outside its permitted scope -- regardless of whether the originating content was clean. Protects environment, not conversation. | ActionGate (spec: 28-rai-actiongate-spec.md) |
+
+### Provenance Frame (2026-05-03)
+
+RAI is fundamentally an **information-provenance shield**: AI-vs-human authorship is the discriminator, not stylistic manipulation. The named pattern classes (fake-insight-framing, manufactured-urgency, false-consensus, authority-spoofing, overconfidence-absolutes) are **AI-provenance fingerprints** -- features feeding the provenance verdict, not the verdict itself.
+
+Threat layers attach to **content**, not authors. A human posting AI-generated content is a conduit, not a threat. RAI surfaces "this is AI-generated, confidence X" so consumers (humans or downstream AI systems) can apply appropriate guardrails. Author-level threat assessment is out of scope.
+
+| Provenance | Primary risk path | Threat layer attachment |
+|---|---|---|
+| AI-generated, no harmful payload | Misinformation propagation, source/training-data pollution, downstream AI-processing artifacts | L1 |
+| AI-generated, embedded payload | Prompt injection, model poisoning carrier | L0/L-1 + L1 amplifier |
+| Human-generated, harmful | Adversarial author (out of RAI scope -- different methodology) | L0/L-1/L-2 |
+| Human-generated, benign | Pass | none |
 
 ---
 
@@ -173,7 +197,8 @@ _This is the authoritative schema. All code, specs, and outputs must use this nu
 | L-2 or L-1 + severity: critical | Block always. No warn. |
 | L0 prompt injection (high confidence) | Block |
 | L0 unintentional exposure | Warn + quarantine |
-| L1 misinformation | Warn only (P1+) |
+| L1 AI-provenance content (low/medium severity) | Warn only (P1+) |
+| L1 AI-provenance content + L0 or L-1 co-occurrence | Quarantine (provenance amplifies adversarial signal) |
 | L2/L3 | Quarantine + notify (P2+) |
 | P0 default | Warn-only except L-2/L-1 critical |
 
@@ -950,7 +975,7 @@ Offering 3 generates real-world scan data. That data validates Offering 2 (resea
 
 ### Build Sequence for LinkedIn AI Slop Use Case
 
-1. OL-124: Epistemic manipulation pattern class (low effort, feeds all offerings)
+1. OL-124: AI-provenance fingerprint class (low effort, feeds all offerings)
 2. OL-119: Batch scan pipeline (one Claude Code session)
 3. OL-120: LinkedIn AI slop study (50-100 posts, publish findings)
 4. OL-121 + OL-122: API and LinkedIn adapter in parallel
@@ -983,3 +1008,418 @@ Output: structured, not narrative. No hedging. Ends with verdict: HOLD / PROCEED
 
 Status: logged to Wake Version History DB (Notion). Requires manual update to 00-WAKE.md and Claude Desktop Settings (one line change, shell MCP was down during session).
 
+
+
+---
+
+## Route to Market: Correction Note (2026-05-01)
+
+The "Route to market" subsection under Product Vision (above) is stale. It was written before the GTM Strategy decision of 2026-04-15. **The GTM Strategy section (below it) supersedes it entirely.**
+
+Canonical channel hierarchy as of 2026-05-01:
+
+| Priority | Channel | Role |
+|---|---|---|
+| 1 | **Telegram bot** (multi-tenant, OL-117) | Consumer beachhead. Primary distribution. Zero gatekeeper dependency. Natural forwarding = natural threat surface. |
+| 2 | **Chrome extension** | Consumer add-on to the beachhead. Not the lead. Live on CWS, appeal resolved, maintained. |
+| 3 | **RAI Scan API** (OL-159) | B2B. Platforms deploying user-generated AI content. Feeds from beachhead proof. |
+| 4 | **Enterprise: Context Layer Protection** (OL-172/173) | Internal AI system write-gate. Dogfooded on No5 context layer first. Enterprise motion, not consumer. |
+| 5 | **GoMedicus/AERA medical pipelines** | Local LLM writing to patient context files = same architecture as No5 write gate. Regulatory angle (DSGVO). |
+
+The two market motions are structurally distinct:
+- **Consumer motion** (Telegram + extension): scan untrusted inbound content before it reaches the agent
+- **Enterprise motion** (context layer write gate): protect trusted persistent state from adversarial writes
+
+OL-172 (context layer write gate) does not dilute Telegram beachhead positioning. Different buyers, different pain, same underlying architecture.
+
+**OL-172 LIVE [cc:2026-05-02]:** No5 context layer write gate shipped on NanoClaw VPS. Audit log (`logs/mcp-write-audit.jsonl`): every MCP write attempt logged with ts, file, surface, verdict, content sha256. Credential Guard: `~/.no5-env`, `*.plist`, `*credentials*`, `*id_rsa*` permanently blocked. Content Scanner: 5 patterns (Anthropic key, AWS key, generic API token, SSH private key, generic credential context). Architecture Judge integration: SSH-fetches audit log nightly, Telegram alert on any Credential Guard reject or scanner hit. This is the first live operational deployment of the RAI ActionGate architecture outside the browser extension. Pitch evidence: "We run this on our own AI OS. The attack patterns we discover internally feed directly into the RAI threat model."
+
+---
+
+## [POS][MKT] Claude Security Launch als RAI "Why Now" Evidence (2026-04-30)
+
+**Quelle:** SecurityWeek / SecurityAffairs / SiliconANGLE, 2026-04-30
+
+Anthropic hat Claude Security am 30. April 2026 als Public Beta fuer Enterprise-Kunden gestartet. Das Tool laeuft auf Opus 4.7, scannt Code-Repositories auf Schwachstellen, liefert Confidence-Ratings und generiert gezielte Patches ohne API-Integration oder Custom-Agent-Setup.
+
+### Warum das fuer RAI relevant ist
+
+**1. Marktvalidierung des "AI Interaction Firewall"-Rahmens**
+
+Claude Security ist ein post-hoc Code-Scanner. RAI ist ein pre-hoc Interaction Firewall. Kein direkter Overlap. Claude Security bestaetigt, dass Anthropic das strukturelle Bedrohungsproblem ernst nimmt. RAI schliesst die Luecke, die Claude Security nicht adressiert: Prompt Injection, Misuse via API, adversarial Inputs, VCCE, Memory Lock-in.
+
+**2. "Why Now" Beat 2 Ergaenzung**
+
+Die Mythos-Backstory ist jetzt marktfaehig formuliert: AI-Modelle komprimieren die Time-to-Exploit auf Minuten. Claude Security ist Anthropics Antwort auf der Defender-Seite. RAI ist die Antwort auf der Interaction-Layer-Seite, die Claude Security nicht deckt.
+
+Pitch Deck Beat 2 erhaelt eine neue Evidence-Zeile:
+- OpenClaw collapse (Supply Chain, 2026-03)
+- Meta agent deletion / rogue behavior (Insider Risk, 2026-03)
+- IPI +32% (Google/Forcepoint, 2026-04)
+- **Anthropic Claude Security Launch (2026-04-30): Time-to-Exploit jetzt in Minuten (Mythos). Defender-Tools versuchen aufzuholen. Interaction Firewall ist die Luecke.**
+
+**3. Enterprise-GTM-Signal fuer AroundCapital**
+
+Accenture, BCG, Deloitte, Infosys und PwC bauen Claude-integrierte Loesungen fuer Vulnerability Management, Secure Code Review und Incident Response. Das ist der Enterprise-Deployment-Pfad. RAI als Layer in diesen Stacks (context layer write gate, OL-172/173) ist ein realistisches GTM-Szenario. AroundCapital-relevante Positionierung: wer in diesen Consulting-Stacks sitzt, braucht die Interaction Firewall als Compliance-Layer.
+
+### Pitch Deck v2 Ergaenzung (Beat 2)
+
+Neue Evidence-Karte fuer Beat 2 ("It's structural"):
+
+> **"Anthropic just launched a security product to respond to their own model's exploit capabilities."**
+> Claude Security (Beta, 2026-04-30) exists because Mythos, their own model, can find and exploit vulnerabilities in minutes.
+> Defenders are building tools to respond. No tool defends the interaction layer itself.
+> That's RAI.
+
+[mob:2026-05-01]
+
+
+### Beat 2 Evidence Card: Six Exploits, Nine Months, Every Major AI Coding Tool (2026-05-02)
+
+Source: VentureBeat, venturebeat.com/security/six-exploits-broke-ai-coding-agents-iam-never-saw-them
+
+Six research teams. Nine months. Claude Code, Codex, GitHub Copilot, Vertex AI. Every exploit followed identical playbook: find the credential the AI agent holds, steal it, walk through the front door of a production system. Nobody attacked the model. Everyone attacked the keys.
+
+Three Claude Code CVEs specifically:
+- Piped sed/echo commands escaped project sandbox (command chaining not validated). Patch: 2.0.55.
+- CVE-2026-33068: .claude/settings.json read before trust dialog. Malicious repo set permissions.defaultMode=bypassPermissions. Trust prompt never appeared. Patch: 2.1.53.
+- 50-subcommand deny-rule bypass: Claude Code silently dropped deny enforcement past subcommand 50. Patch: 2.1.90.
+
+Structural gap confirmed: 78% of organizations run AI agents with real production credentials under zero IAM governance (Gravitee 2026 survey, 919 practitioners).
+
+**Slide copy draft:**
+> "Six research teams. Nine months. Every major AI coding tool breached. Same playbook every time. Nobody hacked the model. They took the keys the agent was holding. 78% of organizations have no IAM policy covering AI agent credentials. ActionGate is the policy layer that IAM never built."
+
+**RAI mapping:**
+- L-2: credential exfil via crafted branch name (BeyondTrust/Codex)
+- L0: settings.json injection bypassing trust prompt (CVE-2026-33068)
+- L4: subcommand limit bypass (ActionGate policy enforcement gap, 50-command threshold)
+
+**ActionGate spec additions flagged:**
+- bypassPermissions-check: detect when .claude/settings.json or equivalent config sets permission bypass modes before trust dialog
+- Subcommand-limit-check: enforce deny rules regardless of command depth/count
+
+[mob:2026-05-02]
+
+---
+
+## L5: Synthetic Identity / Human Presence Verification [mob:2026-05-04]
+
+_Added: session 2026-05-04. Triggered by LinkedIn AI DM grift pattern + cloned podcast host incidents._
+
+### What L5 is
+
+L-2 through L4 protect Tim's stack from inbound attack. L5 is outward-facing: protecting the user from synthetic identity operating in trust-critical interactions without disclosure.
+
+L5 is not a RAI feature bolt-on. It is the consumer product frame. The underlying threat: AI agents operating as humans in DMs, voice calls, and video without disclosure. This is happening at volume now (Q1/Q2 2026) and accelerating.
+
+### Evidence in the wild (May 2026)
+
+- LinkedIn DM threads managed entirely by AI, 600+ comments handled autonomously, author deflects when challenged
+- AI-generated podcast content using cloned real people's likenesses (Two Hot Takes clone) to sell GLP-1 subscriptions at EUR 170/month
+- Engagement-bait post structures: "comment WORD for access" with AI managing all reply threads
+- Voice calls using real-time voice cloning indistinguishable from the claimed person
+
+### Detection signals (text surface, v1 scope)
+
+| Signal | Method | Layer |
+|---|---|---|
+| Response velocity anomaly | Timestamp pattern analysis: sub-60s replies at volume | P0 extension |
+| Deflection loop | "Send me a DM" / non-answer to direct challenge | P1 Claude scan |
+| Linguistic fingerprint | Perplexity + entropy scoring vs human baseline | P1 |
+| Engagement-bait structure | "Comment WORD + repost for access" pattern | P0 regex |
+| Claimed capability mismatch | Fact-check against known tool constraints | P1 |
+| Likeness without consent | Known-public-figure voice/visual in AI-generated content | P2 (future) |
+
+### Consumer framing
+
+This is a consumer product, not a developer tool. The buyer does not need to understand threat taxonomy. They need a signal they did not have before.
+
+Promise: "Know what's real."
+
+Entry price: EUR 0.99/month. Lower expectation threshold than enterprise. Higher volume potential. Consumer does not need 100% accuracy. 80% "probably AI" confidence is already a product.
+
+### Model dependency note (resolved)
+
+RAI does not need to own the model to be defensible. The moat is:
+- Threat corpus: real scan data from real users generates training signal proprietary to RAI
+- Pattern library: P0 regex layer is model-agnostic and already exists
+- User trust and distribution: first-mover on consumer ambient trust layer
+
+Detection accuracy target: 80% for consumer (sufficient for trust signal), 95%+ for regulated sector (enterprise contracts, later stage).
+
+### Consumer vs regulated sector: two lanes
+
+| Dimension | Consumer | Regulated sector |
+|---|---|---|
+| ICP | Any professional using LinkedIn, WhatsApp, email | GP/fund manager, clinician, deal-flow operator |
+| Entry price | EUR 0.99/month, frictionless | Enterprise contract, compliance integration |
+| Expectation | Best-effort "probably AI" signal | Audit trail, legal defensibility |
+| Build complexity | Low (text pattern + LLM scan) | High (liveness detection, MCP-I, GDPR loop) |
+| Build sequence | First | Second |
+
+Sequence is non-negotiable: consumer beachhead proves demand. Regulated sector is the moat once volume is established.
+
+### GTM surface question (open, OL-RAI-GTM-002)
+
+The protection needs to feel ambient and passive. Three options under evaluation:
+
+| Surface | Pro | Con |
+|---|---|---|
+| Telegram bot (current beachhead) | Zero friction, pull model proves intent | User must invoke, protection is not ambient |
+| Chrome extension | Ambient, passive, browser-native | CWS gatekeeper, install friction |
+| Mobile app | "I installed protection" feeling, ambient clipboard scan | Build effort, app store review |
+
+Mobile app as primary consumer surface (clipboard monitoring, passive scan before reply) is the strongest "ambient trust layer" expression. Telegram bot stays as the zero-friction first step. Extension as middle layer.
+
+No surface decision taken until OL-RAI-GTM-002 session.
+
+### Category clarification (printed 2026-05-04)
+
+RAI is a personal ambient AI trust layer. Not a firewall in the traditional inward-defensive sense. A persistent, passive presence verification and threat detection layer running beneath every AI interaction.
+
+Two directions of protection:
+1. Inward: protecting Tim's stack from attack (L-2 through L4, existing)
+2. Outward: protecting the user from synthetic agents in their environment (L5, new)
+
+The consumer product is the L5 direction. The technical moat is the L-2 through L4 infrastructure underneath.
+
+---
+
+## GTM Surface Decision [cd:2026-05-04]
+
+### Decision: PWA as primary new consumer surface
+
+OL-RAI-GTM-002 CLOSED.
+
+**Rationale:** L5 promise is ambient and passive. Telegram bot is pull-only (user invokes). Extension is desktop-only, misses mobile DM surface where L5 threat actually lives. PWA delivers share target + clipboard scan on mobile, no Play Store review, buildable in one weekend sprint via Claude Code + Lovable scaffold.
+
+**Three-tier consumer stack:**
+
+| Tier | Surface | Role |
+|---|---|---|
+| 1 | Telegram bot | Zero friction entry. Proves intent. Feeds corpus. |
+| 2 | Chrome extension | Desktop ambient. Passive scan on AI platforms. |
+| 3 | PWA (new build) | Mobile ambient. Share sheet + clipboard scan. Primary L5 surface. |
+
+**Build sequence (corrected):**
+
+LP is stealth, no live users. No reason to update it before the product surface exists.
+
+| Step | What | Dependency |
+|---|---|---|
+| 1 | PWA sprint: share target, clipboard scan, RAI scan API call, basic UI | Next available weekend block |
+| 2 | Telegram bot onboarding updated to mention PWA install | Same sprint |
+| 3 | LP updated: L5 card, new positioning, PWA install CTA | After PWA is live |
+
+OL-RAI-LP-003 status: blocked on PWA. Do not touch LP before PWA is live.
+
+**Build capacity:** Solo evenings + weekends. Claude Code heavy (up to 200 USD/month). Dev support available if conviction reaches that threshold. PWA sprint is within solo capacity.
+
+
+---
+
+## [POS][MKT][ARCH] MCP STDIO Architectural RCE: Beat 2 Evidence Card (2026-05-04)
+
+**Source:** OX Security (Moshe Siman Tov Bustan, Mustafa Naamnih, Nir Zadok, Roni Bar), VentureBeat, The Register, Infosecurity Magazine. OL-191.
+
+### What happened
+
+Anthropics Model Context Protocol STDIO Transport executes any OS command passed as MCP server startup command, including when the server fails to start. No sanitization. No developer toolchain warning. Design decision, not coding error. Affects all official SDKs: Python, TypeScript, Java, Rust.
+
+Scale: 150M+ downloads, 7.000+ publicly accessible servers, 200k+ vulnerable instances. 10+ Critical/High CVEs from a single root cause.
+
+Four exploit classes demonstrated on live production platforms:
+
+| Class | Target | CVE |
+|---|---|---|
+| Unauthenticated command injection | LangFlow, LiteLLM | CVE-2026-30623 |
+| Allowlist-bypass via argument injection (npx -c) | Flowise, Upsonic | none |
+| Zero-click prompt injection via malicious HTML modifying local MCP config | Windsurf | CVE-2026-30615 |
+| Malicious package distribution via MCP registries | 9/11 registries accepted PoC without security review | none |
+
+Claude Code, Cursor, Gemini-CLI vulnerable to the broader IDE injection class (not zero-click, require user permission to modify config — but all acknowledged as not a valid security vulnerability by respective vendors including Google, Microsoft, Anthropic).
+
+Anthropic response: "expected behavior," declined to modify protocol architecture. Nine days later: silent security policy update ("use STDIO with caution"). OX: "This change didn't fix anything."
+
+### RAI Layer Mapping
+
+| Layer | Signal |
+|---|---|
+| L-2 (Supply Chain) | STDIO default propagated through all official SDKs. Developer inherits exposure unknowingly by building on MCP. |
+| L0 (Prompt Injection) | CVE-2026-30615: malicious HTML modifies local MCP config file (zero-click, Windsurf). CVE-2026-33068 from OL-178: settings.json bypassPermissions before trust dialog. |
+| L4 (ActionGate) | Allowlist-bypass via npx -c argument injection = same class as subcommand-limit-bypass (OL-178 finding #3). Allowlists give false confidence. Sandbox isolation is the correct mitigation. |
+
+Cross-reference: OL-178 (Six Claude Code CVEs, IAM blind spot), OL-140 (VCCE native messaging host), OpenClaw collapse (Beat 2 anchor).
+
+### Anthropic Pattern: Third Instance
+
+Three documented cases of Anthropic acknowledging capability expansion or security gap as "expected":
+
+1. **VCCE (OL-140, 2026-04-18):** Native Messaging Manifest installed into 7 browsers without consent. "Expected."
+2. **Claude Security Launch + Mythos exploit capability (2026-04-30):** Vendor-published 11-24% prompt injection success rates. Own security tool exists because own model can find and exploit vulnerabilities in minutes.
+3. **MCP STDIO RCE (OL-191, 2026-04-15):** Architectural command execution in industry-standard protocol. "Expected behavior."
+
+Pattern across all three: capability or security surface exists below the model output layer. Output-level monitoring, prompt guards, and model evals are blind to all three. RAI ActionGate is the only layer that operates at this level.
+
+### Pitch Deck v2 Beat 2 Evidence Card
+
+Insert between OpenClaw collapse and IPI (+32%) cards:
+
+> **"MCP STDIO: 200.000 servers, one design decision, no upstream fix."**
+> The protocol connecting every AI agent integration executes OS commands without sanitization.
+> Anthropic calls it expected behavior.
+> Product-level patches don't change the protocol default.
+> Patch today, configure a new MCP STDIO server tomorrow: same exposure, inherited fresh.
+> 10+ Critical CVEs. Single root cause.
+
+### No5 Stack Self-Audit (Action Item)
+
+Active STDIO-transport MCP instances in Tim's stack:
+- `~/.config/claude-code/mcp.json`: Claude Code MCP configurations
+- no5-context VPS MCP (cloudflare tunnel): already sandboxed via Docker on Hetzner, IPC boundary in place
+
+Immediate action for Desktop session: audit `~/.config/claude-code/mcp.json` for STDIO transport entries. For each entry: confirm sandbox isolation (no full disk access, no shell execution without ActionGate coverage). Cross-reference with OL-172 (context layer write gate audit trail already live).
+
+### ActionGate Spec Additions (for next rai/docs/28-rai-actiongate-spec.md update)
+
+New pattern class: **MCP Config Injection**
+- Watch: write operations to `~/.config/claude-code/mcp.json`, `~/.cursor/mcp.json`, `~/.codeium/windsurf/mcp.json`, any MCP config file
+- Signal: any addition of a STDIO transport entry with a new `command` field value
+- Policy candidate: if `command` is not in an approved allowlist AND contains shell metacharacters (`;`, `|`, `&&`, `$(`, backtick): deny + notify
+- Zero-click surface: malicious HTML → STDIO config write → arbitrary command execution without user interaction (CVE-2026-30615 vector)
+
+New check class: **Argument Injection Detection**
+- Watch: any allowlisted command execution (e.g. `npx`) where args contain `-c` or `--` followed by non-whitelisted content
+- Signal: `-c` flag on shell interpreters (node, npx, python, sh, bash) = command execution via allowed binary
+- Policy candidate: flag all `-c` usages in agent tool calls for human confirmation before execution
+
+[mob:2026-05-04]
+
+
+## [POS][MKT] Consumer Persona Cloning als L5 Attack Surface [mob:2026-05-05]
+
+**Source:** Ruben Hassid, "I can be you" (ruben.substack.com, ~150k Leser, 2026-05)
+
+### Was der Artikel zeigt
+
+Tutorial das Leser aktiv lehrt, Persona-Files zu erstellen ("about-me file") die Claude oder jedes andere Modell dazu bringen, als die Person zu schreiben/denken/entscheiden. Obsidian als Vault, Cowork-Folder-Integration, portables Text-File als einziger Schutz: "treat it like a password."
+
+### Warum RAI-relevant
+
+**L5 Consumer Fear — Live-Validierung:**
+Daria Viktorova (Rechtsanwaeltin, 25 Likes in <48h): "a file that captures your voice this precisely is also a powerful tool for anyone who wants to impersonate you [...] Targeted phishing, identity fraud, manipulating people close to you." Unabhaengige Laien-Identifikation von exakt RAI L5's Threat Model.
+
+**Manuel Rodriguez (Anwalt): "impossible after Mythos":**
+Ruben's Antwort "treat like a password" — Manuel's Replik: "Sadly, it's impossible after Mythos, Ruben. Truly impossible." Ein Laie zieht unabhaengig dieselbe Schlussfolgerung wie Beat 2: Modell-Capability (Mythos-class exploit-in-minutes) hat Self-Help-Mitigations strukturell ueberholt. Password-Disziplin ist keine Antwort mehr. Das ist Beat 2 Haertung durch Consumer-Stimme.
+
+**Pitch Deck v2 Beat 2 Evidence Card:**
+
+> "150.000 Leser wurden aktiv gelehrt, Impersonation-Files zu erstellen.
+> Zwei Rechtsanwaelte erkannten den Angriffs-Vektor in 48 Stunden.
+> Vendor-Antwort: 'treat it like a password.'
+> Post-Mythos ist das strukturell unzureichend.
+> RAI ist die strukturelle Antwort."
+
+**Consumer Framing:**
+"I can be you" als Substack-Artikel = RAI's L5 Threat Model in Produktion, skaliert auf 150k+ User. "Know what's real" addressiert genau was Daria und Manuel benennen.
+
+**Cross-ref:** L5 Section (2026-05-04), Beat 2 Evidence Stack (OpenClaw / IPI / MCP STDIO / Claude Security), OL-117 (Telegram beachhead), Pitch Deck v2 narrative arc.
+
+
+## [POS][MKT] Consumer Persona Cloning als L5 Attack Surface [mob:2026-05-05]
+
+**Source:** Ruben Hassid, "I can be you." (ruben.substack.com, How to AI Newsletter, ~150k Leser)
+
+**Was:** Tutorial das Leser anleitet, ein Persona-File fuer Claude zu erstellen ("I can be you").
+Obsidian als Vault. Ruben's Sicherheitsantwort: "treat it like a password."
+
+**Warum RAI-relevant:**
+
+**Signal A: L5 Consumer Fear -- Unabhaengige Validierung**
+Daria Viktorova (Rechtsanwaeltin, 25 Likes): Persona-File = "targeted phishing, identity fraud,
+manipulating people close to you." Normale Substack-Leserin, kein Security Background -- trifft
+sofort den L5 Threat-Vektor. Ruben's "treat like a password" ist unser Consumer-Pitch-Gegner.
+RAI-Antwort: strukturelle Trust-Layer, nicht Passwort-Disziplin.
+
+**Signal B: Manuel "impossible after Mythos" = Beat 2 Haerter**
+Manuel Rodriguez (Anwalt, 10 Likes): "Sadly, it's impossible after Mythos, Ruben. Truly impossible."
+Laie zieht unabhaengig dieselbe Schlussfolgerung wie Anthropic-intern (Mythos exploit-in-minutes):
+Modell-Capability hat Self-Help-Mitigations ueberholt.
+
+Pitch Deck v2 Beat 2 Erweiterung:
+> "When model capability outpaces self-help mitigations, you need a structural layer."
+> Zweifach belegt: Anthropic intern (Mythos, April 2026) + Consumer-Kommentarspalte (Mai 2026).
+
+**Signal C: Attack Surface in Produktion**
+150k+ Leser werden aktiv gelehrt Persona-Files zu erstellen. "I can be you" = L5-Bedrohung
+und Consumer-Positioning-Pitch gleichzeitig. "Know what's real" addressiert exakt das.
+
+**No5 / Context Layer:** DROP. Ruben baut consumer-grade was wir enterprise-grade haben.
+Kein Handlungsbedarf. Architectural downgrade.
+
+**Cross-ref:** L5 Section (2026-05-04), Pitch Deck Beat 2, OL-191 (MCP STDIO RCE).
+
+
+---
+
+## Threat Evidence Log [mob:2026-05-04]
+
+_Live instances observed in the wild. Canonical examples of why RAI exists. Each maps to a detection class. Tim's ambient feed, manually curated pre-scanner. Full version in Notion RAI HQ (page 35757538-249e-81ab-8a58-f94c425c58c0)._
+
+---
+
+### Instance 001: Liam Mouhali / LinkedIn DM automation
+**Date:** 2026-05-04 | **Class:** L5 Synthetic Identity / engagement-bait
+Post claiming Claude natively connects to LinkedIn, manages DMs and replies autonomously. 600+ comment replies managed by AI, no disclosure. Deflects when challenged. "Repost for priority access" = engagement harvesting. Product probably doesn't exist. The post IS the product.
+**Signals:** Response velocity anomaly, deflection loop, engagement-bait structure, claimed capability mismatch
+
+### Instance 002: James Rowdy / AI fake podcast
+**Date:** 2026-05-04 | **Class:** L5 Synthetic Identity / likeness theft / undisclosed AI commercial content
+AI agent stack cloned Two Hot Takes podcast (hosts, voices, set) without consent. Selling GLP-1 subscriptions at EUR 170/month as organic content. Hundreds of variations, multi-platform, same-day loop.
+**Signals:** Synthetic persona, likeness without consent, undisclosed commercial AI intent, production velocity
+
+### Instance 003: Mel Robbins / Microsoft Copilot financial data harvesting
+**Date:** 2026-05-04 | **Class:** L1b Influencer-amplified AI harm prompt (new sub-class -- see below)
+Mel Robbins (10M+ followers) posted a step-by-step prompt in partnership with Copilot instructing followers to upload bank statements, debt info, income data to an LLM. Framed as women's empowerment. 355 Instagram likes before any critique landed. Unknown thousands followed before the counter-post reached them. Harm is irreversible: data cannot be recalled once uploaded.
+**Signals:** Sensitive data upload instruction, LLM-as-vault framing, trusted-authority amplification, mass distribution, step-by-step extraction design
+
+---
+
+### New sub-class identified: L1b -- Influencer-amplified AI harm prompt
+
+Distinct from L5 (synthetic identity) and standard L1 (epistemic manipulation). The threat actor is a real, high-credibility human whose reach is weaponised as a distribution mechanism for a harmful AI prompt. Not synthetic. Not a fake persona. A trusted voice telling millions to do something irreversibly harmful with AI.
+
+Detection signals specific to L1b:
+- Sensitive data upload instruction (financial, medical, identity)
+- Authority figure as source (verified account, high follower count)
+- AI tool partnership framing (co-branded with AI vendor)
+- Step-by-step data extraction design in prompt
+
+---
+
+### Pattern across all three
+
+All three share one structural property: the user had no second layer between the trusted surface and the harmful action. RAI is that second layer. Not a blocker. A signal: "before you act on this, here is what this actually is."
+
+The correction always arrives after the harm. That is the consumer protection gap RAI closes.
+
+
+---
+
+## Build Tool Decision [mob:2026-05-06]
+
+**Web builds: Claude Code. Lovable: marketing polish only, if needed at all.**
+
+All RAI web surfaces (investor brief, PWA, landing page updates) built in Claude Code going forward. Lovable reserved for cases where visual design iteration speed matters more than code ownership. Current Lovable LP (ray-guard-watch.lovable.app) stays as-is until PWA is live, then LP gets rebuilt in Claude Code alongside it.
+
+## L-Numbering Freeze [mob:2026-05-06]
+
+L-numbering reflects discovery order, not severity hierarchy. Frozen until release. New layers get added with next available number or letter suffix (e.g. L1b pattern). Full renumber at release once GTM lane (consumer vs regulated sector) determines which layers lead publicly. Do not renumber in code, context files, or Notion before release decision.
+
+Severity hierarchy (separate from numbering, for positioning only):
+- Informational: L1, L1b
+- Active attack: L0, L-1, L-2
+- Trust broken: L5
+- Stopped: L4
+- Structural/systemic: L2-L3
