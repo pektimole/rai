@@ -212,6 +212,46 @@ const PATTERNS: Pattern[] = [
     severity: 'critical',
     signal: 'Request to act as unrestricted/unfiltered model',
   },
+  {
+    regex:
+      /<<\s*system[_\s-]?override\s*>>|\[\[\s*system[_\s-]?override\s*\]\]|\[\s*system[_\s-]?override\s*\]/i,
+    label: 'Direct prompt injection',
+    layer: 'L0',
+    severity: 'critical',
+    signal: 'System-override token detected (<<SYSTEM_OVERRIDE>>-style bracket)',
+  },
+  {
+    regex:
+      /(?:previous|prior|earlier|original)\s+instructions?\s+(?:are|is|have\s+been|were)\s+(?:deprecated|superseded|invalid|cancelled|revoked|outdated|obsolete|replaced)/i,
+    label: 'Direct prompt injection',
+    layer: 'L0',
+    severity: 'critical',
+    signal: 'Prior-instructions-deprecated injection pattern',
+  },
+  {
+    regex:
+      /(?:do\s+not|don'?t|never)\s+(?:include|mention|reveal|log|record|disclose|show)[^.]{0,40}?(?:audit\s*log|in\s+(?:your\s+)?(?:response|reply|output)|notice)/i,
+    label: 'Audit-log evasion',
+    layer: 'L0',
+    severity: 'critical',
+    signal: 'Instruction to suppress this notice from response/log',
+  },
+  {
+    regex:
+      /(?:schema|protocol|system|policy|security|api)\s+(?:migration|update|upgrade|patch|refresh|reset)\b[^.]{0,80}?(?:deprecat|overrid|ignor|supersed|invalid|new\s+instruction)/i,
+    label: 'Direct prompt injection',
+    layer: 'L0',
+    severity: 'critical',
+    signal: 'Pretextual update (schema/protocol/policy) used as override justification',
+  },
+  {
+    regex:
+      /(?:url[-\s]?encode|encode\s+(?:the\s+)?(?:result|output|data|response|answer|query))\s+(?:as\s+(?:an?\s+)?url|in\s+(?:an?\s+)?url|into\s+(?:an?\s+)?url)/i,
+    label: 'Data exfiltration via URL',
+    layer: 'L0',
+    severity: 'critical',
+    signal: 'Instruction to exfiltrate data via URL-encoded payload',
+  },
 
   // --- L0: Unintentional exposure (credentials / PII) ---
   {

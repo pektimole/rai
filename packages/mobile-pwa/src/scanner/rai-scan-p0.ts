@@ -1,14 +1,15 @@
 /**
- * RAI P0 -- Local pattern-based scan engine
- * Ported from NanoClaw ray-scan.ts. Zero dependencies, runs in any JS runtime.
- * Coverage: L-2 (infrastructure), L-1 (model poisoning), L0 (prompt injection + credential exposure)
+ * RAI P0 — Local pattern-based scan engine (mobile PWA copy).
+ *
+ * Ported verbatim from `packages/extension/src/shared/rai-scan-p0.ts`. Zero deps,
+ * `crypto.randomUUID()` is available in modern Android Chrome. Keep the two
+ * copies in sync; the extension version is the canonical source.
+ *
+ * Coverage: L-2 infrastructure, L-1 model poisoning, L0 prompt injection +
+ * credential exposure. L1 (AI-provenance fingerprints) is P1 territory.
  */
 
 import type { ThreatLayer, Severity, ThreatSignal, Verdict, RecommendedAction, ScanResult } from './types.js';
-
-// ---------------------------------------------------------------------------
-// Pattern library (canonical, from 19-ray-context.md)
-// ---------------------------------------------------------------------------
 
 interface Pattern {
   regex: RegExp;
@@ -19,7 +20,6 @@ interface Pattern {
 }
 
 const PATTERNS: Pattern[] = [
-  // --- L-2: Infrastructure / supply chain ---
   {
     regex: /\/Users\/[a-zA-Z]+\/|\/mnt\/|\/home\/[a-zA-Z]+\/nanoclaw/i,
     label: 'Mount path reference',
@@ -59,7 +59,6 @@ const PATTERNS: Pattern[] = [
     signal: 'Instruction to invoke tool/function detected in payload',
   },
 
-  // --- L-1: Model poisoning / drift ---
   {
     regex: /you\s+are\s+now\s+(?!no5|an?\s+AI|an?\s+assistant)[a-zA-Z]/i,
     label: 'Persona replacement',
@@ -100,7 +99,6 @@ const PATTERNS: Pattern[] = [
     signal: 'Attempt to modify persistent agent behavior',
   },
 
-  // --- L0: Prompt injection (direct) ---
   {
     regex:
       /ignore\s+(?:all\s+)?(?:previous|prior|earlier|above)\s+instructions?/i,
@@ -174,7 +172,6 @@ const PATTERNS: Pattern[] = [
     signal: 'Instruction to exfiltrate data via URL-encoded payload',
   },
 
-  // --- L0: Unintentional exposure (credentials / PII) ---
   {
     regex: /\bsk-ant-[a-zA-Z0-9\-_]{20,}/,
     label: 'Anthropic API key exposure',
@@ -211,10 +208,6 @@ const PATTERNS: Pattern[] = [
     signal: 'Inline password assignment pattern detected',
   },
 ];
-
-// ---------------------------------------------------------------------------
-// Verdict resolution
-// ---------------------------------------------------------------------------
 
 function severityRank(s: Severity): number {
   return { low: 0, medium: 1, high: 2, critical: 3 }[s];
@@ -280,10 +273,6 @@ function resolveVerdict(signals: ThreatSignal[]): {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Main scan function
-// ---------------------------------------------------------------------------
-
 export function scanP0(content: string): ScanResult {
   const scan_id = crypto.randomUUID();
   const signals: ThreatSignal[] = [];
@@ -305,7 +294,6 @@ export function scanP0(content: string): ScanResult {
     }
   }
 
-  // Deduplicate by label (keep highest severity)
   const deduped = new Map<string, ThreatSignal>();
   for (const s of signals) {
     const existing = deduped.get(s.label);
