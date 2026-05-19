@@ -12,6 +12,10 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "regen-arch": "tsx scripts/regen-architecture.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.22.3"
   }
 }

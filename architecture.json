@@ -1,0 +1,123 @@
+{
+  "$schema": "Source of truth for docs/30-rai-architecture-live.md. Edit this, then `npm run regen-arch`.",
+  "version": "1.0",
+  "last_manual_edit": "2026-05-19",
+  "threat_layers": [
+    { "id": "L-2", "label": "Infrastructure / supply chain", "covered_by": ["P0", "P1"] },
+    { "id": "L-1", "label": "Model poisoning / drift",       "covered_by": ["P0", "P1"] },
+    { "id": "L0",  "label": "Prompt injection",              "covered_by": ["P0", "P1"] },
+    { "id": "L1",  "label": "Misinformation",                "covered_by": ["P1", "P2"] },
+    { "id": "L2",  "label": "Cascade risk",                  "covered_by": ["P2"] },
+    { "id": "L3",  "label": "Systemic harm",                 "covered_by": ["P2"] },
+    { "id": "L4",  "label": "Agent action / side-effect",    "covered_by": ["L4", "Phantom"] }
+  ],
+  "engine_modules": [
+    {
+      "id": "P0",
+      "name": "Pattern scan",
+      "kind": "engine",
+      "status": "shipped",
+      "package": "@rai/core",
+      "files": ["packages/core/rai-scan-p0.ts"],
+      "what": "Local regex scanner. Zero-cost, runs on every surface. Detects known signatures across L-2/L-1/L0.",
+      "ol_refs": []
+    },
+    {
+      "id": "P1",
+      "name": "Semantic scan",
+      "kind": "engine",
+      "status": "shipped",
+      "package": "@rai/core",
+      "files": ["packages/core/rai-scan-p1.ts"],
+      "what": "Claude API scanner. Default Haiku, escalates to Sonnet when confidence < 0.65. Covers L-2/L-1/L0/L1.",
+      "ol_refs": ["OL-124"]
+    },
+    {
+      "id": "P2",
+      "name": "BS Council",
+      "kind": "engine",
+      "status": "shipped-engine",
+      "package": "@rai/p2-agent",
+      "files": [
+        "packages/p2-agent/src/bs-council.ts",
+        "packages/p2-agent/src/bs-council-runner.ts",
+        "packages/p2-agent/config/p2-council.json"
+      ],
+      "what": "4-agent verifiability layer. Heterogeneous providers (Anthropic + Together + Ollama) across 3 diversity axes. Verdicts: CONFIRMED / CONTESTED / UNVERIFIED / FALSE-ALARM. Covers L1/L2/L3.",
+      "ol_refs": ["OL-281"]
+    },
+    {
+      "id": "L4",
+      "name": "ActionGate",
+      "kind": "engine",
+      "status": "in-flight",
+      "package": "@rai/core",
+      "files": [
+        "packages/core/action-gate.ts",
+        "packages/core/action-gate-mcp.ts",
+        "packages/core/action-gate-shell.ts",
+        "packages/core/action-gate-native-messaging-host.ts",
+        "packages/core/action-gate-native-messaging-host-runner.ts",
+        "packages/core/audit-log.ts",
+        "packages/core/policy-loader.ts",
+        "docs/28-rai-actiongate-spec.md"
+      ],
+      "what": "Agent action firewall. Lineage tracking + OAuth scope attestation. MCP adapter + shell adapter + native-messaging-host adapter all implemented. Phantom adaptive layer next to it.",
+      "ol_refs": ["OL-140", "OL-245"]
+    },
+    {
+      "id": "Phantom",
+      "name": "Phantom adaptive",
+      "kind": "engine",
+      "status": "in-flight",
+      "package": "@rai/core",
+      "files": ["packages/core/phantom.ts", "packages/core/phantom.test.ts"],
+      "what": "Adaptive threat layer next to L4 — learns per-agent action patterns to flag unfamiliar side-effects. Companion to ActionGate.",
+      "ol_refs": []
+    },
+    {
+      "id": "M",
+      "name": "Memory / Sensing",
+      "kind": "engine",
+      "status": "in-flight",
+      "package": "@rai/core",
+      "files": [
+        "packages/core/scan-log.ts",
+        "packages/core/private-layer.ts",
+        "packages/core/threat-signature.ts",
+        "packages/core/dream-phase.ts",
+        "packages/core/ingest-server.ts"
+      ],
+      "what": "Distributed sensing + threat-signature store. Phase 1: local-only private layer + cross-surface ingest endpoint + dream-phase distillation. Phase 2: community pool with differential privacy.",
+      "ol_refs": ["OL-239", "OL-241"]
+    }
+  ],
+  "surfaces": [
+    { "id": "ext-chrome",    "name": "Browser Extension (Chrome MV3)", "status": "shipped",         "package": "rai-extension",     "what": "Right-click scan + ambient DOM scan on AI sites." },
+    { "id": "telegram",      "name": "Telegram Bot",                   "status": "shipped",         "package": "@rai/telegram-bot", "what": "Forward-to-scan multi-tenant consumer beachhead." },
+    { "id": "pwa",           "name": "Mobile PWA",                     "status": "shipped",         "package": "rai-mobile-pwa",    "what": "Manual scan + share-target on iOS/Android." },
+    { "id": "nanoclaw",      "name": "NanoClaw (Claude Code hook)",    "status": "shipped",         "package": "(external)",        "what": "PreToolUse hook. Tim's own dev environment." },
+    { "id": "claude-desktop","name": "Claude Desktop hook",            "status": "in-flight",       "package": "(external)",        "what": "DOM scan on claude.ai chats.", "ol_refs": ["OL-235"] },
+    { "id": "ng-host",       "name": "Native Messaging Host (ActionGate adapter)", "status": "spec","package": "(spec)",            "what": "L4 gate bridge — VCCE for Chrome → local policy engine.", "ol_refs": ["OL-140"] },
+    { "id": "vps-relay",     "name": "VPS Distributed Sensing Node",   "status": "built",           "package": "(infra)",           "what": "Ingest endpoint for cross-surface scan events. Smoke test pending.", "ol_refs": ["OL-241"] }
+  ],
+  "data_flow": [
+    "Surface (extension / pwa / telegram / nanoclaw) emits scan event",
+    "P0 runs locally on every surface (zero-cost regex)",
+    "If P0 flags → P1 (Haiku, BYOK) for semantic verdict",
+    "If P1 confidence low OR L1 misinfo → P2 BS Council (4-agent heterogeneous council)",
+    "All verdicts written to ScanLog → ingest-server → Memory/Sensing layer",
+    "Dream Phase (offline) distills patterns → ThreatSignature store → seeds next P0 patterns",
+    "L4 ActionGate (spec) intercepts agent actions pre-execution"
+  ],
+  "tier_gating": {
+    "free":     { "P0": true,  "P1": false, "P2": false, "L4": false },
+    "pro":      { "P0": true,  "P1": true,  "P2": "partial (BYOK + local fallback)", "L4": false },
+    "premium":  { "P0": true,  "P1": true,  "P2": true,  "L4": "planned" }
+  },
+  "deck": {
+    "latest_html": "assets/deck & web design/Drafts/rai-teaser-deck-v15.html",
+    "version": "v15",
+    "appendix_a1": "BS Council architecture (added 2026-05-19)"
+  }
+}
