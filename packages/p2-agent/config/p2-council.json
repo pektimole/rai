@@ -1,0 +1,56 @@
+{
+  "agents": {
+    "A": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-6",
+      "web_search": true
+    },
+    "B": {
+      "provider": "together",
+      "model": "Qwen/Qwen3-72B-Instruct",
+      "web_search": true,
+      "fallback_local": {
+        "provider": "ollama",
+        "model": "qwen2.5:32b",
+        "web_search": true
+      }
+    },
+    "C": {
+      "provider": "anthropic",
+      "model": "claude-haiku-4-5-20251001",
+      "web_search": false
+    },
+    "D": {
+      "provider": "ollama",
+      "model": "qwen2.5:14b",
+      "web_search": false,
+      "fallback_cloud": {
+        "provider": "together",
+        "model": "Qwen/Qwen2.5-72B-Instruct",
+        "web_search": false
+      }
+    }
+  },
+  "tier_overrides": {
+    "free": {
+      "A": null,
+      "B": null,
+      "C": null,
+      "D": null
+    },
+    "pro": {
+      "B": {
+        "provider": "ollama",
+        "model": "qwen2.5:32b",
+        "web_search": true
+      },
+      "C": null,
+      "D": {
+        "provider": "ollama",
+        "model": "qwen2.5:14b",
+        "web_search": false
+      }
+    },
+    "premium": "use defaults"
+  }
+}

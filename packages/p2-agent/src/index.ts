@@ -9,11 +9,17 @@
  */
 
 export { mergeVerdicts } from './consensus.js';
+export { mergeBSVerdicts } from './bs-council.js';
 export { runProvenanceAgent } from './agents/provenance.js';
 export { runCrossRefAgent } from './agents/cross-ref.js';
 export { runTemporalAgent } from './agents/temporal.js';
 export { runCredibilityAgent, lookupCredibility, CREDIBILITY_SEED } from './agents/credibility.js';
-export type { P2Input, P2Result, P2Weights, AgentVerdict, CredibilityTier, SourceCredibility, ScanHistoryEntry } from './types.js';
+export type {
+  P2Input, P2Result, P2Weights, AgentVerdict, CredibilityTier, SourceCredibility, ScanHistoryEntry,
+  BSCouncilVerdict, BSCouncilResult, Citation, CouncilRole, CouncilBreakdown,
+  CouncilBreakdownA, CouncilBreakdownB, CouncilBreakdownC, CouncilBreakdownD,
+  AgentABVerdict, AgentDVerdict, CouncilConfig, AgentConfig, ProviderName, RaiTier,
+} from './types.js';
 
 import type { P2Input, P2Result, P2Weights } from './types.js';
 import { runProvenanceAgent } from './agents/provenance.js';
