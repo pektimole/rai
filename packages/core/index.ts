@@ -29,3 +29,9 @@ export * from './threat-weights.js';
 export * from './scan-log.js';
 export * from './phantom.js';
 export * from './corrections.js';
+
+// Network Architecture — Phase 1: Private Layer
+export * from './threat-signature.js';
+export * from './private-layer.js';
+export { runDreamPhase, distillScanLog, type DreamPhaseResult, type DreamPhaseOptions } from './dream-phase.js';
+export { createIngestServer } from './ingest-server.js';

@@ -2,7 +2,7 @@
 
 > **Auto-generated. Do not edit.**
 > Source of truth: `architecture.json` · Regenerate: `npm run regen-arch`
-> Generated: 2026-05-19 10:15 UTC · Commit: `ede6c69` (`main`) · ⚠ working tree dirty
+> Generated: 2026-05-19 10:18 UTC · Commit: `7fbc970` (`main`) · ⚠ working tree dirty
 > Schema version: 1.0 · Last manual edit to source: 2026-05-19
 
 ---
@@ -50,7 +50,7 @@ graph LR
   class E_P2 shipped;
   class E_L4 inflight;
   class E_Phantom inflight;
-  class E_M inflight;
+  class E_M shipped;
 ```
 
 ---
@@ -64,7 +64,7 @@ graph LR
 | P2 | BS Council | ✓ engine shipped | `@rai/p2-agent` | OL-281 | 4-agent verifiability layer. Heterogeneous providers (Anthropic + Together + Ollama) across 3 diversity axes. Verdicts: CONFIRMED / CONTESTED / UNVERIFIED / FALSE-ALARM. Covers L1/L2/L3. |
 | L4 | ActionGate | ◐ in-flight | `@rai/core` | OL-140, OL-245 | Agent action firewall. Lineage tracking + OAuth scope attestation. MCP adapter + shell adapter + native-messaging-host adapter all implemented. Phantom adaptive layer next to it. |
 | Phantom | Phantom adaptive | ◐ in-flight | `@rai/core` | — | Adaptive threat layer next to L4 — learns per-agent action patterns to flag unfamiliar side-effects. Companion to ActionGate. |
-| M | Memory / Sensing | ◐ in-flight | `@rai/core` | OL-239, OL-241 | Distributed sensing + threat-signature store. Phase 1: local-only private layer + cross-surface ingest endpoint + dream-phase distillation. Phase 2: community pool with differential privacy. |
+| M | Memory / Sensing | ✓ engine shipped | `@rai/core` | OL-239, OL-241 | Distributed sensing + threat-signature store. Phase 1 shipped: local-only PrivateLayer + cross-surface ingest endpoint + dream-phase offline distillation, 45 tests passing. Phase 2 (community pool with differential privacy) pending. |
 
 ### Files per module
 

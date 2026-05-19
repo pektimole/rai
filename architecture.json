@@ -79,7 +79,7 @@
       "id": "M",
       "name": "Memory / Sensing",
       "kind": "engine",
-      "status": "in-flight",
+      "status": "shipped-engine",
       "package": "@rai/core",
       "files": [
         "packages/core/scan-log.ts",
@@ -88,7 +88,7 @@
         "packages/core/dream-phase.ts",
         "packages/core/ingest-server.ts"
       ],
-      "what": "Distributed sensing + threat-signature store. Phase 1: local-only private layer + cross-surface ingest endpoint + dream-phase distillation. Phase 2: community pool with differential privacy.",
+      "what": "Distributed sensing + threat-signature store. Phase 1 shipped: local-only PrivateLayer + cross-surface ingest endpoint + dream-phase offline distillation, 45 tests passing. Phase 2 (community pool with differential privacy) pending.",
       "ol_refs": ["OL-239", "OL-241"]
     }
   ],
