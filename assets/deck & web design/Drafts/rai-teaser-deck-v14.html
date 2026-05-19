@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RA(I), Teaser Deck v14</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+ --black:#080808;
+ --white:#f0ede8;
+ --dim:#222;
+ --border:#1c1c1c;
+ --muted:#f0ede8;
+ --accent:#e8ff00;
+ --danger:#ff3333;
+ --amber:#ffa028;
+ --blue:#2850c8;
+ --violet:#aa44ff;
+}
+html{scroll-snap-type:y mandatory;overflow-y:scroll;scroll-behavior:smooth;}
+body{background:var(--black);color:var(--white);font-family:'Geist Mono',monospace;}
+
+/* GRAIN */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:.5;}
+
+/* SLIDES */
+.slide{
+ scroll-snap-align:start;
+ min-height:100vh;
+ display:grid;
+ padding:0;
+ position:relative;
+ overflow:hidden;
+ border-bottom:1px solid var(--border);
+}
+
+/* NAV DOTS */
+.nav{
+ position:fixed;
+ right:32px;
+ top:50%;
+ transform:translateY(-50%);
+ display:flex;
+ flex-direction:column;
+ gap:12px;
+ z-index:50;
+}
+.nav a{
+ width:6px;height:6px;
+ border-radius:50%;
+ background:var(--muted);
+ display:block;
+ transition:all .3s;
+ text-decoration:none;
+}
+.nav a.active{background:var(--accent);box-shadow:0 0 8px var(--accent);}
+
+/* SLIDE NUMBER */
+.slide-num{
+ position:absolute;
+ top:40px;right:72px;
+ font-size:11px;
+ letter-spacing:.15em;
+ color:var(--muted);
+ font-family:'Geist Mono',monospace;
+}
+
+/* LOGO */
+.logo-mark{
+ position:absolute;
+ top:36px;left:48px;
+ font-family:'Geist Mono',monospace;
+ font-size:14px;
+ font-weight:500;
+ letter-spacing:.05em;
+ color:var(--white);
+ opacity:.6;
+}
+.logo-mark span{color:var(--accent);}
+
+/* ─────────────────────────────────────────
+ SLIDE 1, HERO / VACUUM
+───────────────────────────────────────── */
+#s1{
+ grid-template-columns:1fr 1fr;
+ grid-template-rows:1fr;
+ align-items:center;
+}
+.s1-left{
+ padding:120px 64px 80px 80px;
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ height:100%;
+ border-right:1px solid var(--border);
+}
+.s1-eyebrow{
+ font-size:10px;
+ letter-spacing:.2em;
+ text-transform:uppercase;
+ color:var(--accent);
+ margin-bottom:32px;
+}
+.s1-headline{
+ font-family:'Instrument Serif',serif;
+ font-size:clamp(52px,6vw,84px);
+ line-height:1.0;
+ letter-spacing:-1px;
+ color:var(--white);
+ margin-bottom:40px;
+}
+.s1-headline em{
+ font-style:italic;
+ color:var(--accent);
+}
+.s1-body{
+ font-size:13px;
+ line-height:1.85;
+ color:var(--muted);
+ max-width:460px;
+ margin-bottom:56px;
+}
+.s1-meta{
+ display:flex;
+ gap:40px;
+}
+.meta-item{display:flex;flex-direction:column;gap:5px;}
+.meta-label{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
+.meta-val{font-size:13px;color:var(--white);}
+.meta-val.live{color:var(--accent);}
+
+.s1-right{
+ padding:80px 80px 80px 64px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ position:relative;
+}
+.terminal-hero{
+ background:#0c0c0c;
+ border:1px solid var(--border);
+ border-radius:4px;
+ width:100%;
+ max-width:500px;
+ font-family:'Geist Mono',monospace;
+ overflow:hidden;
+}
+.t-bar{
+ display:flex;align-items:center;gap:7px;
+ padding:12px 16px;
+ background:#0f0f0f;
+ border-bottom:1px solid var(--border);
+}
+.t-dot{width:10px;height:10px;border-radius:50%;}
+.t-url{
+ flex:1;font-size:10px;color:var(--muted);
+ background:var(--dim);border-radius:2px;
+ padding:3px 10px;text-align:center;letter-spacing:.05em;
+}
+.t-body{padding:20px 24px;font-size:11.5px;line-height:1.85;}
+.tc{color:#444;}.tm{color:#888;}.tw{color:var(--amber);}
+.tg{color:var(--accent);}.tr{color:var(--danger);}.tv{color:var(--violet);}
+.t-row{display:flex;gap:10px;align-items:baseline;}
+.t-tag{display:inline-block;font-size:9px;letter-spacing:.08em;padding:1px 6px;border-radius:2px;font-weight:500;min-width:38px;text-align:center;}
+.t-tag.l5{background:rgba(255,51,51,.15);color:var(--danger);}
+.t-tag.l4{background:rgba(170,68,255,.15);color:var(--violet);}
+.t-tag.l1{background:rgba(255,160,40,.15);color:var(--amber);}
+.t-tag.l0{background:rgba(255,204,0,.15);color:#ffcc00;}
+.t-tag.ok{background:rgba(232,255,0,.12);color:var(--accent);}
+
+/* ─────────────────────────────────────────
+ SLIDE 2, THE ENGINE + FORK
+───────────────────────────────────────── */
+#s2{align-items:center;justify-content:center;}
+.s2-inner{
+ max-width:1180px;
+ width:100%;
+ padding:100px 64px;
+ margin:0 auto;
+}
+.s2-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:32px;}
+.s2-headline{
+ font-family:'Instrument Serif',serif;
+ font-size:clamp(40px,4.5vw,60px);
+ line-height:1.05;
+ letter-spacing:-1px;
+ margin-bottom:16px;
+ max-width:800px;
+}
+.s2-headline em{font-style:italic;color:var(--accent);}
+.s2-sub{
+ font-size:13px;line-height:1.7;color:var(--muted);
+ max-width:640px;margin-bottom:48px;
+}
+.engine-strip{
+ display:grid;
+ grid-template-columns:repeat(5,1fr);
+ gap:8px;
+ margin-bottom:32px;
+ padding:18px 20px;
+ background:rgba(232,255,0,.04);
+ border:1px solid rgba(232,255,0,.25);
+ border-radius:4px;
+}
+.engine-cell{text-align:center;}
+.engine-cell-code{
+ font-size:10px;letter-spacing:.12em;color:var(--accent);
+ margin-bottom:6px;
+}
+.engine-cell-name{
+ font-size:11.5px;color:var(--white);font-weight:500;line-height:1.4;
+}
+.engine-cell-meta{
+ font-size:9px;letter-spacing:.08em;color:#888;margin-top:4px;text-transform:uppercase;
+}
+.arms-row{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:16px;
+}
+.arm-card{
+ background:#0c0c0c;
+ border:1px solid var(--border);
+ border-radius:4px;
+ padding:24px 26px 28px;
+ position:relative;
+}
+.arm-card::before{
+ content:'';
+ position:absolute;top:0;left:0;right:0;height:2px;
+}
+.arm-consumer::before{background:var(--accent);}
+.arm-enterprise::before{background:var(--violet);}
+.arm-tag{
+ font-size:9px;letter-spacing:.15em;text-transform:uppercase;
+ margin-bottom:12px;
+}
+.arm-consumer .arm-tag{color:var(--accent);}
+.arm-enterprise .arm-tag{color:var(--violet);}
+.arm-title{
+ font-family:'Instrument Serif',serif;
+ font-size:24px;line-height:1.2;
+ color:var(--white);margin-bottom:12px;
+}
+.arm-body{font-size:12px;line-height:1.7;color:var(--muted);margin-bottom:14px;}
+.arm-meta{font-size:10px;color:#777;letter-spacing:.05em;line-height:1.6;}
+.arm-meta strong{color:var(--white);font-weight:500;}
+
+/* ─────────────────────────────────────────
+ SLIDE 3, TRUTH LENS ARM
+───────────────────────────────────────── */
+#s3{align-items:center;}
+.s3-inner{
+ max-width:1100px;width:100%;
+ padding:100px 80px;margin:0 auto;
+}
+.s3-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:24px;}
+.s3-headline{
+ font-family:'Instrument Serif',serif;
+ font-size:clamp(44px,5vw,68px);
+ line-height:1.05;letter-spacing:-1px;
+ margin-bottom:20px;max-width:780px;
+}
+.s3-headline em{font-style:italic;color:var(--accent);}
+.s3-sub{font-size:13px;line-height:1.75;color:var(--muted);max-width:620px;margin-bottom:48px;}
+.evidence-row{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:1px;
+ background:var(--border);
+ border:1px solid var(--border);
+ border-radius:4px;
+ overflow:hidden;
+ margin-bottom:32px;
+}
+.ev-card{
+ background:var(--black);
+ padding:24px 24px 28px;
+ position:relative;
+}
+.ev-card::before{
+ content:'';
+ position:absolute;top:0;left:0;right:0;height:2px;
+}
+.ev-l5::before{background:var(--danger);}
+.ev-l1b::before{background:var(--amber);}
+.ev-l1::before{background:var(--amber);}
+.ev-l0::before{background:#ffcc00;}
+.ev-l4::before{background:var(--violet);}
+.ev-tag{font-size:9px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;}
+.ev-l5 .ev-tag{color:var(--danger);}
+.ev-l1b .ev-tag, .ev-l1 .ev-tag{color:var(--amber);}
+.ev-l0 .ev-tag{color:#ffcc00;}
+.ev-l4 .ev-tag{color:var(--violet);}
+.ev-title{font-size:13.5px;font-weight:500;line-height:1.3;margin-bottom:10px;color:var(--white);}
+.ev-body{font-size:11px;line-height:1.7;color:var(--muted);}
+.beat-anchor{
+ border-left:2px solid var(--accent);
+ padding:16px 24px;
+ font-family:'Instrument Serif',serif;
+ font-size:clamp(17px,1.8vw,22px);
+ line-height:1.4;
+ color:var(--white);
+ max-width:820px;
+}
+.beat-anchor em{font-style:italic;color:var(--accent);}
+.beat-anchor.violet{border-left-color:var(--violet);}
+.beat-anchor.violet em{color:var(--violet);}
+
+/* ─────────────────────────────────────────
+ SLIDE 4, CONCRETE SECURITY ARM
+───────────────────────────────────────── */
+#s4{align-items:center;}
+.s4-inner{
+ max-width:1100px;width:100%;
+ padding:100px 80px;margin:0 auto;
+}
+.s4-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--violet);margin-bottom:24px;}
+.s4-headline{
+ font-family:'Instrument Serif',serif;
+ font-size:clamp(44px,5vw,68px);
+ line-height:1.05;letter-spacing:-1px;
+ margin-bottom:20px;max-width:780px;
+}
+.s4-headline em{font-style:italic;color:var(--violet);}
+.s4-sub{font-size:13px;line-height:1.75;color:var(--muted);max-width:620px;margin-bottom:48px;}
+
+/* ─────────────────────────────────────────
+ SLIDE 5, WHY NOW
+───────────────────────────────────────── */
+#s5{align-items:center;}
+.s5-inner{
+ width:100%;padding:100px 80px;
+ max-width:1100px;margin:0 auto;
+}
+.s5-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:32px;}
+.s5-headline{
+ font-family:'Instrument Serif',serif;
+ font-size:clamp(40px,4.5vw,60px);
+ line-height:1.05;letter-spacing:-1px;
+ margin-bottom:40px;
+ max-width:780px;
+}
+.s5-headline em{font-style:italic;color:var(--accent);}
+.vendor-grid{
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:12px;
+ margin-bottom:32px;
+}
+.vendor-card{
+ background:#0c0c0c;
+ border:1px solid var(--border);
+ border-radius:4px;
+ padding:18px 18px 22px;
+}
+.vc-date{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.vc-vendor{font-size:11px;color:var(--accent);margin-bottom:8px;letter-spacing:.05em;}
+.vc-desc{font-size:11.5px;line-height:1.55;color:#888;}
+.s5-punch{
+ border-left:2px solid var(--accent);
+ padding:18px 28px;
+ font-family:'Instrument Serif',serif;
+ font-size:clamp(18px,2vw,26px);
+ line-height:1.4;
+ color:var(--white);
+ max-width:820px;
+}
+.s5-punch em{font-style:italic;color:var(--accent);}
+
+/* ─────────────────────────────────────────
+ SLIDE 6, BUILD STATE
+───────────────────────────────────────── */
+#s6{align-items:center;}
+.s6-inner{width:100%;padding:100px 80px;max-width:1100px;margin:0 auto;}
+.s6-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:32px;}
+.s6-headline{
+ font-family:'Instrument Serif',serif;
+ font-size:clamp(40px,4.5vw,60px);
+ line-height:1.05;letter-spacing:-1px;
+ margin-bottom:48px;max-width:780px;
+}
+.s6-headline em{font-style:italic;color:var(--accent);}
+.metrics-grid{
+ display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
+ margin-bottom:36px;
+}
+.met-card{
+ background:#0c0c0c;border:1px solid var(--border);border-radius:4px;
+ padding:24px 20px;
+}
+.met-val{
+ font-family:'Instrument Serif',serif;
+ font-size:44px;line-height:1;
+ color:var(--white);margin-bottom:8px;
+}
+.met-val em{font-style:normal;color:var(--accent);font-size:.7em;}
+.met-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);line-height:1.5;}
+.surfaces-row{
+ display:flex;flex-wrap:wrap;gap:10px;
+}
+.surface-pill{
+ font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+ padding:7px 14px;border:1px solid var(--border);border-radius:100px;
+ color:var(--muted);
+}
+.surface-pill.live{
+ border-color:rgba(232,255,0,.3);
+ color:var(--accent);
+ background:rgba(232,255,0,.05);
+}
+.surface-pill.next{
+ border-color:rgba(255,160,40,.3);
+ color:var(--amber);
+ background:rgba(255,160,40,.05);
+}
+.surface-pill.ent{
+ border-color:rgba(170,68,255,.3);
+ color:var(--violet);
+ background:rgba(170,68,255,.05);
+}
+
+/* ─────────────────────────────────────────
+ SLIDE 7, VISION
+───────────────────────────────────────── */
+#s7{align-items:center;justify-content:center;}
+.s7-inner{
+ max-width:900px;width:100%;
+ padding:100px 80px;
+ margin:0 auto;
+ text-align:center;
+}
+.s7-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:48px;}
+.s7-headline{
+ font-family:'Instrument Serif',serif;
+ font-size:clamp(48px,6vw,88px);
+ line-height:1.0;letter-spacing:-2px;
+ margin-bottom:48px;
+}
+.s7-headline em{font-style:italic;color:var(--accent);}
+.s7-body{
+ font-size:15px;line-height:1.9;
+ color:var(--muted);max-width:680px;
+ margin:0 auto 56px;
+}
+.s7-contact{
+ display:inline-flex;flex-direction:column;align-items:center;gap:8px;
+}
+.s7-contact-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
+.s7-contact-val{font-size:14px;color:var(--white);}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+ #s1{grid-template-columns:1fr;}
+ .s1-right{display:none;}
+ .evidence-row,.vendor-grid,.metrics-grid,.engine-strip,.arms-row{grid-template-columns:1fr;}
+ .s1-left,.s2-inner,.s3-inner,.s4-inner,.s5-inner,.s6-inner,.s7-inner{padding:100px 32px 60px;}
+ .slide-num{right:48px;}
+ .nav{right:16px;}
+}
+
+/* ANIMATIONS */
+.slide > *{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease;}
+.slide.visible > *{opacity:1;transform:translateY(0);}
+.slide.visible > *:nth-child(2){transition-delay:.1s;}
+.slide.visible > *:nth-child(3){transition-delay:.2s;}
+.slide.visible > *:nth-child(4){transition-delay:.3s;}
+</style>
+</head>
+<body>
+
+<!-- NAV DOTS -->
+<nav class="nav">
+ <a href="#s0" class="active" data-slide="s0"></a>
+ <a href="#s1" data-slide="s1"></a>
+ <a href="#s2" data-slide="s2"></a>
+ <a href="#s3" data-slide="s3"></a>
+ <a href="#s4" data-slide="s4"></a>
+ <a href="#s5" data-slide="s5"></a>
+ <a href="#s6" data-slide="s6"></a>
+ <a href="#s7" data-slide="s7"></a>
+</nav>
+
+<!-- ── SLIDE 0: COVER ── -->
+<section class="slide" id="s0">
+ <div style="
+ position:absolute;inset:0;
+ display:flex;flex-direction:column;
+ align-items:center;justify-content:center;
+ gap:32px;
+ ">
+ <div style="
+ font-family:'Instrument Serif',serif;
+ font-size:clamp(80px,14vw,160px);
+ font-weight:700;
+ letter-spacing:-4px;
+ line-height:1;
+ color:#f0ede8;
+ "><span style="color:#e8ff00">(R)</span>AI</div>
+ <div style="
+ font-family:'Geist Mono',monospace;
+ font-size:14px;
+ letter-spacing:0.18em;
+ text-transform:uppercase;
+ color:#555;
+ ">One engine. Two layers. Every AI interaction, defended.</div>
+ </div>
+ <div style="
+ position:absolute;bottom:0;left:0;right:0;
+ height:34px;
+ display:flex;align-items:center;justify-content:space-between;
+ padding:0 48px;
+ border-top:1px solid #1a1a1a;
+ ">
+ <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#555;">Ambient AI Trust Layer</div>
+ <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#555;">v14 · 2026-05-18 · Confidential</div>
+ </div>
+</section>
+
+<!-- ── SLIDE 1: VACUUM ── -->
+<section class="slide" id="s1">
+ <div class="logo-mark"><span>(</span>R<span>)</span>AI</div>
+ <div class="slide-num">01 / 07</div>
+ <div class="s1-left">
+ <div class="s1-eyebrow">The Trust Vacuum</div>
+ <h1 class="s1-headline">
+ You have an<br>immune system.<br><em>Not for this.</em>
+ </h1>
+ <p class="s1-body">
+ For pathogens: an immune system. For malware: antivirus. For AI interactions, for AI agents acting on your behalf, for AI inside your stack: nothing. Nobody built that layer yet. The cost is being externalized to users one breach at a time.
+ </p>
+ <div class="s1-meta">
+ <div class="meta-item">
+ <span class="meta-label">Category</span>
+ <span class="meta-val">AI Trust Layer</span>
+ </div>
+ <div class="meta-item">
+ <span class="meta-label">Stage</span>
+ <span class="meta-val live">P3 Shipped · Council Building</span>
+ </div>
+ <div class="meta-item">
+ <span class="meta-label">Surfaces</span>
+ <span class="meta-val">5 Live · Hardware Planned</span>
+ </div>
+ </div>
+ </div>
+ <div class="s1-right">
+ <div class="terminal-hero">
+ <div class="t-bar">
+ <div class="t-dot" style="background:#ff5f56"></div>
+ <div class="t-dot" style="background:#ffbd2e"></div>
+ <div class="t-dot" style="background:#27c93f"></div>
+ <div class="t-url">rai://scan · ambient · live feed</div>
+ </div>
+ <div class="t-body">
+ <div class="tc">// RAI ambient scan · last 5 min</div><br>
+ <div class="t-row"><span class="t-tag l5">L5</span><span class="tm">LinkedIn DM @liammouhali, AI-managed, deflecting</span></div>
+ <div class="t-row"><span class="t-tag l1">L1</span><span class="tm">linkedin.com/feed, Turnbull post, 0/5 sources verify CVE-9.6</span></div>
+ <div class="t-row"><span class="t-tag l4">L4</span><span class="tm">mcp://github: process spawned outside session lineage</span></div>
+ <div class="t-row"><span class="t-tag l0">L0</span><span class="tm">npm install code-stick: preinstall hook present</span></div>
+ <div class="t-row"><span class="t-tag ok">OK</span><span class="tm">gmail://primary: clear</span></div><br>
+ <div class="tw">→ One engine. Consumer and enterprise threats,</div>
+ <div class="tw">&nbsp;&nbsp;same scan feed, same verdict pipeline.</div>
+ </div>
+ </div>
+ </div>
+</section>
+
+<!-- ── SLIDE 2: ENGINE + FORK ── -->
+<section class="slide" id="s2">
+ <div class="logo-mark"><span>(</span>R<span>)</span>AI</div>
+ <div class="slide-num">02 / 07</div>
+ <div class="s2-inner">
+ <div class="s2-label">The Engine + Two Layers</div>
+ <h2 class="s2-headline">
+ One engine.<br><em>Two layers it defends.</em>
+ </h2>
+ <p class="s2-sub">
+ RAI is a single trust layer beneath every AI interaction. The engine is shared. What changes is the surface and the buyer.
+ </p>
+
+ <div class="engine-strip">
+ <div class="engine-cell">
+ <div class="engine-cell-code">P0</div>
+ <div class="engine-cell-name">Pattern scan</div>
+ <div class="engine-cell-meta">Local · 262 tests</div>
+ </div>
+ <div class="engine-cell">
+ <div class="engine-cell-code">P1</div>
+ <div class="engine-cell-name">Semantic scan</div>
+ <div class="engine-cell-meta">Haiku / Sonnet · BYOK</div>
+ </div>
+ <div class="engine-cell">
+ <div class="engine-cell-code">P2</div>
+ <div class="engine-cell-name">BS Council</div>
+ <div class="engine-cell-meta">5 sources · building</div>
+ </div>
+ <div class="engine-cell">
+ <div class="engine-cell-code">L4</div>
+ <div class="engine-cell-name">ActionGate</div>
+ <div class="engine-cell-meta">Lineage · OAuth scope</div>
+ </div>
+ <div class="engine-cell">
+ <div class="engine-cell-code">M</div>
+ <div class="engine-cell-name">Memory / Sensing</div>
+ <div class="engine-cell-meta">Distributed · live</div>
+ </div>
+ </div>
+
+ <div class="arms-row">
+ <div class="arm-card arm-consumer">
+ <div class="arm-tag">Consumer Layer · Truth Lens</div>
+ <div class="arm-title">Know what's real.</div>
+ <div class="arm-body">
+ Every DM, post, voice, agent interaction: verified or flagged before you respond. BS Council asks five independent sources and shows you their answer.
+ </div>
+ <div class="arm-meta">
+ <strong>Surfaces:</strong> Browser ext · Telegram · PWA · Hardware buddy<br>
+ <strong>Entry:</strong> EUR 0.99 / month · BYOK upgrade
+ </div>
+ </div>
+ <div class="arm-card arm-enterprise">
+ <div class="arm-tag">Enterprise Layer · Concrete Security</div>
+ <div class="arm-title">The audit matrix Anthropic hasn't built.</div>
+ <div class="arm-body">
+ Process-spawn lineage, OAuth token scope, action attestation. Indistinguishable-from-user agent actions, made distinguishable. CISO-legible by design.
+ </div>
+ <div class="arm-meta">
+ <strong>Surfaces:</strong> Native-messaging adapter · MCP gateway · Attestation appliance<br>
+ <strong>Entry:</strong> Per-seat / contract · pilot pricing
+ </div>
+ </div>
+ </div>
+ </div>
+</section>
+
+<!-- ── SLIDE 3: TRUTH LENS ARM ── -->
+<section class="slide" id="s3">
+ <div class="logo-mark"><span>(</span>R<span>)</span>AI</div>
+ <div class="slide-num">03 / 07</div>
+ <div class="s3-inner">
+ <div class="s3-label">Layer 1 · Truth Lens · Consumer</div>
+ <h2 class="s3-headline">
+ Know what's real.<br><em>Before you reply, share, or act.</em>
+ </h2>
+ <p class="s3-sub">
+ Platforms ship engagement, not verification. RAI scans the interaction itself: provenance, source consensus, AI-management signals. Pattern-match is tentative. Verdict requires citations.
+ </p>
+ <div class="evidence-row">
+ <div class="ev-card ev-l1">
+ <div class="ev-tag">L1 · Verification Failure</div>
+ <div class="ev-title">Shai-Hulud / Turnbull, May 2026</div>
+ <div class="ev-body">Real CVE-9.6, real 518M figure, real OpenAI cert rotation. Pattern-matchers flagged it as panic disinfo before checking. RAI Gate 1: verify before verdict. Five sources, one citation stack.</div>
+ </div>
+ <div class="ev-card ev-l1b">
+ <div class="ev-tag">L1b · Influencer-Amplified Harm</div>
+ <div class="ev-title">10M followers told to upload bank statements to Copilot</div>
+ <div class="ev-body">Mel Robbins x Microsoft. Empowerment framing. Step-by-step financial data extraction. Irreversible. No platform flagged it.</div>
+ </div>
+ <div class="ev-card ev-l5">
+ <div class="ev-tag">L5 · Synthetic Identity</div>
+ <div class="ev-title">The DM that wasn't from a human</div>
+ <div class="ev-body">600+ LinkedIn comment replies managed by AI with no disclosure. Deflects when challenged. Thousands of contacts harvested before anyone noticed.</div>
+ </div>
+ </div>
+ <blockquote class="beat-anchor">
+ <em>BS Council:</em> RAI asks five independent sources and shows you what they said. Pattern-match plus citations. Never "high confidence" without a source stack.
+ </blockquote>
+ </div>
+</section>
+
+<!-- ── SLIDE 4: CONCRETE SECURITY ARM ── -->
+<section class="slide" id="s4">
+ <div class="logo-mark"><span>(</span>R<span>)</span>AI</div>
+ <div class="slide-num">04 / 07</div>
+ <div class="s4-inner">
+ <div class="s4-label">Layer 2 · Concrete Security · Enterprise</div>
+ <h2 class="s4-headline">
+ The audit matrix<br><em>Anthropic hasn't built.</em>
+ </h2>
+ <p class="s4-sub">
+ Agents inherit user privilege. Flat authorization. "User consented." Four research teams, three Claude surfaces, 48 hours, same failure class. RAI ActionGate is the missing layer.
+ </p>
+ <div class="evidence-row">
+ <div class="ev-card ev-l4">
+ <div class="ev-tag">L4 · Confused Deputy</div>
+ <div class="ev-title">Four teams, three surfaces, 48 hours</div>
+ <div class="ev-body">VentureBeat May 2026: agents exfiltrate, install, persist via inherited user capability. Anthropic response: "user consented." RAI ActionGate: process-spawn lineage + scope attestation. Distinguishable.</div>
+ </div>
+ <div class="ev-card ev-l4">
+ <div class="ev-tag">L4 · Silent Corruption</div>
+ <div class="ev-title">DELEGATE-52: 25% doc corruption rate</div>
+ <div class="ev-body">Microsoft Research, 20-step delegated workflows. Frontier models silently rewrite, not delete. Agentic harnesses worsen by 6%. ActionGate write-scope attestation: declared intent vs actual content delta.</div>
+ </div>
+ <div class="ev-card ev-l0">
+ <div class="ev-tag">L0 · Architectural RCE</div>
+ <div class="ev-title">MCP STDIO: 200,000+ servers, "expected behavior"</div>
+ <div class="ev-body">OX Security disclosure. Executes OS commands without sanitization. 10+ Critical CVEs from one root cause. Vendor says working as designed. RAI gateway sits between client and STDIO.</div>
+ </div>
+ </div>
+ <blockquote class="beat-anchor violet">
+ <em>ActionGate:</em> Process lineage. OAuth scope. Declared-intent vs actual-delta. The audit trail your CISO can sign off on, the audit trail Anthropic told you to build yourselves.
+ </blockquote>
+ </div>
+</section>
+
+<!-- ── SLIDE 5: WHY NOW ── -->
+<section class="slide" id="s5">
+ <div class="logo-mark"><span>(</span>R<span>)</span>AI</div>
+ <div class="slide-num">05 / 07</div>
+ <div class="s5-inner">
+ <div class="s5-label">Why Now</div>
+ <h2 class="s5-headline">Every vendor is shipping defenses around the interaction layer. None protect <em>it</em>.</h2>
+ <div class="vendor-grid">
+ <div class="vendor-card">
+ <div class="vc-date">Apr 2026</div>
+ <div class="vc-vendor">Anthropic</div>
+ <div class="vc-desc">Claude Security launch + Public Bug Bounty. Exists because their own model finds and exploits vulns in minutes. Output-layer, not interaction-layer.</div>
+ </div>
+ <div class="vendor-card">
+ <div class="vc-date">May 2026</div>
+ <div class="vc-vendor">UK AISI</div>
+ <div class="vc-desc">Government measurement of AI security gaps. Numbers vendors don't ship. Confirms market exists at policy layer.</div>
+ </div>
+ <div class="vendor-card">
+ <div class="vc-date">May 2026</div>
+ <div class="vc-vendor">VentureBeat / 4 teams</div>
+ <div class="vc-desc">Confused deputy proven across three Claude surfaces in 48h. Same failure class. CISO-legible by next quarter.</div>
+ </div>
+ <div class="vendor-card">
+ <div class="vc-date">May 2026</div>
+ <div class="vc-vendor">CMU ExploitBench</div>
+ <div class="vc-desc">Frontier models develop real browser exploits autonomously. Capability cheapening at scale.</div>
+ </div>
+ </div>
+ <blockquote class="s5-punch">
+ "Five major incidents in a month. Vendors are building defenses around the interaction layer. <em>That's where RAI lives.</em>"
+ </blockquote>
+ </div>
+</section>
+
+<!-- ── SLIDE 6: BUILD STATE ── -->
+<section class="slide" id="s6">
+ <div class="logo-mark"><span>(</span>R<span>)</span>AI</div>
+ <div class="slide-num">06 / 07</div>
+ <div class="s6-inner">
+ <div class="s6-label">Build State</div>
+ <h2 class="s6-headline">
+ Shipped. Running.<br><em>Both layers, one engine.</em>
+ </h2>
+ <div class="metrics-grid">
+ <div class="met-card">
+ <div class="met-val">P<em>3</em></div>
+ <div class="met-label">Shipped and live. P0 through ActionGate.</div>
+ </div>
+ <div class="met-card">
+ <div class="met-val">262<em>+</em></div>
+ <div class="met-label">Tests. Zero regressions. 5 surfaces covered.</div>
+ </div>
+ <div class="met-card">
+ <div class="met-val">6<em>×</em></div>
+ <div class="met-label">Threat classes. Timestamped, documented, real-world.</div>
+ </div>
+ <div class="met-card">
+ <div class="met-val">0<em>s</em></div>
+ <div class="met-label">Setup. No configuration. It just runs.</div>
+ </div>
+ </div>
+ <div class="surfaces-row">
+ <span class="surface-pill live">Chrome Extension · Live</span>
+ <span class="surface-pill live">Telegram Bot · Live</span>
+ <span class="surface-pill live">WhatsApp · Live</span>
+ <span class="surface-pill live">PWA Mobile · Live</span>
+ <span class="surface-pill live">ActionGate NMH · Live</span>
+ <span class="surface-pill live">Distributed Sensing · Live (VPS)</span>
+ <span class="surface-pill next">BS Council · Building</span>
+ <span class="surface-pill ent">Process-Spawn Audit · Spec</span>
+ <span class="surface-pill ent">Attestation Appliance · Planned</span>
+ <span class="surface-pill">Voice · Planned</span>
+ <span class="surface-pill">Hardware Buddy · Planned</span>
+ </div>
+ </div>
+</section>
+
+<!-- ── SLIDE 7: VISION ── -->
+<section class="slide" id="s7">
+ <div class="logo-mark"><span>(</span>R<span>)</span>AI</div>
+ <div class="slide-num">07 / 07</div>
+ <div class="s7-inner">
+ <div class="s7-label">The Vision</div>
+ <h2 class="s7-headline">
+ SSL was<br>invented once.<br><em>So was RAI.</em>
+ </h2>
+ <p class="s7-body">
+ For transactions: SSL. For identity: HTTPS. For AI interactions, every DM, every agent, every action mediated by a model, every newsfeed, every decision your AI takes on your behalf, <span style="color:#e8ff00">that's RAI.</span> Nobody thinks about it. Nobody configures it. It just runs. The trust layer the next billion AI users never knew they needed, and the audit layer their enterprises will be required to deploy.
+ </p>
+ <div class="s7-contact">
+ <span class="s7-contact-label">RA(I) · Ambient AI Trust Layer</span>
+ <span class="s7-contact-val">ray-guard-watch.lovable.app · rai-mobile-pwa.vercel.app</span>
+ </div>
+ </div>
+</section>
+
+<script>
+const slides=document.querySelectorAll('.slide');
+const navLinks=document.querySelectorAll('.nav a');
+
+Const obs=new IntersectionObserver((entries)=>{
+ entries.forEach(e=>{
+ if(e.isIntersecting){
+ e.target.classList.add('visible');
+ const id=e.target.id;
+ navLinks.forEach(a=>{
+ a.classList.toggle('active',a.dataset.slide===id);
+ });
+ }
+ });
+},{threshold:.4});
+
+Slides.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

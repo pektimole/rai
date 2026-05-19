@@ -4,3 +4,6 @@ dist/
 .env
 .DS_Store
 scratch/
+
+# Large deck export renders (regeneratable from HTML)
+assets/deck & web design/Drafts/RA(I) — Teaser Deck - [].png
