@@ -348,3 +348,126 @@ Total Phase A-C: 5 hours for v0.5 (read + normalise + notify + unified audit). P
 
 Surface Adapter `native-messaging-host` is the concrete payoff of Pitch Deck Beat 4 ("The right layer to fix it"). It is the answer to "what does RAI actually do against the Anthropic case?" -- the watcher logs the manifest write, the adapter classifies the vendor, the policy prompts or quarantines, the audit log feeds the dashboard. Demo-able end-to-end from a fresh Claude Desktop install.
 
+---
+
+## Pre-Flight Gate: `context-provenance` (OL-315, spec 2026-05-23)
+
+_Covers the Silent Context Injection threat class: identity, presence, or behavioral signals that enter an agent's working context below the user's awareness and below existing security tooling. Anchor case: KIT/KASTEL BFI paper (CCS '25, ScienceDaily 2026-05-22) -- WiFi beamforming feedback information (unencrypted, standard hardware) identifies people with ~100% accuracy, no device required. Paired with the process-spawn adapter (OL-265, Confused Deputy class) as the two ActionGate pre-flight extensions that protect the agent's pre-action state._
+
+### Why it fits here, not elsewhere
+
+Silent Context Injection sits strictly below P0/P1 (content) and below P2 (output consensus). The harmful state is established **before any agent action begins** -- a context item like `user_is_authenticated`, `room_occupant: tim`, or `device_proximity: trusted` lands in the agent's working context via an ambient sensor or an inferred signal, with no prompt, no consent, no audit trail. Content scanning is blind to this by construction.
+
+The right layer is ActionGate, because:
+
+1. The relevant event is the **assembly** of action-shaping context, not a conversation message.
+2. The enforcement target is the **agent's pre-action state**, not its output or its tool call.
+3. The policy model is allowlist + verification on `(source, method, consent)` tuples, identical in shape to `fs-git` allowlists on `(path, extension, group)`.
+
+Difference from the surface adapters above: this gate runs *before* a tool call exists. It does not gate verbs, it gates the inputs that decide which verbs the agent will reach for. Same pre-flight class as the OL-265 process-spawn adapter -- both protect what the agent *starts from*, not what it *does*.
+
+### Provenance tag schema
+
+Every identity, presence, or behavioral context item entering an agent's working context must carry a provenance tag:
+
+```json
+{
+  "source": "wifi_bfi | ble_proximity | user_login | session_cookie | camera_inference | mic_inference | mdm_signal | ...",
+  "method": "passive_inference | active_auth | explicit_assertion",
+  "consent_timestamp": "ISO8601 | null",
+  "policy_ref": "rai-policy-v1:section-3 | null"
+}
+```
+
+Field semantics:
+- `source`: where the context value originated. Sensor type, auth surface, or upstream declared origin.
+- `method`: how the value was obtained. `passive_inference` = derived without an explicit user act; `active_auth` = obtained through an authentication step the user performed; `explicit_assertion` = user stated it.
+- `consent_timestamp`: ISO8601 of the moment the user consented to *this source* feeding context. `null` = no record of consent.
+- `policy_ref`: pointer into RAI policy YAML that authorizes this `(source, method)` pair. `null` = unauthorized by current policy.
+
+Untagged context items are treated as `consent_timestamp: null` and `policy_ref: null` by construction. Fail-closed by default.
+
+### Enforcement rule (BLOCK / ESCALATE)
+
+Pre-flight verdict on each context item:
+
+| Condition | Verdict |
+|---|---|
+| `consent_timestamp != null` AND `policy_ref != null` | `allow` |
+| `consent_timestamp == null` AND `method == passive_inference` | **`block` or `escalate`** |
+| `consent_timestamp == null` AND `method` in (`active_auth`, `explicit_assertion`) | `warn` (record + surface) |
+| `policy_ref == null` (unknown source) | `escalate` (require user confirmation) |
+| `source` in deny-list | `block` |
+
+**Canonical hard rule:** if `consent_timestamp: null` AND `method: passive_inference` → BLOCK or ESCALATE.
+
+`block` = drop the context item before the agent sees it. `escalate` = surface to user via notify channel (WhatsApp / Telegram / local notification, OL-021 pattern), require explicit grant before retry. The block / escalate choice is policy-driven: consumer tier defaults to `escalate` (user-in-the-loop), enterprise tier defaults to `block` (fail-closed, SIEM-logged).
+
+### Policy file format (YAML)
+
+```yaml
+version: 1
+adapter: context-provenance
+defaults:
+  fail_closed: true
+  unknown_source: escalate
+sources:
+  user_login:
+    allowed_methods: [active_auth]
+    require_consent: true
+  session_cookie:
+    allowed_methods: [active_auth]
+    require_consent: true
+  wifi_bfi:
+    allowed_methods: []            # passive_inference only, structurally non-consensual
+    verdict: block
+  ble_proximity:
+    allowed_methods: [explicit_assertion]
+    verdict_on_passive: block
+  camera_inference:
+    allowed_methods: []
+    verdict: block
+  mic_inference:
+    allowed_methods: []
+    verdict: block
+  mdm_signal:
+    allowed_methods: [active_auth]
+    require_consent: true
+deny_list:
+  - wifi_bfi
+  - camera_inference
+  - mic_inference
+```
+
+Expand by appending to YAML, never by code change. Same principle as `fs-git` and `native-messaging-host`.
+
+### Pairing with the process-spawn adapter (OL-265)
+
+Both gates are ActionGate pre-flight extensions. They protect the **agent's pre-action state**, not its post-action side-effects. They compose:
+
+| Pre-flight gate | Watches | Source |
+|---|---|---|
+| `context-provenance` (OL-315, this section) | What context items entered the agent's working state, and whether they were consented to | Sensor / auth / ambient signal layer |
+| `process-spawn` (OL-265) | Whether the browser/shell process the agent runs in was spawned by a human session or by another agent (Confused Deputy class, VentureBeat 2026-05-13) | Process lineage / agent-spawn audit |
+
+A context item from a trusted source can still flow into an agent-spawned browser process; a process-spawn lineage can still be clean for an agent operating on un-consented context. Both gates must pass for the action chain to proceed. Failure on either is a pre-flight stop -- the surface adapters (`fs-git`, `shell`, `mcp`, `http`, `browser-dom`, `native-messaging-host`) never get the chance to evaluate.
+
+### Verdicts available to this gate
+
+| Verdict | Semantics |
+|---|---|
+| `allow` | Context item passes pre-flight, agent receives it |
+| `warn` | Pass, but record + surface to user (consented source, unknown policy_ref) |
+| `escalate` | Hold the agent turn, prompt user to grant or deny the source explicitly |
+| `block` | Drop the context item silently; agent never sees it |
+
+`block` is achievable at this layer because the gate sits in the context-assembly path before the agent reads. Unlike OS-level `block` in `native-messaging-host`, there is no race window.
+
+### Pitch deck alignment
+
+This gate is the concrete payoff of Beat 1 ("The Unowned Gap") in Pitch Deck v2. It is the answer to "what does RAI actually do against Silent Context Injection?" -- the diagram's Column 1 callout (`RAI ActionGate: Context Provenance Enforcement. Source declared. Consent verified. Policy checked. Before the agent acts.`) maps 1:1 to this gate's schema + enforcement rule. Demo-able from any agent runtime that accepts the provenance tag at context-write time.
+
+### Cross-ref
+
+OL-315 (Silent Context Injection threat class, this gate's origin), OL-265 (ActionGate process-spawn / Confused Deputy, paired pre-flight gate), OL-240 (Distributed Sensing Architecture), `19-rai-context.md` Beat 1 diagram spec + Context Provenance Tag Schema section (source-of-truth for the schema), KIT/KASTEL BFI paper (CCS '25, ScienceDaily 2026-05-22, anchor evidence).
+
