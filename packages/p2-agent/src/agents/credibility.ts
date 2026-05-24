@@ -8,20 +8,59 @@ import type { AgentVerdict, CredibilityTier, P2Input, SourceCredibility } from '
 import { callAgent } from './call-agent.js';
 
 export const CREDIBILITY_SEED: SourceCredibility[] = [
-  { url_pattern: 'github.com/*/security', tier: 'official', weight: 0.9 },
+  // Official: government, standards bodies, vendor security channels
   { url_pattern: 'cve.org', tier: 'official', weight: 0.9 },
   { url_pattern: 'nvd.nist.gov', tier: 'official', weight: 0.9 },
+  { url_pattern: 'cisa.gov', tier: 'official', weight: 0.9 },
   { url_pattern: 'sec.gov', tier: 'official', weight: 0.9 },
+  { url_pattern: 'github.com/advisories', tier: 'official', weight: 0.9 },
+  { url_pattern: 'github.com/security', tier: 'official', weight: 0.9 },
+  { url_pattern: 'oracle.com', tier: 'official', weight: 0.9 },
+  { url_pattern: 'microsoft.com/security', tier: 'official', weight: 0.9 },
+  { url_pattern: 'support.microsoft.com', tier: 'official', weight: 0.9 },
+  { url_pattern: 'msrc.microsoft.com', tier: 'official', weight: 0.9 },
+  { url_pattern: 'google.com/intl/en/about/products', tier: 'official', weight: 0.9 },
+  { url_pattern: 'cloud.google.com/support/bulletins', tier: 'official', weight: 0.9 },
+  { url_pattern: 'aws.amazon.com/security/security-bulletins', tier: 'official', weight: 0.9 },
+  { url_pattern: 'logging.apache.org', tier: 'official', weight: 0.9 },
+  { url_pattern: 'apache.org', tier: 'official', weight: 0.85 },
+
+  // Established: security research firms, major tech journalism
+  { url_pattern: 'qualys.com', tier: 'established', weight: 0.75 },
+  { url_pattern: 'tenable.com', tier: 'established', weight: 0.75 },
+  { url_pattern: 'rapid7.com', tier: 'established', weight: 0.75 },
+  { url_pattern: 'crowdstrike.com', tier: 'established', weight: 0.75 },
+  { url_pattern: 'huntress.com', tier: 'established', weight: 0.75 },
+  { url_pattern: 'snyk.io', tier: 'established', weight: 0.75 },
+  { url_pattern: 'checkmarx.com', tier: 'established', weight: 0.75 },
+  { url_pattern: 'bleepingcomputer.com', tier: 'established', weight: 0.7 },
+  { url_pattern: 'therecord.media', tier: 'established', weight: 0.7 },
+  { url_pattern: 'krebsonsecurity.com', tier: 'established', weight: 0.7 },
+  { url_pattern: 'wired.com', tier: 'established', weight: 0.7 },
   { url_pattern: 'venturebeat.com', tier: 'established', weight: 0.7 },
   { url_pattern: 'techcrunch.com', tier: 'established', weight: 0.7 },
   { url_pattern: 'fortune.com', tier: 'established', weight: 0.7 },
   { url_pattern: 'arstechnica.com', tier: 'established', weight: 0.7 },
+  { url_pattern: 'reuters.com', tier: 'established', weight: 0.75 },
+  { url_pattern: 'apnews.com', tier: 'established', weight: 0.75 },
+  { url_pattern: 'en.wikipedia.org', tier: 'established', weight: 0.65 },
+
+  // Community: technical forums, aggregators
   { url_pattern: 'news.ycombinator.com', tier: 'community', weight: 0.5 },
   { url_pattern: 'reddit.com', tier: 'community', weight: 0.5 },
   { url_pattern: 'dev.to', tier: 'community', weight: 0.5 },
+  { url_pattern: 'stackoverflow.com', tier: 'community', weight: 0.5 },
+  { url_pattern: 'medium.com', tier: 'community', weight: 0.45 },
+
+  // Social
   { url_pattern: 'twitter.com', tier: 'social', weight: 0.3 },
   { url_pattern: 'x.com', tier: 'social', weight: 0.3 },
+  { url_pattern: 'linkedin.com', tier: 'social', weight: 0.3 },
+  { url_pattern: 'telegram.org', tier: 'social', weight: 0.25 },
+
+  // Anonymous
   { url_pattern: 'pastebin.com', tier: 'anonymous', weight: 0.1 },
+  { url_pattern: 'ghostbin.com', tier: 'anonymous', weight: 0.1 },
 ];
 
 export const CREDIBILITY_PROMPT = `You are a source credibility agent. Your job is to assess the trustworthiness of the source making a claim.
