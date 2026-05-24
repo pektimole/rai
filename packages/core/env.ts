@@ -14,3 +14,11 @@ export function readEnvFile(keys: string[]): Record<string, string> {
   }
   return result;
 }
+
+export function readOptionalEnv(keys: string[]): Record<string, string | undefined> {
+  const result: Record<string, string | undefined> = {};
+  for (const key of keys) {
+    result[key] = process.env[key];
+  }
+  return result;
+}

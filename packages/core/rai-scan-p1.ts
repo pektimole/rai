@@ -8,9 +8,10 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
-import { readEnvFile } from "./env.js";
+import { readEnvFile, readOptionalEnv } from "./env.js";
 import { loadP1Weights } from "./threat-weights.js";
 import { getDefaultScanLog } from "./scan-log.js";
+import { runBSCouncilForScan, type BSCouncilResult, type RaiTier } from "@rai/p2-agent";
 
 // ─── Types (canonical schema from 19-ray-context.md) ─────────────────────────
 
@@ -70,6 +71,11 @@ export interface ScanOutput {
   raw_signals: string[];
   p1_invoked: true;
   latency_ms: number;
+  bs_council?: BSCouncilResult;
+}
+
+export interface ScanP1Options {
+  tier?: RaiTier;
 }
 
 // ─── Block threshold rules (from spec) ───────────────────────────────────────
@@ -152,7 +158,7 @@ Be precise. False positives waste operator attention. False negatives allow comp
 
 // ─── P1 scan function ─────────────────────────────────────────────────────────
 
-export async function scanP1(input: ScanInput): Promise<ScanOutput> {
+export async function scanP1(input: ScanInput, options: ScanP1Options = {}): Promise<ScanOutput> {
   const startMs = Date.now();
   const { ANTHROPIC_API_KEY } = readEnvFile(["ANTHROPIC_API_KEY"]);
   const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
@@ -233,6 +239,8 @@ export async function scanP1(input: ScanInput): Promise<ScanOutput> {
     });
   } catch { /* never block scan pipeline on log failure */ }
 
+  const bs_council = await maybeRunCouncil(input, parsed, options);
+
   return {
     scan_id: input.scan_id,
     verdict: parsed.verdict,
@@ -243,7 +251,41 @@ export async function scanP1(input: ScanInput): Promise<ScanOutput> {
     raw_signals: parsed.raw_signals ?? [],
     p1_invoked: true,
     latency_ms,
+    ...(bs_council ? { bs_council } : {}),
   };
+}
+
+async function maybeRunCouncil(
+  input: ScanInput,
+  parsed: { verdict: Verdict; confidence: number; threat_layers: ThreatLayerResult[] },
+  options: ScanP1Options,
+): Promise<BSCouncilResult | undefined> {
+  const tier = options.tier;
+  if (!tier || tier === 'free') return undefined;
+
+  try {
+    const { ANTHROPIC_API_KEY, TOGETHER_API_KEY } = readOptionalEnv(['ANTHROPIC_API_KEY', 'TOGETHER_API_KEY']);
+    const result = await runBSCouncilForScan(
+      {
+        scan_id: input.scan_id,
+        content: input.payload.content,
+        channel: input.source.channel,
+        timestamp: input.timestamp,
+        source_url: input.source.origin_url ?? undefined,
+        threat_layers: (parsed.threat_layers ?? []).map(t => ({ layer: t.layer, severity: t.severity })),
+        verdict: parsed.verdict,
+        p1_confidence: parsed.confidence,
+      },
+      {
+        tier,
+        apiKeys: { anthropic: ANTHROPIC_API_KEY, together: TOGETHER_API_KEY },
+      },
+    );
+    return result ?? undefined;
+  } catch (err) {
+    console.error('[RAI P1] BS Council error (failing open):', err);
+    return undefined;
+  }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

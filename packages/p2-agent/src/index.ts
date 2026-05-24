@@ -10,6 +10,11 @@
 
 export { mergeVerdicts } from './consensus.js';
 export { mergeBSVerdicts } from './bs-council.js';
+export { runBSCouncil, runBSCouncilForScan } from './bs-council-runner.js';
+export type { RunBSCouncilOptions, RunBSCouncilForScanInput } from './bs-council-runner.js';
+export { loadCouncilConfig, resolveAgentConfig } from './council-config.js';
+export { shouldRunBSCouncil, extractVerifiableClaim } from './gate1.js';
+export type { Gate1Input, Gate1Output, Gate1Reason } from './gate1.js';
 export { runProvenanceAgent } from './agents/provenance.js';
 export { runCrossRefAgent } from './agents/cross-ref.js';
 export { runTemporalAgent } from './agents/temporal.js';

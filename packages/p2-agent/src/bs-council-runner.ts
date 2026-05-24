@@ -25,9 +25,10 @@ import type {
   RaiTier,
 } from './types.js';
 import { getProvider, type ProviderCallInput } from './providers/index.js';
-import { resolveAgentConfig } from './council-config.js';
+import { resolveAgentConfig, loadCouncilConfig } from './council-config.js';
 import { mergeBSVerdicts } from './bs-council.js';
 import { lookupCredibility } from './agents/credibility.js';
+import { shouldRunBSCouncil, extractVerifiableClaim, type Gate1Input } from './gate1.js';
 
 export interface RunBSCouncilOptions {
   config: CouncilConfig;
@@ -394,4 +395,73 @@ function noSignalB(query: string, cfg?: AgentConfig): CouncilBreakdownB {
 
 function noSignalC(): CouncilBreakdownC {
   return { role: 'C', tier: 'unknown', weight: 0.5, reasoning: 'Agent C unavailable.', provider: 'none', model: 'none' };
+}
+
+// ────────── high-level entry: scan → council ──────────
+
+export interface RunBSCouncilForScanInput {
+  scan_id: string;
+  content: string;
+  channel: string;
+  timestamp: string;
+  source_url?: string;
+  threat_layers?: Array<{ layer: string; severity?: string }>;
+  verdict?: 'clean' | 'flagged' | 'blocked';
+  p1_confidence?: number;
+}
+
+export interface RunBSCouncilForScanOptions {
+  apiKeys: { anthropic?: string; together?: string };
+  tier: RaiTier;
+  config?: CouncilConfig;
+}
+
+/**
+ * High-level wrapper: takes a P1 scan payload, runs Gate 1, fires the BS Council
+ * if triggered, returns null otherwise. Free tier always returns null.
+ *
+ * Spec: 26-rai-p2-spec.md § Two-Gate Protocol § Gate 1 + tier gating.
+ */
+export async function runBSCouncilForScan(
+  input: RunBSCouncilForScanInput,
+  options: RunBSCouncilForScanOptions,
+): Promise<BSCouncilResult | null> {
+  if (options.tier === 'free') return null;
+
+  const gate1Input: Gate1Input = {
+    content: input.content,
+    threat_layers: input.threat_layers,
+    verdict: input.verdict,
+  };
+  const gate1 = shouldRunBSCouncil(gate1Input);
+  if (!gate1.trigger) return null;
+
+  const claim = gate1.claim || extractVerifiableClaim(input.content);
+  if (!claim) return null;
+
+  const config = options.config ?? loadCouncilConfig();
+  const threatAxisFlaggedMisinfo = (input.threat_layers ?? []).some(t => t.layer === 'L1');
+
+  const p2Input: P2Input = {
+    scan_id: input.scan_id,
+    claim,
+    source_url: input.source_url,
+    channel: input.channel,
+    p1_verdict: input.verdict === 'blocked' ? 'blocked' : 'flagged',
+    p1_confidence: input.p1_confidence ?? 0.5,
+    p1_threat_layers: (input.threat_layers ?? []).map(t => ({
+      layer: t.layer,
+      label: t.layer,
+      signal: '',
+      severity: (t.severity as 'low' | 'medium' | 'high' | 'critical') ?? 'medium',
+    })),
+    timestamp: input.timestamp,
+  };
+
+  return runBSCouncil(p2Input, {
+    config,
+    tier: options.tier,
+    apiKeys: options.apiKeys,
+    threatAxisFlaggedMisinfo,
+  });
 }
