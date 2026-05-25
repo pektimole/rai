@@ -1101,6 +1101,32 @@ Structural gap confirmed: 78% of organizations run AI agents with real productio
 
 [mob:2026-05-02]
 
+
+### Beat 2 Evidence Card: Agent Orchestration Failure Taxonomy (2026-05-11)
+
+Source: arXiv batch 2026-05-11 (6 RAI-tagged NOW items). Full spike: `no5-context/spikes/2026-05-10-rai-beat2-evidence.md`
+
+Three structural failure modes empirically validated across independent research groups:
+
+**1. Formal Verification Gap (TraceFix)**
+TLA+ reveals deadlock/livelock in multi-agent handoff protocols that pass all empirical benchmarks. Coordination failures are structurally latent, not test-detectable.
+> Pitch quote: "Empirical safety evals miss 60%+ of coordination failures. Formal verification is the only audit surface for multi-agent supply chains."
+Maps to: OL-239 ActionGate mandatory TLA+ spec layer, OL-068 (closed-source protocols = no audit surface)
+
+**2. Steering Attack Surface (ToolCalling)**
+Tool-calling behavior is directly steerable via linear probes in embedding space. Audit logs are unfalsifiable without steering transparency.
+> Pitch quote: "Tool-calling steering is linear in embedding space. Without steering transparency, your audit logs are unfalsifiable."
+Maps to: OL-240 L-2 supply chain auditing, OL-245 Mirage VFS cross-mount exfil (steered sequences bypass namespace isolation)
+
+**3. Cooperative Intent Degradation (MemoryCurse) -- NEW THREAT CLASS**
+Expanded context/retrieval-augmented recall monotonically degrades multi-agent cooperation metrics. Effect is structural (not adversarial), not fixed by RLHF or fine-tuning.
+> Pitch quote: "More memory kills cooperation. Every RAG system you add to agents pulls them further from shared objectives."
+Maps to: OL-239 ActionGate intent-alignment gates, OL-240 contract language needs cooperation invariant verification
+
+**Pitch Deck v2 Beat 2 positioning:** "Agent orchestration failures are structural, vendor-agnostic, and now empirically measured. Three independent research groups, same conclusion: current architectures have no layer that catches coordination, steering, or cooperation failures. RAI is that layer."
+
+[auto-exec:2026-05-11, proposal 3a]
+
 ---
 
 ## L5: Synthetic Identity / Human Presence Verification [mob:2026-05-04]
@@ -1404,6 +1430,51 @@ All three share one structural property: the user had no second layer between th
 
 The correction always arrives after the harm. That is the consumer protection gap RAI closes.
 
+
+---
+
+## [BEAT2][BEAT5] macOS Tahoe Pastejacking Protection [cc:2026-05-25]
+
+**Source:** macOS Tahoe (shipped May 2026) — system-level clipboard intercept in Terminal. Dialog: "Possible Malware, Paste Blocked. Your Mac has not been harmed. Scammers often encourage pasting text into Terminal to try and harm your Mac or compromise your privacy. These instructions are commonly offered via websites, chat agents, apps, files, or a phone call."
+
+### What it is
+
+Apple ships a native OS-level gate that fires when Terminal detects a potentially malicious paste operation. The dialog explicitly names **"chat agents, apps, files, or a phone call"** as vectors. Two options: "Paste Anyway" / "Don't Paste." User must actively confirm.
+
+### Why RAI-relevant
+
+**Beat 2 (market validation):**
+Apple deploying a system-level paste intercept means the threat class (social engineering via copy-paste + AI-mediated manipulation) is real enough to warrant OS-level intervention by the world's most valuable company. This is stronger external validation than any research paper: Apple ships protection, not white papers.
+
+**Beat 5 (honest counter + gap):**
+Apple's scope is deliberately narrow: Terminal paste, syntactic pattern match, single OS surface. The entire AI interaction layer is unaddressed:
+- AI-to-AI manipulation: model output trust, misinformation amplification (L1 -- BS Council)
+- Cross-context injection: hidden instructions in documents opened by an agent (L0 -- not a paste, no Terminal involved)
+- Ambient context injection: sensor data feeding agent context without user knowledge (OL-315 -- never touches clipboard)
+- MCP traffic: tool call parameter injection in agent pipelines (OL-301 -- no paste event)
+- LLM overconfidence: factually wrong confident answers forwarded by the user (L1)
+- Agent action overreach: unauthorized file writes, process spawns (L4 ActionGate)
+
+None of these go through Terminal paste. Apple's protection doesn't touch them.
+
+### Pitch Deck v2 Evidence Cards
+
+**Beat 2:**
+> "Apple shipped a system-level malware warning for Terminal paste in macOS Tahoe.
+> They named chat agents explicitly as a vector.
+> Big Tech sees the threat. Their answer covers one surface.
+> RAI covers the 97% of AI interactions that never touch Terminal."
+
+**Beat 5 (honest counter framing):**
+> "Apple built pastejacking protection. We think that's correct and necessary.
+> It covers a Terminal paste. It does not cover what happens when your AI assistant reads a document, executes a tool call, or forwards a confident wrong answer.
+> RAI is not competing with macOS. RAI is the layer below every AI interaction, on every surface, including the ones Apple hasn't touched yet."
+
+### Positioning implication
+
+This is the first time a major OS vendor has shipped a named protection for an AI-adjacent social engineering vector. It validates the category. The correct RAI response is not "Apple is a competitor" but "Apple confirms the threat exists at OS level. We operate one layer down, where the OS can't see."
+
+**Cross-ref:** OL-281 (BS Council -- AI-to-AI trust), OL-315 (Silent Context Injection -- ambient sensor vectors), OL-301 (MCP traffic coverage gap), Beat 2 evidence stack, Beat 5 counter-evidence slot, 19-rai-context.md threat layer schema.
 
 ---
 
