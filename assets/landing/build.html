@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="RA(I) ActionGate, The trust layer for AI in production.">
+<title>RA(I), You're shipping AI into production.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#080808;--text:#f0ede8;--muted:#666;--border:#1c1c1c;--accent:#ffa028;--teal:#00e5c8;}
+html{background:var(--bg);}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;line-height:1.6;cursor:none;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;}
+#cursor{position:fixed;width:8px;height:8px;background:var(--text);border-radius:50%;pointer-events:none;z-index:10000;transform:translate(-50%,-50%);transition:width .15s,height .15s;}
+#cursor.large{width:20px;height:20px;background:transparent;border:1px solid var(--text);}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:24px 48px;transition:border-color .3s,background .3s;}
+nav.scrolled{border-bottom:1px solid var(--border);background:rgba(8,8,8,.92);backdrop-filter:blur(12px);}
+.nav-logo{font-family:'DM Mono',monospace;font-size:16px;text-decoration:none;color:var(--text);}
+.nav-logo span{color:#e8ff00;}
+.nav-cta{background:var(--accent);color:#080808;border:none;padding:10px 20px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;cursor:none;text-decoration:none;transition:opacity .2s;}
+.nav-cta:hover{opacity:.85;}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:140px 80px 80px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+.hero-glow{position:absolute;bottom:0;right:0;width:700px;height:400px;background:radial-gradient(ellipse,rgba(255,160,40,.05) 0%,transparent 70%);pointer-events:none;}
+.eyebrow{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:#e8ff00;margin-bottom:32px;}
+.display{font-family:'Fraunces',serif;font-size:clamp(52px,8vw,108px);line-height:1.0;letter-spacing:-2px;margin-bottom:48px;max-width:800px;}
+.display em{font-style:italic;color:var(--accent);}
+.tension{font-size:16px;color:var(--muted);line-height:1.7;max-width:580px;margin-bottom:32px;}
+.tension em{color:var(--text);font-style:italic;}
+.intro-line{font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--muted);margin-bottom:40px;}
+.intro-line strong{color:var(--text);font-style:normal;font-weight:400;}
+.cta-group{display:flex;gap:16px;flex-wrap:wrap;}
+.btn-primary{display:inline-block;background:var(--accent);color:#080808;padding:14px 28px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;cursor:none;transition:opacity .2s;}
+.btn-primary:hover{opacity:.85;}
+.btn-ghost{display:inline-block;color:var(--muted);padding:14px 28px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;cursor:none;border:1px solid var(--border);transition:color .2s,border-color .2s;}
+.btn-ghost:hover{color:var(--text);border-color:var(--muted);}
+/* THREAT LOG */
+.threat-log{border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.threat-header{padding:64px 80px 0;max-width:700px;}
+.threat-h{font-family:'Fraunces',serif;font-size:clamp(28px,3vw,44px);line-height:1.1;margin-bottom:16px;}
+.threat-h em{font-style:italic;color:var(--accent);}
+.threat-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:48px;}
+.threat-entries{border-top:1px solid var(--border);}
+.threat-entry{display:grid;grid-template-columns:160px 1fr 200px;border-bottom:1px solid var(--border);padding:28px 40px;gap:40px;align-items:start;}
+.threat-entry:last-child{border-bottom:none;}
+.threat-layer{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);padding-top:2px;}
+.threat-title{font-family:'Fraunces',serif;font-size:18px;margin-bottom:8px;}
+.threat-body{font-size:12px;color:var(--muted);line-height:1.5;}
+.threat-verdict{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--accent);}
+.threat-dot{width:6px;height:6px;background:var(--accent);border-radius:50%;flex-shrink:0;}
+/* CTA */
+.cta-section{padding:100px 80px;border-bottom:1px solid var(--border);}
+.cta-inner{max-width:520px;}
+.cta-h{font-family:'Fraunces',serif;font-size:clamp(28px,3vw,44px);line-height:1.1;margin-bottom:24px;}
+.cta-h em{font-style:italic;color:var(--accent);}
+.cta-body{font-size:13px;color:var(--muted);margin-bottom:40px;line-height:1.6;}
+.cta-form{display:flex;gap:0;max-width:440px;margin-bottom:12px;}
+.cta-form input{flex:1;background:var(--bg);border:1px solid var(--border);border-right:none;padding:14px 16px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);outline:none;}
+.cta-form input::placeholder{color:var(--muted);}
+.cta-form input:focus{border-color:var(--muted);}
+.cta-form button{background:var(--accent);color:#080808;border:none;padding:14px 24px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:none;transition:opacity .2s;}
+.cta-form button:hover{opacity:.85;}
+.cta-confirm{font-size:11px;color:var(--teal);display:none;}
+.cta-legal{font-size:11px;color:var(--muted);}
+footer{padding:32px 80px;display:flex;align-items:center;justify-content:space-between;}
+.footer-logo{font-family:'DM Mono',monospace;font-size:14px;color:var(--text);}
+.footer-logo span{color:#e8ff00;}
+.footer-right{font-size:11px;color:var(--muted);}
+.footer-right a{color:var(--muted);text-decoration:none;margin-left:24px;}
+@media(max-width:900px){.hero{padding:120px 32px 80px;}.threat-header{padding:48px 32px 0;}.threat-entry{grid-template-columns:1fr;gap:12px;padding:28px 24px;}.cta-section{padding:64px 32px;}footer{flex-direction:column;gap:16px;padding:32px;}}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+
+<nav id="nav">
+ <a href="/" class="nav-logo">RA<span>(I)</span></a>
+ <a href="#cta" class="nav-cta">Get ActionGate</a>
+</nav>
+
+<div class="hero">
+ <div class="hero-glow"></div>
+ <div class="eyebrow">Personal Ambient AI Security · Developers</div>
+ <div class="display">You're shipping<br>AI into<br><em>production.</em></div>
+ <p class="tension">
+ The trust layer isn't on your stack. No write gate. No process lineage.
+ No scope attestation. You didn't consent to this gap.
+ <em>Neither did your users.</em>
+ </p>
+ <div class="intro-line"><strong>RA(I)</strong> · <em>your personal ambient AI security.</em></div>
+ <div class="cta-group">
+ <a href="#cta" class="btn-primary">Get ActionGate</a>
+ <a href="#threats" class="btn-ghost">See the threat log</a>
+ </div>
+</div>
+
+<div class="threat-log" id="threats">
+ <div class="threat-header">
+ <div class="threat-h">The threat log.<br><em>Your stack. Right now.</em></div>
+ <p class="threat-sub">These aren't edge cases. They're architectural gaps in the most common AI deployment patterns. Four research teams confirmed them independently. RAI built the gates.</p>
+ </div>
+ <div class="threat-entries">
+ <div class="threat-entry">
+ <div class="threat-layer">L0 · Prompt Injection</div>
+ <div>
+ <div class="threat-title">MCP STDIO, 200,000 servers. Architectural RCE.</div>
+ <p class="threat-body">The Model Context Protocol STDIO transport allows prompt injection at the protocol level across 200,000+ servers. Anthropic's documented response: "expected behavior." The interaction layer has no gate for this. RAI adds it.</p>
+ </div>
+ <div class="threat-verdict"><span class="threat-dot"></span>ActionGate · Protocol scan</div>
+ </div>
+ <div class="threat-entry">
+ <div class="threat-layer">L4 · Agent Overreach</div>
+ <div>
+ <div class="threat-title">Confused Deputy, 4 teams. Same failure class.</div>
+ <p class="threat-body">DELEGATE-52: Microsoft Research confirmed 25% document corruption rate when frontier models silently rewrite outputs. Four independent teams, three Claude surfaces, 48 hours. All hit the same write gate gap. No gate existed.</p>
+ </div>
+ <div class="threat-verdict"><span class="threat-dot"></span>ActionGate · Write gate</div>
+ </div>
+ <div class="threat-entry">
+ <div class="threat-layer">L-2 · Supply Chain</div>
+ <div>
+ <div class="threat-title">VCCE, Native messaging manifests. No consent.</div>
+ <p class="threat-body">Anthropic installed Native Messaging Host manifests into 7 browsers without user consent. Vendor Covert Capability Expansion: the vendor expands reach into your device without disclosure. P0 detects the pattern. ActionGate flags the capability boundary.</p>
+ </div>
+ <div class="threat-verdict"><span class="threat-dot"></span>P0 · Supply chain monitor</div>
+ </div>
+ </div>
+</div>
+
+<div class="cta-section" id="cta">
+ <div class="cta-inner">
+ <div class="eyebrow" style="color:var(--accent);">ActionGate</div>
+ <div class="cta-h">The write gate<br>your stack<br><em>doesn't have.</em></div>
+ <p class="cta-body">Process lineage. Scope attestation. Confused deputy protection. The audit matrix that four research teams confirmed doesn't exist natively. RAI built it. BYOK or €0.99/month.</p>
+ <form class="cta-form" id="ctaForm">
+ <input type="email" placeholder="your@email.com" required>
+ <button type="submit">Get ActionGate</button>
+ </form>
+ <div class="cta-confirm" id="ctaConfirm">✓ You're on the list. We'll be in touch.</div>
+ <p class="cta-legal" style="margin-top:12px;">BYOK available. Zero data sharing. Full config.</p>
+ </div>
+</div>
+
+<footer>
+ <div class="footer-logo">RA<span>(I)</span></div>
+ <div class="footer-right">
+ <span>Security Lab SE</span>
+ <a href="/">withrai.xyz</a>
+ <a href="mailto:tp@aera.health">tp@aera.health</a>
+ <a href="#">Privacy</a>
+ </div>
+</footer>
+
+<script>
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => { cursor.style.left = e.clientX+'px'; cursor.style.top = e.clientY+'px'; });
+document.querySelectorAll('a, button, input').forEach(el => { el.addEventListener('mouseenter',()=>cursor.classList.add('large')); el.addEventListener('mouseleave',()=>cursor.classList.remove('large')); });
+window.addEventListener('scroll', () => { document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40); });
+document.getElementById('ctaForm').addEventListener('submit', function(e) { e.preventDefault(); this.style.display='none'; document.getElementById('ctaConfirm').style.display='block'; });
+</script>
+</body>
+</html>

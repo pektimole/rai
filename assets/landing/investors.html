@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="RA(I), SSL was invented once. Investor brief.">
+<title>RA(I), SSL was invented once.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#080808;--text:#f0ede8;--muted:#666;--border:#1c1c1c;--accent:#e8ff00;--teal:#00e5c8;}
+html{background:var(--bg);}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;line-height:1.6;cursor:none;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;}
+#cursor{position:fixed;width:8px;height:8px;background:var(--text);border-radius:50%;pointer-events:none;z-index:10000;transform:translate(-50%,-50%);transition:width .15s,height .15s;}
+#cursor.large{width:20px;height:20px;background:transparent;border:1px solid var(--text);}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:24px 48px;transition:border-color .3s,background .3s;}
+nav.scrolled{border-bottom:1px solid var(--border);background:rgba(8,8,8,.92);backdrop-filter:blur(12px);}
+.nav-logo{font-family:'DM Mono',monospace;font-size:16px;text-decoration:none;color:var(--text);}
+.nav-logo span{color:var(--accent);}
+.nav-cta{background:transparent;color:var(--accent);border:1px solid rgba(232,255,0,.3);padding:10px 20px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;cursor:none;text-decoration:none;transition:border-color .2s;}
+.nav-cta:hover{border-color:var(--accent);}
+/* HERO */
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+.hero-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 60% 40%,rgba(232,255,0,.04) 0%,transparent 60%);pointer-events:none;}
+.hero-left{padding:140px 64px 100px 80px;border-right:1px solid var(--border);}
+.hero-right{padding:140px 64px 100px 64px;display:flex;flex-direction:column;gap:40px;}
+.eyebrow{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--accent);margin-bottom:32px;}
+.display{font-family:'Fraunces',serif;font-size:clamp(52px,6vw,88px);line-height:1.0;letter-spacing:-1.5px;margin-bottom:48px;}
+.display em{font-style:italic;color:var(--accent);}
+.tension{font-size:14px;color:var(--muted);line-height:1.7;max-width:480px;margin-bottom:32px;}
+.tension em{color:var(--text);font-style:normal;}
+.intro-line{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--muted);margin-bottom:40px;}
+.intro-line strong{color:var(--text);font-style:normal;font-weight:400;}
+.btn-ghost-accent{display:inline-block;color:var(--accent);padding:14px 28px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;cursor:none;border:1px solid rgba(232,255,0,.3);transition:border-color .2s;}
+.btn-ghost-accent:hover{border-color:var(--accent);}
+.btn-ghost{display:inline-block;color:var(--muted);padding:14px 28px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;cursor:none;border:1px solid var(--border);transition:color .2s,border-color .2s;}
+.btn-ghost:hover{color:var(--text);border-color:var(--muted);}
+.cta-group{display:flex;gap:16px;flex-wrap:wrap;}
+/* STATS */
+.stats-block{border:1px solid var(--border);}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;}
+.stat{padding:24px 20px;border-right:1px solid var(--border);}
+.stat:last-child{border-right:none;}
+.stat-num{font-family:'Fraunces',serif;font-size:32px;letter-spacing:-0.5px;color:var(--text);}
+.stat-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+/* ARC */
+.arc-section{padding:100px 80px;border-bottom:1px solid var(--border);}
+.arc-h{font-family:'Fraunces',serif;font-size:clamp(28px,3vw,44px);line-height:1.1;margin-bottom:16px;}
+.arc-h em{font-style:italic;color:var(--accent);}
+.arc-body{font-size:14px;color:var(--muted);max-width:640px;line-height:1.7;margin-bottom:64px;}
+.arc-body em{color:var(--text);font-style:normal;}
+.arc-timeline{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:1px solid var(--border);}
+.arc-step{padding:40px 32px;border-right:1px solid var(--border);}
+.arc-step:last-child{border-right:none;border:1px solid rgba(232,255,0,.2);background:rgba(232,255,0,.02);}
+.arc-year{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.arc-event{font-family:'Fraunces',serif;font-size:16px;margin-bottom:8px;}
+.arc-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+/* EXIT TABLE */
+.exit-section{padding:0 80px 100px;border-bottom:1px solid var(--border);}
+.exit-h{font-family:'Fraunces',serif;font-size:28px;line-height:1.1;margin-bottom:32px;}
+.exit-h em{font-style:italic;color:var(--accent);}
+.exit-table{border:1px solid var(--border);width:100%;border-collapse:collapse;}
+.exit-table th{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:12px 16px;text-align:left;border-bottom:1px solid var(--border);font-weight:400;}
+.exit-table td{font-size:12px;padding:16px;border-bottom:1px solid var(--border);color:var(--muted);}
+.exit-table td:first-child{color:var(--text);}
+.exit-table .rai-row td{color:var(--accent);border-color:rgba(232,255,0,.2);}
+.exit-table .rai-row td:first-child{color:var(--accent);font-family:'Fraunces',serif;font-size:14px;}
+.exit-table tbody tr:last-child td{border-bottom:none;}
+/* SEED */
+.seed-section{padding:0 80px 100px;}
+.seed-inner{border:1px solid rgba(232,255,0,.2);padding:64px;background:rgba(232,255,0,.02);}
+.seed-ask{font-family:'Fraunces',serif;font-size:72px;letter-spacing:-2px;color:var(--accent);margin-bottom:8px;}
+.seed-label{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);margin-bottom:32px;}
+.seed-body{font-size:14px;color:var(--muted);max-width:480px;line-height:1.6;margin-bottom:40px;}
+footer{padding:32px 80px;display:flex;align-items:center;justify-content:space-between;}
+.footer-logo{font-family:'DM Mono',monospace;font-size:14px;color:var(--text);}
+.footer-logo span{color:var(--accent);}
+.footer-right{font-size:11px;color:var(--muted);}
+.footer-right a{color:var(--muted);text-decoration:none;margin-left:24px;}
+@media(max-width:900px){.hero{grid-template-columns:1fr;}.hero-right{display:none;}.hero-left{padding:120px 32px 80px;}.arc-section,.exit-section,.seed-section{padding:64px 32px;}.arc-timeline{grid-template-columns:1fr 1fr;}.arc-step{border-bottom:1px solid var(--border);}.stats-row{grid-template-columns:1fr 1fr;}.stat{border-bottom:1px solid var(--border);}footer{flex-direction:column;gap:16px;padding:32px;}}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+
+<nav id="nav">
+ <a href="/" class="nav-logo">RA<span>(I)</span></a>
+ <a href="mailto:tp@aera.health" class="nav-cta">Request deck</a>
+</nav>
+
+<div class="hero">
+ <div class="hero-glow"></div>
+ <div class="hero-left">
+ <div class="eyebrow">Investor brief · RA(I)</div>
+ <div class="display">SSL was<br>invented <em>once.</em></div>
+ <p class="tension">
+ Every transaction runs through it. Nobody thinks about it. Nobody configures it.
+ AI changed the threat layer overnight. Nobody built the protection layer.
+ <em>That's the category.</em>
+ </p>
+ <div class="intro-line"><strong>RA(I)</strong> · <em>your personal ambient AI security.</em></div>
+ <div class="cta-group">
+ <a href="mailto:tp@aera.health" class="btn-ghost-accent">Request deck →</a>
+ <a href="#landscape" class="btn-ghost">See the exit landscape</a>
+ </div>
+ </div>
+ <div class="hero-right">
+ <div class="stats-block">
+ <div class="stats-row">
+ <div class="stat">
+ <div class="stat-num">$312M</div>
+ <div class="stat-label">Avg acquisition</div>
+ </div>
+ <div class="stat">
+ <div class="stat-num">5.4mo</div>
+ <div class="stat-label">Avg age at exit</div>
+ </div>
+ <div class="stat">
+ <div class="stat-num">28×</div>
+ <div class="stat-label">Avg return</div>
+ </div>
+ </div>
+ </div>
+ <p style="font-size:13px;color:var(--muted);line-height:1.6;">
+ Security infrastructure acquired within months of category proof.
+ The AI interaction layer is the only protection gap with no market incumbent.
+ Same acquisition logic as SSL → browser consolidation. Same inevitability.
+ </p>
+ <div style="font-family:'Fraunces',serif;font-style:italic;font-size:18px;color:var(--muted);">
+ "SSL was invented once. So was RAI."
+ </div>
+ </div>
+</div>
+
+<div class="arc-section">
+ <div class="eyebrow">The historical arc</div>
+ <div class="arc-h">Every time the threat<br>layer changed, we built<br><em>the protection layer.</em></div>
+ <p class="arc-body">
+ Immune systems. Antivirus. SSL. Each time a new attack surface emerged, infrastructure was invented once: then it ran everywhere, forever. <em>AI changed the threat layer overnight.</em>
+ The protection layer doesn't exist yet. This is the founding moment.
+ </p>
+ <div class="arc-timeline">
+ <div class="arc-step">
+ <div class="arc-year">Billions of years</div>
+ <div class="arc-event">Immune system</div>
+ <p class="arc-desc">Adaptive. Invisible. Ambient. Runs without thought. The original protection layer.</p>
+ </div>
+ <div class="arc-step">
+ <div class="arc-year">1987</div>
+ <div class="arc-event">Antivirus invented</div>
+ <p class="arc-desc">First digital threat. Built the layer. Deployed once. Now runs on every device.</p>
+ </div>
+ <div class="arc-step">
+ <div class="arc-year">1995</div>
+ <div class="arc-event">SSL deployed</div>
+ <p class="arc-desc">Every transaction. Nobody configures it. Nobody thinks about it. It just runs. Built once.</p>
+ </div>
+ <div class="arc-step" style="border:1px solid rgba(232,255,0,.2);background:rgba(232,255,0,.02);">
+ <div class="arc-year" style="color:var(--accent);">2026</div>
+ <div class="arc-event" style="color:var(--accent);">RA(I) ships</div>
+ <p class="arc-desc" style="color:var(--muted);">AI interaction layer. Zero incumbents. Category gap confirmed. The founding moment.</p>
+ </div>
+ </div>
+</div>
+
+<div class="exit-section" id="landscape">
+ <div class="eyebrow">Exit landscape</div>
+ <div class="exit-h">The interaction<br>layer <em>gap.</em></div>
+ <table class="exit-table">
+ <thead>
+ <tr>
+ <th>Company</th>
+ <th>Exit value</th>
+ <th>Age at exit</th>
+ <th>Layer protected</th>
+ <th>Acquirer</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>Trail Security</td>
+ <td>$162M</td>
+ <td>~18mo</td>
+ <td>Endpoint / EDR</td>
+ <td>CrowdStrike</td>
+ </tr>
+ <tr>
+ <td>Ryft</td>
+ <td>$100M</td>
+ <td>~6mo</td>
+ <td>Payment authentication</td>
+ <td>Stripe</td>
+ </tr>
+ <tr>
+ <td>Genie Security</td>
+ <td>$50M</td>
+ <td>~4mo</td>
+ <td>IAM / cloud access</td>
+ <td>Google</td>
+ </tr>
+ <tr>
+ <td>BASE44</td>
+ <td>$80M</td>
+ <td>~5mo</td>
+ <td>DevSecOps pipeline</td>
+ <td>Wiz</td>
+ </tr>
+ <tr class="rai-row">
+ <td>RA(I)</td>
+ <td>TBD</td>
+ <td>Now</td>
+ <td>AI interaction layer ← the gap</td>
+ <td>Anthropic / Microsoft / Google</td>
+ </tr>
+ </tbody>
+ </table>
+</div>
+
+<div class="seed-section">
+ <div class="seed-inner">
+ <div class="eyebrow">Seed round · 2026</div>
+ <div class="seed-ask">€1.5M</div>
+ <div class="seed-label">Security Lab SE · Seed</div>
+ <p class="seed-body">
+ 7 surfaces live. 3 threat layers covered. Consumer + enterprise product. Trust &amp; Truth Council engine (multi-agent consensus). ActionGate (write gate). M-layer (distributed sensing substrate, Phase 1).
+ </p>
+ <a href="mailto:tp@aera.health" class="btn-ghost-accent" style="display:inline-block;">Request deck → tp@aera.health</a>
+ </div>
+</div>
+
+<footer>
+ <div class="footer-logo">RA<span>(I)</span></div>
+ <div class="footer-right">
+ <span>Security Lab SE</span>
+ <a href="/">withrai.xyz</a>
+ <a href="mailto:tp@aera.health">tp@aera.health</a>
+ <a href="#">Privacy</a>
+ </div>
+</footer>
+
+<script>
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => { cursor.style.left = e.clientX+'px'; cursor.style.top = e.clientY+'px'; });
+document.querySelectorAll('a, button, input').forEach(el => { el.addEventListener('mouseenter',()=>cursor.classList.add('large')); el.addEventListener('mouseleave',()=>cursor.classList.remove('large')); });
+window.addEventListener('scroll', () => { document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40); });
+</script>
+</body>
+</html>

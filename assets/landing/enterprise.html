@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="RA(I) Enterprise, Your agents inherited your privileges. ActionGate for enterprise AI.">
+<title>RA(I) Enterprise, Your agents inherited your privileges.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#080808;--text:#f0ede8;--muted:#666;--border:#1c1c1c;--accent:#aa44ff;--teal:#00e5c8;}
+html{background:var(--bg);}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;line-height:1.6;cursor:none;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;}
+#cursor{position:fixed;width:8px;height:8px;background:var(--text);border-radius:50%;pointer-events:none;z-index:10000;transform:translate(-50%,-50%);transition:width .15s,height .15s;}
+#cursor.large{width:20px;height:20px;background:transparent;border:1px solid var(--text);}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:24px 48px;transition:border-color .3s,background .3s;}
+nav.scrolled{border-bottom:1px solid var(--border);background:rgba(8,8,8,.92);backdrop-filter:blur(12px);}
+.nav-logo{font-family:'DM Mono',monospace;font-size:16px;text-decoration:none;color:var(--text);}
+.nav-logo span{color:#e8ff00;}
+.nav-cta{background:var(--accent);color:var(--text);border:none;padding:10px 20px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;cursor:none;text-decoration:none;transition:opacity .2s;}
+.nav-cta:hover{opacity:.85;}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:140px 80px 80px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+.hero-glow{position:absolute;top:30%;right:-100px;width:700px;height:500px;background:radial-gradient(ellipse,rgba(170,68,255,.07) 0%,transparent 70%);pointer-events:none;}
+.eyebrow{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:#e8ff00;margin-bottom:32px;}
+.display{font-family:'Fraunces',serif;font-size:clamp(52px,8vw,108px);line-height:1.0;letter-spacing:-2px;margin-bottom:48px;max-width:800px;}
+.display em{font-style:italic;color:var(--accent);}
+.tension{font-size:16px;color:var(--muted);line-height:1.7;max-width:580px;margin-bottom:32px;}
+.tension em{color:var(--text);font-style:italic;}
+.intro-line{font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--muted);margin-bottom:40px;}
+.intro-line strong{color:var(--text);font-style:normal;font-weight:400;}
+.cta-group{display:flex;gap:16px;flex-wrap:wrap;}
+.btn-primary{display:inline-block;background:var(--accent);color:var(--text);padding:14px 28px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;cursor:none;transition:opacity .2s;}
+.btn-primary:hover{opacity:.85;}
+.btn-ghost{display:inline-block;color:var(--muted);padding:14px 28px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;cursor:none;border:1px solid var(--border);transition:color .2s,border-color .2s;}
+.btn-ghost:hover{color:var(--text);border-color:var(--muted);}
+/* AUDIT MATRIX */
+.matrix-section{border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.matrix-header{padding:64px 80px 0;}
+.matrix-h{font-family:'Fraunces',serif;font-size:clamp(28px,3vw,44px);line-height:1.1;margin-bottom:16px;}
+.matrix-h em{font-style:italic;color:var(--accent);}
+.matrix-sub{font-size:13px;color:var(--muted);max-width:600px;line-height:1.6;margin-bottom:48px;}
+.matrix-grid{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--border);}
+.matrix-card{padding:48px 40px;border-right:1px solid var(--border);}
+.matrix-card:last-child{border-right:none;}
+.matrix-tag{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:6px;}
+.matrix-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.matrix-title{font-family:'Fraunces',serif;font-size:20px;line-height:1.2;margin-bottom:12px;}
+.matrix-body{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:20px;}
+.matrix-gate{font-size:11px;color:var(--accent);}
+/* CTA */
+.cta-section{padding:100px 80px;border-bottom:1px solid var(--border);}
+.cta-inner{max-width:520px;}
+.cta-h{font-family:'Fraunces',serif;font-size:clamp(28px,3vw,44px);line-height:1.1;margin-bottom:24px;}
+.cta-h em{font-style:italic;color:var(--accent);}
+.cta-body{font-size:13px;color:var(--muted);margin-bottom:40px;line-height:1.6;}
+.cta-form{display:flex;gap:0;max-width:440px;margin-bottom:12px;}
+.cta-form input{flex:1;background:var(--bg);border:1px solid var(--border);border-right:none;padding:14px 16px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);outline:none;}
+.cta-form input::placeholder{color:var(--muted);}
+.cta-form input:focus{border-color:var(--muted);}
+.cta-form button{background:var(--accent);color:var(--text);border:none;padding:14px 24px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:none;transition:opacity .2s;}
+.cta-form button:hover{opacity:.85;}
+.cta-confirm{font-size:11px;color:var(--teal);display:none;}
+.cta-legal{font-size:11px;color:var(--muted);}
+footer{padding:32px 80px;display:flex;align-items:center;justify-content:space-between;}
+.footer-logo{font-family:'DM Mono',monospace;font-size:14px;color:var(--text);}
+.footer-logo span{color:#e8ff00;}
+.footer-right{font-size:11px;color:var(--muted);}
+.footer-right a{color:var(--muted);text-decoration:none;margin-left:24px;}
+@media(max-width:900px){.hero{padding:120px 32px 80px;}.matrix-header{padding:48px 32px 0;}.matrix-grid{grid-template-columns:1fr;}.matrix-card{border-right:none;border-bottom:1px solid var(--border);}.cta-section{padding:64px 32px;}footer{flex-direction:column;gap:16px;padding:32px;}}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+
+<nav id="nav">
+ <a href="/" class="nav-logo">RA<span>(I)</span></a>
+ <a href="mailto:tp@aera.health" class="nav-cta">Request pilot</a>
+</nav>
+
+<div class="hero">
+ <div class="hero-glow"></div>
+ <div class="eyebrow">Personal Ambient AI Security · Enterprise</div>
+ <div class="display">Your agents<br>inherited your<br><em>privileges.</em></div>
+ <p class="tension">
+ Nobody built the write gate. Four research teams. Three Claude surfaces. 48 hours.
+ Same failure class.
+ <em>The audit matrix Anthropic hasn't built, RAI built it.</em>
+ </p>
+ <div class="intro-line"><strong>RA(I)</strong> · <em>your personal ambient AI security.</em></div>
+ <div class="cta-group">
+ <a href="mailto:tp@aera.health" class="btn-primary">Request pilot</a>
+ <a href="#matrix" class="btn-ghost">See ActionGate</a>
+ </div>
+</div>
+
+<div class="matrix-section" id="matrix">
+ <div class="matrix-header">
+ <div class="matrix-h">The audit matrix<br><em>Anthropic hasn't built.</em></div>
+ <p class="matrix-sub">Three failure classes. All confirmed by independent research. All present in current enterprise AI deployments. RAI built the gates, the logs, and the attestation layer.</p>
+ </div>
+ <div class="matrix-grid">
+ <div class="matrix-card">
+ <div class="matrix-tag"><span class="matrix-dot" style="background:#aa44ff;"></span>L4 · Confused Deputy</div>
+ <div class="matrix-title">Agents executing what the prompt never intended.</div>
+ <p class="matrix-body">
+ Four independent research teams confirmed the same failure class across three Claude surfaces in 48 hours. Agents inherit user privileges. Without a write gate, every agent is a potential confused deputy. DELEGATE-52: 25% document corruption rate confirmed by Microsoft Research on frontier models.
+ </p>
+ <div class="matrix-gate">ActionGate · Write gate · Scope attestation</div>
+ </div>
+ <div class="matrix-card">
+ <div class="matrix-tag"><span class="matrix-dot" style="background:#ff3333;"></span>L0 · Protocol Injection</div>
+ <div class="matrix-title">MCP STDIO: architectural RCE at protocol level.</div>
+ <p class="matrix-body">
+ 200,000+ servers. The Model Context Protocol STDIO transport exposes an architectural remote code execution class. Anthropic's documented response: "expected behavior." No gate existed at the protocol-interaction layer. ActionGate adds the pre-flight gate before any surface adapter fires.
+ </p>
+ <div class="matrix-gate">ActionGate · Protocol scan · Pre-flight gate</div>
+ </div>
+ <div class="matrix-card">
+ <div class="matrix-tag"><span class="matrix-dot" style="background:#ffa028;"></span>VCCE · Supply Chain</div>
+ <div class="matrix-title">Vendor Covert Capability Expansion: your devices.</div>
+ <p class="matrix-body">
+ Anthropic installed Native Messaging Host manifests into 7 browsers without user consent. This is the VCCE threat class: the vendor expands reach into enterprise devices without disclosure. Enterprise AI deployments have no monitor for this. RAI's P0 layer detects the pattern on-device before it escalates.
+ </p>
+ <div class="matrix-gate">P0 · Supply chain monitor · VCCE detection</div>
+ </div>
+ </div>
+</div>
+
+<div class="cta-section" id="cta">
+ <div class="cta-inner">
+ <div class="eyebrow" style="color:var(--accent);">Enterprise pilot</div>
+ <div class="cta-h">The gate your<br>AI stack<br><em>needs.</em></div>
+ <p class="cta-body">ActionGate deploys across your agent stack. Write gate, process lineage, scope attestation, confused deputy protection. Enterprise trial: tp@aera.health. Response within 24h.</p>
+ <form class="cta-form" id="ctaForm">
+ <input type="email" placeholder="work@company.com" required>
+ <button type="submit">Request pilot</button>
+ </form>
+ <div class="cta-confirm" id="ctaConfirm">✓ Request received. We'll be in touch within 24h.</div>
+ <p class="cta-legal" style="margin-top:12px;">Enterprise deployment. Custom config. On-prem available.</p>
+ </div>
+</div>
+
+<footer>
+ <div class="footer-logo">RA<span>(I)</span></div>
+ <div class="footer-right">
+ <span>Security Lab SE</span>
+ <a href="/">withrai.xyz</a>
+ <a href="mailto:tp@aera.health">tp@aera.health</a>
+ <a href="#">Privacy</a>
+ </div>
+</footer>
+
+<script>
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => { cursor.style.left = e.clientX+'px'; cursor.style.top = e.clientY+'px'; });
+document.querySelectorAll('a, button, input').forEach(el => { el.addEventListener('mouseenter',()=>cursor.classList.add('large')); el.addEventListener('mouseleave',()=>cursor.classList.remove('large')); });
+window.addEventListener('scroll', () => { document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40); });
+document.getElementById('ctaForm').addEventListener('submit', function(e) { e.preventDefault(); this.style.display='none'; document.getElementById('ctaConfirm').style.display='block'; });
+</script>
+</body>
+</html>
