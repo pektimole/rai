@@ -1,0 +1,42 @@
+[[redirects]]
+  from = "/real"
+  to = "/real.html"
+  status = 200
+
+[[redirects]]
+  from = "/feel"
+  to = "/feel.html"
+  status = 200
+
+[[redirects]]
+  from = "/pro"
+  to = "/pro.html"
+  status = 200
+
+[[redirects]]
+  from = "/build"
+  to = "/build.html"
+  status = 200
+
+[[redirects]]
+  from = "/investors"
+  to = "/investors.html"
+  status = 200
+
+[[redirects]]
+  from = "/enterprise"
+  to = "/enterprise.html"
+  status = 200
+
+[[redirects]]
+  from = "/health"
+  to = "/health.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
