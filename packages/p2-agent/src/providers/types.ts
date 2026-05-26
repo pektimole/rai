@@ -14,6 +14,12 @@ export interface ProviderCallInput {
   model: string;
   /** When true, the provider should perform web search before answering. */
   useWebSearch: boolean;
+  /**
+   * Concise search query for external web lookup (Brave etc.).
+   * Separate from userMessage because userMessage contains formatting prose
+   * that Brave will reject. Defaults to userMessage when omitted (legacy path).
+   */
+  searchQuery?: string;
   /** Provider-specific config (API key, base URL, etc.) */
   config: ProviderConfig;
   /** Max tokens for the response. */

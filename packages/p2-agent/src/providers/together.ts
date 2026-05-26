@@ -10,7 +10,7 @@
 import type { ProviderAdapter, ProviderCallInput, ProviderCallResult } from './types.js';
 import { fetchWebSearchSnippets } from './web-search.js';
 
-const TOGETHER_DEFAULT_BASE = 'https://api.together.xyz/v1';
+const TOGETHER_DEFAULT_BASE = 'https://api.together.ai/v1';
 
 export class TogetherAdapter implements ProviderAdapter {
   readonly name = 'together';
@@ -28,7 +28,7 @@ export class TogetherAdapter implements ProviderAdapter {
     let citations: ProviderCallResult['citations'] = [];
 
     if (input.useWebSearch) {
-      const search = await fetchWebSearchSnippets(input.userMessage);
+      const search = await fetchWebSearchSnippets(input.searchQuery ?? input.userMessage);
       citations = search.citations;
       userMessage =
         `${input.userMessage}\n\n` +

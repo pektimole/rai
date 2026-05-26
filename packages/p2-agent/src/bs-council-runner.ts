@@ -126,6 +126,7 @@ async function runRoleA(
       systemPrompt: PROMPT_A,
       userMessage: buildABUserMessage(input, query),
       web_search: cfg.web_search ?? true,
+      searchQuery: query,
     });
     const parsed = parseABResponse(result.text);
     const cited = mapCitationIndices(parsed.citation_indices, result.citations, parsed.verdict);
@@ -137,7 +138,8 @@ async function runRoleA(
       provider: cfg.provider,
       model: cfg.model,
     };
-  } catch {
+  } catch (err) {
+    if (process.env.RAI_DEBUG) console.error('[Agent A] error:', err);
     return noSignalA(query, cfg);
   }
 }
@@ -156,6 +158,7 @@ async function runRoleB(
       systemPrompt: PROMPT_B,
       userMessage: buildABUserMessage(input, query),
       web_search: cfg.web_search ?? true,
+      searchQuery: query,
     });
     const parsed = parseABResponse(result.text);
     const cited = mapCitationIndices(parsed.citation_indices, result.citations, parsed.verdict);
@@ -167,7 +170,8 @@ async function runRoleB(
       provider: cfg.provider,
       model: cfg.model,
     };
-  } catch {
+  } catch (err) {
+    if (process.env.RAI_DEBUG) console.error('[Agent B] error:', err);
     return noSignalB(query, cfg);
   }
 }
@@ -213,7 +217,8 @@ async function runRoleC(
       provider: cfg.provider,
       model: cfg.model,
     };
-  } catch {
+  } catch (err) {
+    if (process.env.RAI_DEBUG) console.error('[Agent C] error:', err);
     return noSignalC();
   }
 }
@@ -248,6 +253,8 @@ interface CallSpec {
   systemPrompt: string;
   userMessage: string;
   web_search: boolean;
+  /** Concise query string for external web search (Brave). Separate from userMessage. */
+  searchQuery?: string;
 }
 
 async function callWithFallback(
@@ -258,10 +265,13 @@ async function callWithFallback(
   try {
     return await dispatchProvider(cfg, apiKeys, spec);
   } catch (err) {
+    if (process.env.RAI_DEBUG) console.error(`[callWithFallback] primary(${cfg.provider}/${cfg.model}) failed:`, err);
     if (cfg.fallback_local) {
+      if (process.env.RAI_DEBUG) console.error(`[callWithFallback] trying fallback_local: ${cfg.fallback_local.provider}/${cfg.fallback_local.model}`);
       return await dispatchProvider(cfg.fallback_local, apiKeys, spec);
     }
     if (cfg.fallback_cloud) {
+      if (process.env.RAI_DEBUG) console.error(`[callWithFallback] trying fallback_cloud: ${cfg.fallback_cloud.provider}/${cfg.fallback_cloud.model}`);
       return await dispatchProvider(cfg.fallback_cloud, apiKeys, spec);
     }
     throw err;
@@ -279,6 +289,7 @@ async function dispatchProvider(
     userMessage: spec.userMessage,
     model: cfg.model,
     useWebSearch: spec.web_search && (cfg.web_search ?? false),
+    searchQuery: spec.searchQuery,
     config: {
       apiKey: cfg.provider === 'anthropic' ? apiKeys.anthropic : cfg.provider === 'together' ? apiKeys.together : undefined,
     },
