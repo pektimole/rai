@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Personal Ambient AI Security. RA(I) runs before you respond. Know what's real.">
+<title>RA(I), Personal Ambient AI Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+ --bg:#080808;
+ --text:#f0ede8;
+ --muted:#666;
+ --border:#1c1c1c;
+ --accent:#e8ff00;
+ --red:#ff3333;
+ --amber:#ffa028;
+ --blue:#4488ff;
+ --violet:#aa44ff;
+ --teal:#00e5c8;
+}
+html{background:var(--bg);}
+body{
+ background:var(--bg);
+ color:var(--text);
+ font-family:'DM Mono',monospace;
+ font-size:14px;
+ line-height:1.6;
+ cursor:none;
+ overflow-x:hidden;
+}
+
+/* GRAIN */
+body::before{
+ content:'';
+ position:fixed;
+ inset:0;
+ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+ pointer-events:none;
+ z-index:9999;
+}
+
+/* CURSOR */
+#cursor{
+ position:fixed;
+ width:8px;height:8px;
+ background:var(--text);
+ border-radius:50%;
+ pointer-events:none;
+ z-index:10000;
+ transform:translate(-50%,-50%);
+ transition:width .15s,height .15s,opacity .15s;
+}
+#cursor.large{width:20px;height:20px;background:transparent;border:1px solid var(--text);}
+
+/* NAV */
+nav{
+ position:fixed;
+ top:0;left:0;right:0;
+ z-index:100;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:24px 48px;
+ border-bottom:1px solid transparent;
+ transition:border-color .3s,background .3s;
+}
+nav.scrolled{
+ border-bottom-color:var(--border);
+ background:rgba(8,8,8,.92);
+ backdrop-filter:blur(12px);
+}
+.nav-logo{
+ font-family:'DM Mono',monospace;
+ font-size:16px;
+ font-weight:400;
+ letter-spacing:.02em;
+ text-decoration:none;
+ color:var(--text);
+}
+.nav-logo span{color:var(--accent);}
+.nav-links{
+ display:flex;
+ gap:32px;
+ list-style:none;
+}
+.nav-links a{
+ color:var(--muted);
+ text-decoration:none;
+ font-size:12px;
+ letter-spacing:.08em;
+ text-transform:uppercase;
+ transition:color .2s;
+}
+.nav-links a:hover{color:var(--text);}
+.nav-cta{
+ background:var(--accent);
+ color:#080808;
+ border:none;
+ padding:10px 20px;
+ font-family:'DM Mono',monospace;
+ font-size:12px;
+ font-weight:400;
+ letter-spacing:.06em;
+ text-transform:uppercase;
+ cursor:none;
+ text-decoration:none;
+ transition:opacity .2s;
+}
+.nav-cta:hover{opacity:.85;}
+
+/* SECTIONS */
+section{
+ padding:120px 48px;
+ max-width:1200px;
+ margin:0 auto;
+}
+section.full-bleed{
+ max-width:none;
+ padding:0;
+}
+
+/* EYEBROW */
+.eyebrow{
+ font-family:'DM Mono',monospace;
+ font-size:10px;
+ letter-spacing:.25em;
+ text-transform:uppercase;
+ color:var(--accent);
+ margin-bottom:32px;
+}
+
+/* HEADLINES */
+.display{
+ font-family:'Fraunces',serif;
+ font-size:clamp(60px,8vw,110px);
+ line-height:1.0;
+ letter-spacing:-1.5px;
+ color:var(--text);
+}
+.display em{
+ font-style:italic;
+ color:var(--accent);
+}
+.display .dim{color:var(--muted);}
+
+.h2{
+ font-family:'Fraunces',serif;
+ font-size:clamp(36px,4vw,56px);
+ line-height:1.05;
+ letter-spacing:-0.5px;
+}
+.h2 em{font-style:italic;color:var(--accent);}
+
+.h3{
+ font-family:'Fraunces',serif;
+ font-size:clamp(22px,2.5vw,32px);
+ line-height:1.1;
+}
+
+/* INTRO LINE */
+.intro-line{
+ font-family:'Fraunces',serif;
+ font-style:italic;
+ font-size:16px;
+ color:var(--muted);
+ margin-bottom:40px;
+}
+.intro-line strong{color:var(--text);font-style:normal;font-weight:400;}
+
+/* BODY TEXT */
+.body-text{
+ font-size:14px;
+ line-height:1.7;
+ color:var(--muted);
+ max-width:540px;
+}
+.body-text em{color:var(--text);font-style:normal;}
+
+/* BUTTONS */
+.btn-primary{
+ display:inline-block;
+ background:var(--accent);
+ color:#080808;
+ padding:14px 28px;
+ font-family:'DM Mono',monospace;
+ font-size:13px;
+ letter-spacing:.06em;
+ text-transform:uppercase;
+ text-decoration:none;
+ cursor:none;
+ transition:opacity .2s;
+}
+.btn-primary:hover{opacity:.85;}
+.btn-ghost{
+ display:inline-block;
+ color:var(--muted);
+ padding:14px 28px;
+ font-family:'DM Mono',monospace;
+ font-size:13px;
+ letter-spacing:.06em;
+ text-transform:uppercase;
+ text-decoration:none;
+ cursor:none;
+ border:1px solid var(--border);
+ transition:color .2s,border-color .2s;
+}
+.btn-ghost:hover{color:var(--text);border-color:var(--muted);}
+.cta-group{display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+
+/* DIVIDER */
+hr.section-div{
+ border:none;
+ border-top:1px solid var(--border);
+ margin:0 48px;
+}
+
+/* ─────────────────────────────────────────
+ HERO
+───────────────────────────────────────── */
+#hero{
+ min-height:100vh;
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ align-items:center;
+ padding:0;
+ border-bottom:1px solid var(--border);
+ position:relative;
+ overflow:hidden;
+}
+.hero-glow{
+ position:absolute;
+ top:20%;left:55%;
+ width:600px;height:600px;
+ background:radial-gradient(circle,rgba(232,255,0,.06) 0%,transparent 70%);
+ pointer-events:none;
+}
+.hero-left{
+ padding:140px 64px 100px 80px;
+ border-right:1px solid var(--border);
+}
+.hero-right{
+ padding:140px 80px 100px 64px;
+ display:flex;
+ flex-direction:column;
+ gap:48px;
+}
+.hero-headline{
+ margin-top:40px;
+ margin-bottom:48px;
+}
+
+/* SURFACES PILLS */
+.surfaces-row{
+ display:flex;
+ flex-direction:column;
+ gap:8px;
+}
+.surfaces-label{
+ font-size:10px;
+ letter-spacing:.2em;
+ text-transform:uppercase;
+ color:var(--muted);
+ margin-bottom:8px;
+}
+.surfaces-pills{
+ display:flex;
+ flex-wrap:wrap;
+ gap:8px;
+}
+.pill{
+ padding:6px 12px;
+ border:1px solid var(--border);
+ font-size:11px;
+ letter-spacing:.05em;
+ color:var(--muted);
+ display:flex;
+ align-items:center;
+ gap:6px;
+}
+.pill-live{
+ width:5px;height:5px;
+ background:var(--teal);
+ border-radius:50%;
+ flex-shrink:0;
+}
+
+/* HERO STATS */
+.hero-stat-row{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:1px;
+ border:1px solid var(--border);
+}
+.hero-stat{
+ padding:20px 24px;
+ border-right:1px solid var(--border);
+}
+.hero-stat:last-child{border-right:none;}
+.hero-stat-num{
+ font-family:'Fraunces',serif;
+ font-size:28px;
+ letter-spacing:-0.5px;
+ color:var(--text);
+}
+.hero-stat-label{
+ font-size:10px;
+ letter-spacing:.15em;
+ text-transform:uppercase;
+ color:var(--muted);
+ margin-top:4px;
+}
+
+/* ─────────────────────────────────────────
+ SURFACES STRIP
+───────────────────────────────────────── */
+#surfaces{
+ padding:0;
+ border-bottom:1px solid var(--border);
+ overflow-x:auto;
+}
+.surfaces-strip{
+ display:flex;
+ align-items:stretch;
+}
+.surface-card{
+ flex:1;
+ min-width:180px;
+ padding:40px 32px;
+ border-right:1px solid var(--border);
+ display:flex;
+ flex-direction:column;
+ gap:12px;
+}
+.surface-card:last-child{border-right:none;}
+.surface-icon{
+ font-size:20px;
+ line-height:1;
+}
+.surface-name{
+ font-size:12px;
+ letter-spacing:.1em;
+ text-transform:uppercase;
+ color:var(--text);
+}
+.surface-status{
+ font-size:10px;
+ letter-spacing:.1em;
+ text-transform:uppercase;
+ color:var(--teal);
+}
+.surface-desc{
+ font-size:11px;
+ color:var(--muted);
+ line-height:1.5;
+}
+
+/* ─────────────────────────────────────────
+ PRODUCT CARDS
+───────────────────────────────────────── */
+#product{
+ padding:120px 48px;
+}
+.product-header{
+ display:flex;
+ align-items:flex-end;
+ justify-content:space-between;
+ margin-bottom:64px;
+ gap:32px;
+}
+.product-cards{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:1px;
+ border:1px solid var(--border);
+}
+.product-card{
+ padding:64px 48px;
+ border-right:1px solid var(--border);
+ position:relative;
+ overflow:hidden;
+}
+.product-card:last-child{border-right:none;}
+.product-card-accent{
+ position:absolute;
+ top:0;left:0;
+ width:2px;
+ height:100%;
+}
+.product-card-tag{
+ font-size:10px;
+ letter-spacing:.2em;
+ text-transform:uppercase;
+ color:var(--muted);
+ margin-bottom:24px;
+}
+.product-card-title{
+ font-family:'Fraunces',serif;
+ font-size:32px;
+ margin-bottom:20px;
+}
+.product-card-body{
+ font-size:13px;
+ color:var(--muted);
+ line-height:1.7;
+ margin-bottom:32px;
+}
+.product-card-points{
+ list-style:none;
+ display:flex;
+ flex-direction:column;
+ gap:10px;
+}
+.product-card-points li{
+ font-size:12px;
+ color:var(--muted);
+ padding-left:16px;
+ position:relative;
+}
+.product-card-points li::before{
+ content:'–';
+ position:absolute;
+ left:0;
+ color:var(--border);
+}
+
+/* ─────────────────────────────────────────
+ HOW IT WORKS
+───────────────────────────────────────── */
+#how{
+ padding:120px 48px;
+ border-top:1px solid var(--border);
+}
+.how-grid{
+ display:grid;
+ grid-template-columns:1fr 3fr;
+ gap:80px;
+ align-items:start;
+}
+.how-steps{
+ display:grid;
+ grid-template-columns:1fr 1fr 1fr;
+ gap:1px;
+ border:1px solid var(--border);
+ margin-top:48px;
+}
+.how-step{
+ padding:48px 40px;
+ border-right:1px solid var(--border);
+ position:relative;
+}
+.how-step:last-child{border-right:none;}
+.how-step-num{
+ font-family:'Fraunces',serif;
+ font-style:italic;
+ font-size:48px;
+ color:var(--border);
+ margin-bottom:24px;
+}
+.how-step-title{
+ font-family:'Fraunces',serif;
+ font-size:20px;
+ margin-bottom:12px;
+ color:var(--text);
+}
+.how-step-body{
+ font-size:12px;
+ color:var(--muted);
+ line-height:1.6;
+}
+
+/* ─────────────────────────────────────────
+ EVIDENCE
+───────────────────────────────────────── */
+#evidence{
+ padding:0;
+ border-top:1px solid var(--border);
+ border-bottom:1px solid var(--border);
+}
+.evidence-header{
+ padding:64px 48px 0;
+ display:flex;
+ align-items:flex-end;
+ justify-content:space-between;
+ margin-bottom:48px;
+}
+.evidence-grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ border-top:1px solid var(--border);
+}
+.incident-card{
+ padding:48px;
+ border-right:1px solid var(--border);
+ border-bottom:1px solid var(--border);
+ position:relative;
+}
+.incident-card:nth-child(2n){border-right:none;}
+.incident-card:nth-last-child(-n+2){border-bottom:none;}
+.incident-tag{
+ display:inline-block;
+ font-size:9px;
+ letter-spacing:.2em;
+ text-transform:uppercase;
+ color:var(--muted);
+ border:1px solid var(--border);
+ padding:4px 8px;
+ margin-bottom:20px;
+}
+.incident-threat{
+ font-size:9px;
+ letter-spacing:.15em;
+ text-transform:uppercase;
+ margin-bottom:20px;
+ display:flex;
+ align-items:center;
+ gap:6px;
+}
+.incident-dot{
+ width:4px;height:4px;
+ border-radius:50%;
+ background:var(--red);
+ flex-shrink:0;
+}
+.incident-dot.amber{background:var(--amber);}
+.incident-dot.blue{background:var(--blue);}
+.incident-title{
+ font-family:'Fraunces',serif;
+ font-size:22px;
+ line-height:1.1;
+ margin-bottom:16px;
+}
+.incident-body{
+ font-size:12px;
+ color:var(--muted);
+ line-height:1.6;
+ margin-bottom:20px;
+}
+.incident-signal{
+ font-size:11px;
+ color:var(--accent);
+ letter-spacing:.05em;
+}
+
+/* ─────────────────────────────────────────
+ INVESTORS
+───────────────────────────────────────── */
+#investors{
+ padding:120px 48px;
+ border-bottom:1px solid var(--border);
+}
+.investors-grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:80px;
+ align-items:start;
+}
+.stats-row{
+ display:grid;
+ grid-template-columns:1fr 1fr 1fr;
+ gap:1px;
+ border:1px solid var(--border);
+ margin:40px 0;
+}
+.stat-block{
+ padding:32px 24px;
+ border-right:1px solid var(--border);
+}
+.stat-block:last-child{border-right:none;}
+.stat-num{
+ font-family:'Fraunces',serif;
+ font-size:36px;
+ letter-spacing:-0.5px;
+ color:var(--text);
+}
+.stat-label{
+ font-size:10px;
+ letter-spacing:.15em;
+ text-transform:uppercase;
+ color:var(--muted);
+ margin-top:6px;
+}
+.exit-table{
+ border:1px solid var(--border);
+ width:100%;
+ border-collapse:collapse;
+}
+.exit-table th{
+ font-size:9px;
+ letter-spacing:.2em;
+ text-transform:uppercase;
+ color:var(--muted);
+ padding:12px 16px;
+ text-align:left;
+ border-bottom:1px solid var(--border);
+ font-weight:400;
+}
+.exit-table td{
+ font-size:12px;
+ padding:14px 16px;
+ border-bottom:1px solid var(--border);
+ color:var(--muted);
+}
+.exit-table td:first-child{color:var(--text);}
+.exit-table .rai-row td{
+ color:var(--accent);
+ border-color:rgba(232,255,0,.2);
+}
+.exit-table .rai-row td:first-child{color:var(--accent);}
+.exit-table tbody tr:last-child td{border-bottom:none;}
+.seed-block{
+ margin-top:40px;
+ padding:32px;
+ border:1px solid var(--border);
+}
+.seed-ask{
+ font-family:'Fraunces',serif;
+ font-size:48px;
+ letter-spacing:-1px;
+ color:var(--text);
+ margin-bottom:8px;
+}
+.seed-label{
+ font-size:11px;
+ letter-spacing:.15em;
+ text-transform:uppercase;
+ color:var(--muted);
+ margin-bottom:24px;
+}
+
+/* ─────────────────────────────────────────
+ PRESS
+───────────────────────────────────────── */
+#press{
+ padding:0;
+ border-bottom:1px solid var(--border);
+}
+.press-header{
+ padding:64px 48px 0;
+}
+.press-grid{
+ display:grid;
+ grid-template-columns:1fr 1fr 1fr 1fr;
+ border-top:1px solid var(--border);
+ margin-top:40px;
+}
+.press-card{
+ padding:40px 32px;
+ border-right:1px solid var(--border);
+}
+.press-card:last-child{border-right:none;}
+.press-outlet{
+ font-size:10px;
+ letter-spacing:.2em;
+ text-transform:uppercase;
+ color:var(--muted);
+ margin-bottom:16px;
+}
+.press-hook{
+ font-family:'Fraunces',serif;
+ font-style:italic;
+ font-size:16px;
+ line-height:1.3;
+ color:var(--text);
+ margin-bottom:12px;
+}
+.press-angle{
+ font-size:11px;
+ color:var(--muted);
+ line-height:1.5;
+}
+
+/* ─────────────────────────────────────────
+ TEAM
+───────────────────────────────────────── */
+#team{
+ padding:120px 48px;
+ border-bottom:1px solid var(--border);
+}
+.team-grid{
+ display:grid;
+ grid-template-columns:1fr 1fr 1fr;
+ gap:1px;
+ border:1px solid var(--border);
+ margin-top:64px;
+}
+.team-card{
+ padding:48px 40px;
+ border-right:1px solid var(--border);
+}
+.team-card:last-child{border-right:none;}
+.team-card-hiring{
+ background:rgba(232,255,0,.02);
+ border:1px dashed rgba(232,255,0,.15);
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ align-items:flex-start;
+}
+.team-avatar{
+ width:48px;height:48px;
+ border:1px solid var(--border);
+ margin-bottom:20px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ font-family:'Fraunces',serif;
+ font-size:18px;
+ color:var(--muted);
+}
+.team-name{
+ font-family:'Fraunces',serif;
+ font-size:22px;
+ margin-bottom:6px;
+}
+.team-role{
+ font-size:10px;
+ letter-spacing:.2em;
+ text-transform:uppercase;
+ color:var(--muted);
+ margin-bottom:16px;
+}
+.team-bio{
+ font-size:12px;
+ color:var(--muted);
+ line-height:1.6;
+}
+.team-hiring-role{
+ font-size:10px;
+ letter-spacing:.2em;
+ text-transform:uppercase;
+ color:var(--accent);
+ margin-bottom:12px;
+}
+.team-hiring-desc{
+ font-family:'Fraunces',serif;
+ font-size:20px;
+ margin-bottom:16px;
+}
+.team-hiring-link{
+ font-size:11px;
+ color:var(--muted);
+ text-decoration:none;
+ letter-spacing:.05em;
+}
+.team-hiring-link:hover{color:var(--text);}
+
+/* ─────────────────────────────────────────
+ EARLY ACCESS
+───────────────────────────────────────── */
+#access{
+ padding:120px 48px;
+ border-bottom:1px solid var(--border);
+ position:relative;
+ overflow:hidden;
+}
+.access-glow{
+ position:absolute;
+ top:50%;left:50%;
+ transform:translate(-50%,-50%);
+ width:800px;height:400px;
+ background:radial-gradient(ellipse,rgba(232,255,0,.04) 0%,transparent 70%);
+ pointer-events:none;
+}
+.access-inner{
+ max-width:640px;
+ margin:0 auto;
+ text-align:center;
+}
+.access-headline{
+ font-family:'Fraunces',serif;
+ font-size:clamp(32px,4vw,52px);
+ line-height:1.05;
+ letter-spacing:-0.5px;
+ margin-bottom:24px;
+}
+.access-headline em{
+ font-style:italic;
+ color:var(--accent);
+}
+.access-sub{
+ font-size:14px;
+ color:var(--muted);
+ margin-bottom:48px;
+ line-height:1.6;
+}
+.access-plans{
+ display:grid;
+ grid-template-columns:1fr 1fr 1fr;
+ gap:1px;
+ border:1px solid var(--border);
+ margin-bottom:40px;
+}
+.plan{
+ padding:32px 24px;
+ border-right:1px solid var(--border);
+ text-align:left;
+}
+.plan:last-child{border-right:none;}
+.plan-name{
+ font-size:9px;
+ letter-spacing:.25em;
+ text-transform:uppercase;
+ color:var(--muted);
+ margin-bottom:12px;
+}
+.plan-price{
+ font-family:'Fraunces',serif;
+ font-size:28px;
+ letter-spacing:-0.5px;
+ margin-bottom:4px;
+}
+.plan-cycle{
+ font-size:10px;
+ color:var(--muted);
+ margin-bottom:16px;
+}
+.plan-features{
+ list-style:none;
+ display:flex;
+ flex-direction:column;
+ gap:6px;
+}
+.plan-features li{
+ font-size:11px;
+ color:var(--muted);
+ padding-left:14px;
+ position:relative;
+}
+.plan-features li::before{
+ content:'·';
+ position:absolute;
+ left:0;
+ color:var(--accent);
+}
+.access-form{
+ display:flex;
+ gap:0;
+ max-width:480px;
+ margin:0 auto;
+}
+.access-form input{
+ flex:1;
+ background:var(--bg);
+ border:1px solid var(--border);
+ border-right:none;
+ padding:14px 16px;
+ font-family:'DM Mono',monospace;
+ font-size:13px;
+ color:var(--text);
+ outline:none;
+}
+.access-form input::placeholder{color:var(--muted);}
+.access-form input:focus{border-color:var(--muted);}
+.access-form button{
+ background:var(--accent);
+ color:#080808;
+ border:none;
+ padding:14px 24px;
+ font-family:'DM Mono',monospace;
+ font-size:12px;
+ letter-spacing:.08em;
+ text-transform:uppercase;
+ cursor:none;
+ white-space:nowrap;
+ transition:opacity .2s;
+}
+.access-form button:hover{opacity:.85;}
+.access-confirm{
+ font-size:11px;
+ color:var(--teal);
+ margin-top:16px;
+ display:none;
+ text-align:center;
+}
+.access-legal{
+ font-size:11px;
+ color:var(--muted);
+ margin-top:16px;
+}
+
+/* ─────────────────────────────────────────
+ FOOTER
+───────────────────────────────────────── */
+footer{
+ padding:48px;
+ border-top:1px solid var(--border);
+ display:grid;
+ grid-template-columns:1fr 1fr 1fr;
+ gap:48px;
+ align-items:start;
+}
+.footer-brand .logo{
+ font-family:'DM Mono',monospace;
+ font-size:18px;
+ margin-bottom:12px;
+}
+.footer-brand .logo span{color:var(--accent);}
+.footer-entity{
+ font-size:11px;
+ color:var(--muted);
+ margin-bottom:8px;
+}
+.footer-sig{
+ font-family:'Fraunces',serif;
+ font-style:italic;
+ font-size:13px;
+ color:var(--muted);
+ margin-top:20px;
+}
+.footer-nav{
+ list-style:none;
+ display:flex;
+ flex-direction:column;
+ gap:10px;
+}
+.footer-nav a{
+ color:var(--muted);
+ text-decoration:none;
+ font-size:12px;
+ letter-spacing:.05em;
+ transition:color .2s;
+}
+.footer-nav a:hover{color:var(--text);}
+.footer-contact{
+ display:flex;
+ flex-direction:column;
+ gap:8px;
+}
+.footer-contact a{
+ color:var(--muted);
+ text-decoration:none;
+ font-size:12px;
+ transition:color .2s;
+}
+.footer-contact a:hover{color:var(--text);}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+ #hero{grid-template-columns:1fr;}
+ .hero-right{display:none;}
+ .hero-left{padding:120px 32px 80px;}
+ .product-cards,
+ .how-steps,
+ .investors-grid,
+ .press-grid,
+ .team-grid,
+ .access-plans{grid-template-columns:1fr;}
+ .product-card,
+ .how-step,
+ .press-card,
+ .team-card,
+ .plan{border-right:none;border-bottom:1px solid var(--border);}
+ footer{grid-template-columns:1fr;}
+ nav{padding:20px 24px;}
+ section{padding:80px 24px;}
+ .evidence-grid{grid-template-columns:1fr;}
+ .incident-card{border-right:none;}
+ .surfaces-strip{flex-wrap:wrap;}
+ .surface-card{min-width:160px;flex:none;}
+ .stats-row{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<!-- NAV -->
+<nav id="nav">
+ <a href="/" class="nav-logo">RA<span>(I)</span></a>
+ <ul class="nav-links">
+ <li><a href="#product">Product</a></li>
+ <li><a href="#evidence">Evidence</a></li>
+ <li><a href="#investors">Investors</a></li>
+ <li><a href="#access">Get access</a></li>
+ </ul>
+ <a href="#access" class="nav-cta">Start for free</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero" class="full-bleed">
+ <div class="hero-glow"></div>
+
+ <div class="hero-left">
+ <div class="eyebrow">Personal Ambient AI Security</div>
+ <div class="hero-headline">
+ <div class="display">Is this<br><em>real?</em></div>
+ </div>
+
+ <p class="body-text" style="margin-bottom:32px;">
+ In a world where anything can be generated, it's the qüstion you're asking more than you used to.
+ The message that felt slightly off. The advice from someone you'd never heard of. The voice that was warm and certain and wrong.
+ <br><br>
+ You're not paranoid. You're paying attention.
+ </p>
+
+ <div class="intro-line"><strong>RA(I)</strong> · <em>your personal ambient AI security.</em></div>
+
+ <div class="cta-group">
+ <a href="#access" class="btn-primary">Start for free</a>
+ <a href="#how" class="btn-ghost">See how it works</a>
+ </div>
+ </div>
+
+ <div class="hero-right">
+ <div class="surfaces-row">
+ <div class="surfaces-label">Running on</div>
+ <div class="surfaces-pills">
+ <span class="pill"><span class="pill-live"></span>Chrome extension</span>
+ <span class="pill"><span class="pill-live"></span>Telegram bot</span>
+ <span class="pill"><span class="pill-live"></span>WhatsApp</span>
+ <span class="pill"><span class="pill-live"></span>PWA</span>
+ <span class="pill"><span class="pill-live"></span>ActionGate</span>
+ </div>
+ </div>
+
+ <div class="hero-stat-row">
+ <div class="hero-stat">
+ <div class="hero-stat-num">7</div>
+ <div class="hero-stat-label">Live surfaces</div>
+ </div>
+ <div class="hero-stat">
+ <div class="hero-stat-num">L0–L5</div>
+ <div class="hero-stat-label">Threat coverage</div>
+ </div>
+ <div class="hero-stat">
+ <div class="hero-stat-num">€0.99</div>
+ <div class="hero-stat-label">Per month</div>
+ </div>
+ <div class="hero-stat">
+ <div class="hero-stat-num">0</div>
+ <div class="hero-stat-label">Setup required</div>
+ </div>
+ </div>
+
+ <div class="body-text" style="max-width:100%;font-size:12px;">
+ <em>You have an immune system. Not for this.</em><br>
+ AI dösn't feel conseqünces. You do.
+ </div>
+ </div>
+</section>
+
+<!-- SURFACES STRIP -->
+<div id="surfaces">
+ <div class="surfaces-strip">
+ <div class="surface-card">
+ <div class="surface-icon">⬡</div>
+ <div class="surface-name">Chrome Extension</div>
+ <div class="surface-status">· Live</div>
+ <div class="surface-desc">Scans every AI interaction in the browser. Flags threats before you respond.</div>
+ </div>
+ <div class="surface-card">
+ <div class="surface-icon">✦</div>
+ <div class="surface-name">Telegram</div>
+ <div class="surface-status">· Live</div>
+ <div class="surface-desc">Forward any message to @RAISecuritybot. Instant verdict.</div>
+ </div>
+ <div class="surface-card">
+ <div class="surface-icon">◈</div>
+ <div class="surface-name">WhatsApp</div>
+ <div class="surface-status">· Live</div>
+ <div class="surface-desc">Ambient scanning on mobile. The layer travels with you.</div>
+ </div>
+ <div class="surface-card">
+ <div class="surface-icon">◻</div>
+ <div class="surface-name">PWA</div>
+ <div class="surface-status">· Live</div>
+ <div class="surface-desc">Mobile share target. Scan any AI content from any app.</div>
+ </div>
+ <div class="surface-card">
+ <div class="surface-icon">⬡</div>
+ <div class="surface-name">ActionGate</div>
+ <div class="surface-status">· Live</div>
+ <div class="surface-desc">Write gate for AI agents. Scope attestation before the action fires.</div>
+ </div>
+ </div>
+</div>
+
+<hr class="section-div">
+
+<!-- PRODUCT -->
+<section id="product">
+ <div class="product-header">
+ <div>
+ <div class="eyebrow">The layer that runs before you respond</div>
+ <div class="h2">Two arms.<br><em>One engine.</em></div>
+ </div>
+ <p class="body-text" style="font-size:13px;">
+ Same protection infrastructure. Outward-facing for consumers. Inward-facing for professionals and developers.
+ You don't choose between them. RAI runs both.
+ </p>
+ </div>
+
+ <div class="product-cards">
+ <div class="product-card">
+ <div class="product-card-accent" style="background:var(--accent);"></div>
+ <div class="product-card-tag">Consumer · Truth Lens</div>
+ <div class="product-card-title">Know what's<br><em>real.</em></div>
+ <p class="product-card-body">
+ AI-managed DMs. Cloned voices. Synthetic personas. Inflüncer-amplified harm.
+ The outward threat is ambient and accelerating. RAI is the layer that runs before you trust.
+ </p>
+ <ul class="product-card-points">
+ <li>Synthetic identity detection (L5)</li>
+ <li>Misinformation and manufactured authority (L1)</li>
+ <li>AI-generated persona disclosure</li>
+ <li>Trust score before you respond</li>
+ </ul>
+ </div>
+ <div class="product-card">
+ <div class="product-card-accent" style="background:var(--violet);"></div>
+ <div class="product-card-tag">Professional · ActionGate</div>
+ <div class="product-card-title" style="color:var(--violet);">Your agents<br><em>inherited your</em><br>privileges.</div>
+ <p class="product-card-body">
+ Every agent you run, every model you use, every recommendation you follow. Without a second layer.
+ The write gate. The scope attestation. The audit matrix. That layer now exists.
+ </p>
+ <ul class="product-card-points">
+ <li>Agent action write gate (L4)</li>
+ <li>Prompt injection detection (L0)</li>
+ <li>Supply chain monitoring (L-2)</li>
+ <li>Process lineage + scope audit</li>
+ </ul>
+ </div>
+ </div>
+</section>
+
+<hr class="section-div">
+
+<!-- HOW IT WORKS -->
+<section id="how">
+ <div class="how-grid">
+ <div>
+ <div class="eyebrow">How it works</div>
+ <div class="h2">Three steps.<br><em>No thinking</em><br>required.</div>
+ </div>
+ <div>
+ <p class="body-text" style="max-width:480px;">
+ RAI is not a tool you invoke. It's a layer that runs.
+ Like SSL. Like white blood cells.
+ Ambient. Invisible. Present.
+ </p>
+ </div>
+ </div>
+
+ <div class="how-steps" style="grid-column:1/-1;">
+ <div class="how-step">
+ <div class="how-step-num">1</div>
+ <div class="how-step-title">Install once.</div>
+ <p class="how-step-body">
+ 30 seconds. Chrome extension or mobile PWA.
+ No configuration. No permissions beyond what scanning requires.
+ Zero data leaves your device on the free tier.
+ </p>
+ </div>
+ <div class="how-step">
+ <div class="how-step-num">2</div>
+ <div class="how-step-title">It runs.</div>
+ <p class="how-step-body">
+ Every AI interaction across every surface you use.
+ P0 (local regex) fires first. P1 escalates to the Trust &amp; Truth Council on low confidence.
+ No latency on the response path.
+ </p>
+ </div>
+ <div class="how-step">
+ <div class="how-step-num">3</div>
+ <div class="how-step-title">You know.</div>
+ <p class="how-step-body">
+ Before you respond. Before you upload. Before you trust.
+ The person who already knew.
+ That's who uses RA(I).
+ </p>
+ </div>
+ </div>
+</section>
+
+<!-- EVIDENCE -->
+<section id="evidence" class="full-bleed">
+ <div class="evidence-header">
+ <div>
+ <div class="eyebrow">Why this exists</div>
+ <div class="h2">Four incidents.<br><em>One month.</em><br>Nobody flagged them.</div>
+ </div>
+ <p class="body-text" style="font-size:12px;max-width:300px;">
+ This is not the future. This is documented. It happened last month. It will happen more next month.
+ </p>
+ </div>
+
+ <div class="evidence-grid">
+ <div class="incident-card">
+ <div class="incident-threat"><span class="incident-dot"></span>L5 · Synthetic Identity</div>
+ <div class="incident-title">600+ conversations. No human. No disclosure.</div>
+ <p class="incident-body">
+ Liam Mouhali ran an AI agent managing his entire LinkedIn presence.
+ Hundreds of public replies, direct messages, relationship-building.
+ No consent asked. No disclosure made. Thousands of contacts harvested.
+ </p>
+ <div class="incident-signal">→ RAI flags: AI-managed persona, no disclosure</div>
+ </div>
+ <div class="incident-card">
+ <div class="incident-threat"><span class="incident-dot"></span>L5 · Cloned Voice</div>
+ <div class="incident-title">Two Hot Takes, cloned. €170/month GLP-1.</div>
+ <p class="incident-body">
+ James Rowdy used cloned voices of Two Hot Takes hosts to sell health supplements
+ at €170/month to their audience. The hosts' trust, harvested without their knowledge
+ or consent.
+ </p>
+ <div class="incident-signal">→ RAI flags: synthetic audio, identity mismatch</div>
+ </div>
+ <div class="incident-card">
+ <div class="incident-threat"><span class="incident-dot amber"></span>L1 · Inflüencer-Amplified Harm</div>
+ <div class="incident-title">Mel Robbins. 10M followers. Bank statements.</div>
+ <p class="incident-body">
+ Microsoft Copilot promotion told Mel Robbins' 10M followers to share their
+ financial documents with an AI. The advice was trusted. The exposure was irreversible.
+ No retraction reached the same audience.
+ </p>
+ <div class="incident-signal">→ RAI flags: high-trust source, data extraction prompt</div>
+ </div>
+ <div class="incident-card">
+ <div class="incident-threat"><span class="incident-dot" style="background:var(--blue)"></span>L0 · Architectural Exploit</div>
+ <div class="incident-title">MCP STDIO. 200,000 servers. Expected behavior.</div>
+ <p class="incident-body">
+ Model Context Protocol's STDIO transport exposed an architectural RCE class across
+ 200,000+ servers. Anthropic's response: "expected behavior." The gap is the interaction
+ layer. That's where harm lands.
+ </p>
+ <div class="incident-signal">→ RAI flags: protocol-level injection vector</div>
+ </div>
+ </div>
+</section>
+
+<!-- INVESTORS -->
+<section id="investors">
+ <div class="investors-grid">
+ <div>
+ <div class="eyebrow">For investors</div>
+ <div class="h2">SSL was<br>invented <em>once.</em></div>
+ <p class="body-text" style="margin-top:24px;">
+ Every transaction runs through it. Nobody thinks about it. Nobody configures it.
+ AI changed the threat layer overnight. The protection layer doesn't exist yet.
+ <em>That's the category.</em>
+ </p>
+
+ <div class="stats-row" style="margin-top:40px;">
+ <div class="stat-block">
+ <div class="stat-num">$312M</div>
+ <div class="stat-label">Avg acquisition</div>
+ </div>
+ <div class="stat-block">
+ <div class="stat-num">5.4mo</div>
+ <div class="stat-label">Avg age at exit</div>
+ </div>
+ <div class="stat-block">
+ <div class="stat-num">28×</div>
+ <div class="stat-label">Avg return</div>
+ </div>
+ </div>
+
+ <div class="seed-block">
+ <div class="seed-ask">€1.5M</div>
+ <div class="seed-label">Seed · Security Lab SE</div>
+ <a href="mailto:tp@aera.health" class="btn-primary" style="font-size:11px;">Request deck →</a>
+ </div>
+ </div>
+
+ <div>
+ <div class="eyebrow" style="margin-bottom:20px;">The interaction layer gap</div>
+ <table class="exit-table">
+ <thead>
+ <tr>
+ <th>Company</th>
+ <th>Exit</th>
+ <th>Layer</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>Trail Security</td>
+ <td>$162M</td>
+ <td>Endpoint</td>
+ </tr>
+ <tr>
+ <td>Ryft</td>
+ <td>$100M</td>
+ <td>Payment auth</td>
+ </tr>
+ <tr>
+ <td>Genie Security</td>
+ <td>$50M</td>
+ <td>IAM / cloud</td>
+ </tr>
+ <tr>
+ <td>BASE44</td>
+ <td>$80M</td>
+ <td>DevSecOps</td>
+ </tr>
+ <tr class="rai-row">
+ <td>RA(I)</td>
+ <td>TBD</td>
+ <td>AI interaction ← gap</td>
+ </tr>
+ </tbody>
+ </table>
+ <p style="font-size:11px;color:var(--muted);margin-top:16px;line-height:1.5;">
+ Security infrastructure acquired within months of proof of category.
+ The AI interaction layer is the only protection gap that has no market incumbent.
+ </p>
+ </div>
+ </div>
+</section>
+
+<!-- PRESS -->
+<section id="press" class="full-bleed">
+ <div class="press-header">
+ <div class="eyebrow">How this lands</div>
+ <div class="h2" style="margin-bottom:0;">Four angles.<br><em>One story.</em></div>
+ </div>
+ <div class="press-grid">
+ <div class="press-card">
+ <div class="press-outlet">TechCrunch · Security</div>
+ <div class="press-hook">"The immune system for AI interactions"</div>
+ <p class="press-angle">
+ New startup names the category nobody else is building: ambient protection for the AI interaction layer.
+ Runs across 7 surfaces. Ships at €0.99.
+ </p>
+ </div>
+ <div class="press-card">
+ <div class="press-outlet">Wired · Consumer</div>
+ <div class="press-hook">"Is this real? One app is asking it for you."</div>
+ <p class="press-angle">
+ As AI-generated content floods every feed, RA(I) gives individuals the second look they didn't know they were missing.
+ </p>
+ </div>
+ <div class="press-card">
+ <div class="press-outlet">Fortune · Investment</div>
+ <div class="press-hook">"The SSL moment for AI security"</div>
+ <p class="press-angle">
+ €1.5M seed, Security Lab SE. Acquiring the interaction layer gap before the enterprise wave arrives.
+ Comparable exits: 5.4 months average, $312M average acquisition.
+ </p>
+ </div>
+ <div class="press-card">
+ <div class="press-outlet">Hacker News · Community</div>
+ <div class="press-hook">"ActionGate: the write gate AI systems don't have"</div>
+ <p class="press-angle">
+ Process lineage. Scope attestation. Confused deputy protection.
+ The audit matrix four research teams confirmed doesn't exist. RA(I) built it.
+ </p>
+ </div>
+ </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+ <div class="eyebrow">Team</div>
+ <div class="h2">Building the<br><em>protection layer.</em></div>
+
+ <div class="team-grid">
+ <div class="team-card">
+ <div class="team-avatar">T</div>
+ <div class="team-name">Tim-Ole Pek</div>
+ <div class="team-role">Founder &amp; CEO</div>
+ <p class="team-bio">
+ AI infrastructure architect. Built RAI across 7 surfaces from first principles.
+ GoMedicus Group founder. Previously: ambient intelligence systems, regulated sector AI.
+ Based in Europe.
+ </p>
+ </div>
+ <div class="team-card team-card-hiring">
+ <div class="team-hiring-role">Hiring</div>
+ <div class="team-hiring-desc">Security Research<br>Engineer</div>
+ <p class="team-bio" style="margin-bottom:16px;">
+ Threat model depth. Red team experience. Interest in AI-native attack surfaces.
+ Remote-first.
+ </p>
+ <a href="mailto:tp@aera.health" class="team-hiring-link">tp@aera.health →</a>
+ </div>
+ <div class="team-card team-card-hiring">
+ <div class="team-hiring-role">Hiring</div>
+ <div class="team-hiring-desc">Growth &amp;<br>Distribution</div>
+ <p class="team-bio" style="margin-bottom:16px;">
+ Consumer trust products. Viral distribution instinct. Care about what's real.
+ Remote-first.
+ </p>
+ <a href="mailto:tp@aera.health" class="team-hiring-link">tp@aera.health →</a>
+ </div>
+ </div>
+</section>
+
+<!-- EARLY ACCESS -->
+<section id="access">
+ <div class="access-glow"></div>
+ <div class="access-inner">
+ <div class="eyebrow" style="text-align:center;">Early access</div>
+ <div class="access-headline">Know what's<br><em>real.</em></div>
+ <p class="access-sub">
+ Personal Ambient AI Security. Available today.<br>
+ Free tier runs on-device. No data leaves unless you ask it to.
+ </p>
+
+ <div class="access-plans">
+ <div class="plan">
+ <div class="plan-name">Free</div>
+ <div class="plan-price">€0</div>
+ <div class="plan-cycle">forever</div>
+ <ul class="plan-features">
+ <li>P0 local scanner</li>
+ <li>Chrome extension</li>
+ <li>Telegram bot</li>
+ <li>On-device only</li>
+ </ul>
+ </div>
+ <div class="plan" style="border:1px solid rgba(232,255,0,.2);border-right:1px solid var(--border);background:rgba(232,255,0,.02);">
+ <div class="plan-name" style="color:var(--accent);">Pro</div>
+ <div class="plan-price">€0.99</div>
+ <div class="plan-cycle">per month</div>
+ <ul class="plan-features">
+ <li>P0 + P1 consensus</li>
+ <li>Trust &amp; Truth Council</li>
+ <li>All 7 surfaces</li>
+ <li>Web grounding</li>
+ <li>Citation trail</li>
+ </ul>
+ </div>
+ <div class="plan">
+ <div class="plan-name">BYOK</div>
+ <div class="plan-price">Free</div>
+ <div class="plan-cycle">bring your own key</div>
+ <ul class="plan-features">
+ <li>Full Pro features</li>
+ <li>Your API keys</li>
+ <li>Zero data to us</li>
+ <li>Advanced config</li>
+ </ul>
+ </div>
+ </div>
+
+ <form class="access-form" id="accessForm">
+ <input type="email" placeholder="your@email.com" required>
+ <button type="submit">Get early access</button>
+ </form>
+ <div class="access-confirm" id="accessConfirm">✓ You're on the list. We'll be in touch.</div>
+ <p class="access-legal">No spam. No tracking. Just early access.</p>
+ </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+ <div class="footer-brand">
+ <div class="logo">RA<span>(I)</span></div>
+ <div class="footer-entity">Security Lab SE</div>
+ <div class="footer-entity" style="color:var(--border);">withrai.xyz</div>
+ <div class="footer-sig">AI dösn't feel conseqünces.<br>You do.</div>
+ </div>
+ <ul class="footer-nav">
+ <li><a href="#product">Product</a></li>
+ <li><a href="#how">How it works</a></li>
+ <li><a href="#evidence">Evidence</a></li>
+ <li><a href="#investors">Investors</a></li>
+ <li><a href="enterprise.html">Enterprise</a></li>
+ <li><a href="build.html">Developers</a></li>
+ <li><a href="investors.html">Investor brief</a></li>
+ </ul>
+ <div class="footer-contact">
+ <span style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Contact</span>
+ <a href="mailto:tp@aera.health">tp@aera.health</a>
+ <a href="mailto:press@withrai.xyz">press@withrai.xyz</a>
+ <span style="font-size:11px;color:var(--muted);margin-top:16px;">© 2026 Security Lab SE</span>
+ <a href="#" style="font-size:11px;color:var(--muted);margin-top:4px;">Privacy</a>
+ </div>
+</footer>
+
+<script>
+// Cursor
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+ cursor.style.left = e.clientX + 'px';
+ cursor.style.top = e.clientY + 'px';
+});
+document.querySelectorAll('a, button, input').forEach(el => {
+ el.addEventListener('mouseenter', () => cursor.classList.add('large'));
+ el.addEventListener('mouseleave', () => cursor.classList.remove('large'));
+});
+
+// Nav scroll effect
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+ nav.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// Email form
+document.getElementById('accessForm').addEventListener('submit', function(e) {
+ e.preventDefault();
+ const confirm = document.getElementById('accessConfirm');
+ this.style.display = 'none';
+ confirm.style.display = 'block';
+ // TODO: replace with Mailchimp endpoint
+ // fetch('/api/subscribe', { method: 'POST', body: JSON.stringify({ email: this.querySelector('input').value }) })
+});
+</script>
+</body>
+</html>
