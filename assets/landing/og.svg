@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#080808"/>
+  <!-- Left accent bar -->
+  <rect x="0" y="0" width="4" height="630" fill="#e8ff00" opacity="0.6"/>
+  <!-- Eyebrow -->
+  <text x="64" y="112" font-family="'Courier New',monospace" font-size="13" letter-spacing="4" fill="#666" text-transform="uppercase">PERSONAL AMBIENT AI SECURITY</text>
+  <!-- Headline -->
+  <text x="64" y="260" font-family="Georgia,'Times New Roman',serif" font-size="100" font-weight="300" fill="#f0ede8">Know what's</text>
+  <text x="64" y="370" font-family="Georgia,'Times New Roman',serif" font-size="100" font-style="italic" fill="#e8ff00">real.</text>
+  <!-- Tagline -->
+  <text x="64" y="450" font-family="'Courier New',monospace" font-size="16" fill="#666" letter-spacing="1">RA(I) runs before you respond. Personal Ambient AI Security.</text>
+  <!-- Divider -->
+  <line x1="64" y1="510" x2="400" y2="510" stroke="#1c1c1c" stroke-width="1"/>
+  <!-- Bottom: URL + logo -->
+  <text x="64" y="548" font-family="'Courier New',monospace" font-size="14" fill="#444" letter-spacing="1">withrai.xyz</text>
+  <text x="1136" y="548" text-anchor="end" font-family="'Courier New',monospace" font-size="22" fill="#f0ede8">RA<tspan fill="#e8ff00">(I)</tspan></text>
+</svg>
