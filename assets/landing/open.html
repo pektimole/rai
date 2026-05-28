@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:site_name" content="(R)AI">
+<meta name="description" content="The open-source tools (R)AI trusts. And why. A curated, RAI-vetted AI security library.">
+<title>(R)AI Open — The open-source tools RAI trusts.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080A0E;--surface:#0d0f14;--card:#0f1218;
+  --border:#1a1d24;--border-hi:#252830;
+  --text:#f0ede8;--muted:#555;--dim:#2a2d35;
+  --accent:#E8FF47;
+  --accent-dim:rgba(232,255,71,.12);
+  --accent-glow:rgba(232,255,71,.06);
+  --red:#ff3333;--amber:#ffa028;--blue:#4488ff;--violet:#aa44ff;--teal:#00e5c8;
+}
+html{background:var(--bg);scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;line-height:1.6;cursor:none;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;}
+#cursor{position:fixed;width:8px;height:8px;background:var(--text);border-radius:50%;pointer-events:none;z-index:10000;transform:translate(-50%,-50%);transition:width .15s,height .15s,background .15s;}
+#cursor.large{width:20px;height:20px;background:transparent;border:1px solid var(--text);}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 48px;border-bottom:1px solid transparent;transition:border-color .3s,background .3s;}
+nav.scrolled{border-bottom-color:var(--border);background:rgba(8,10,14,.94);backdrop-filter:blur(16px);}
+.nav-logo{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;text-decoration:none;color:var(--text);letter-spacing:.02em;}
+.nav-logo span{color:var(--accent);}
+.nav-right{display:flex;align-items:center;gap:24px;}
+.nav-link{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .2s;}
+.nav-link:hover{color:var(--text);}
+.nav-link.active{color:var(--accent);}
+.nav-cta{background:transparent;border:1px solid var(--border-hi);color:var(--text);padding:8px 18px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;cursor:none;transition:border-color .2s,color .2s;}
+.nav-cta:hover{border-color:var(--accent);color:var(--accent);}
+
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:140px 80px 100px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+.hero-glow{position:absolute;top:-100px;left:-200px;width:700px;height:700px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 65%);pointer-events:none;}
+.hero-glow-2{position:absolute;bottom:-200px;right:-100px;width:500px;height:500px;background:radial-gradient(circle,rgba(68,136,255,.04) 0%,transparent 65%);pointer-events:none;}
+.hero-eyebrow{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);margin-bottom:28px;display:flex;align-items:center;gap:12px;}
+.hero-eyebrow::before{content:'';width:24px;height:1px;background:var(--accent);}
+.hero-headline{font-family:'Syne',sans-serif;font-size:clamp(52px,7vw,96px);font-weight:800;line-height:.95;letter-spacing:-2px;margin-bottom:36px;max-width:800px;}
+.hero-headline em{font-style:italic;font-family:'DM Mono',monospace;font-size:.72em;font-weight:300;color:var(--accent);letter-spacing:-1px;}
+.hero-sub{font-size:15px;color:var(--muted);line-height:1.7;max-width:520px;margin-bottom:48px;}
+.hero-sub em{color:var(--text);font-style:normal;}
+.hero-meta{display:flex;align-items:center;gap:32px;flex-wrap:wrap;}
+.meta-stat{display:flex;flex-direction:column;gap:4px;}
+.meta-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--text);letter-spacing:-0.5px;}
+.meta-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+.meta-divider{width:1px;height:40px;background:var(--border);}
+
+.library{padding:80px 80px 120px;}
+.library-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px;padding-bottom:24px;border-bottom:1px solid var(--border);}
+.library-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+.library-count{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);}
+
+.filter-row{display:flex;align-items:center;gap:8px;margin-bottom:40px;flex-wrap:wrap;}
+.filter-pill{font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border:1px solid var(--border);color:var(--muted);cursor:none;transition:all .15s;background:none;font-family:'DM Mono',monospace;}
+.filter-pill:hover{border-color:var(--border-hi);color:var(--text);}
+.filter-pill.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+
+.repo-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);}
+.repo-card{background:var(--card);padding:40px 36px;display:flex;flex-direction:column;gap:20px;transition:background .2s;position:relative;overflow:hidden;}
+.repo-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:transparent;transition:background .2s;}
+.repo-card:hover{background:var(--surface);}
+.repo-card:hover::before{background:var(--accent);}
+
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
+.card-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;line-height:1.1;letter-spacing:-.3px;}
+.scan-badge{flex-shrink:0;display:flex;align-items:center;gap:6px;border:1px solid var(--accent);padding:5px 10px;background:var(--accent-dim);}
+.badge-dot{width:5px;height:5px;background:var(--accent);border-radius:50%;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.badge-text{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);}
+
+.card-desc{font-size:13px;color:var(--muted);line-height:1.65;}
+.card-desc em{color:var(--text);font-style:normal;}
+.card-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.l-tag{font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;border:1px solid;}
+.card-author{font-size:10px;color:var(--dim);letter-spacing:.06em;}
+
+.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid var(--border);margin-top:auto;}
+.card-why{font-size:11px;color:var(--muted);line-height:1.5;max-width:380px;}
+.card-why em{color:var(--text);font-style:normal;}
+.gh-link{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s;flex-shrink:0;}
+.gh-link:hover{color:var(--text);}
+
+.criteria-strip{margin:64px 80px 0;border:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);}
+.crit-cell{padding:28px 24px;border-right:1px solid var(--border);}
+.crit-cell:last-child{border-right:none;}
+.crit-icon{font-size:18px;margin-bottom:12px;opacity:.6;}
+.crit-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+.crit-text{font-size:11px;color:var(--muted);line-height:1.6;}
+.crit-text em{color:var(--text);font-style:normal;}
+
+.submit-section{margin:0 80px;padding:64px 64px;border:1px solid var(--border-hi);display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;position:relative;overflow:hidden;}
+.submit-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,var(--accent-glow) 0%,transparent 60%);pointer-events:none;}
+.submit-headline{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;line-height:1.05;letter-spacing:-.5px;}
+.submit-headline em{font-style:italic;font-family:'DM Mono',monospace;font-size:.82em;font-weight:300;color:var(--accent);}
+.submit-right{display:flex;flex-direction:column;gap:20px;}
+.submit-body{font-size:13px;color:var(--muted);line-height:1.7;}
+.submit-body em{color:var(--text);font-style:normal;}
+.submit-criteria{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.submit-criteria li{font-size:11px;color:var(--muted);padding-left:16px;position:relative;line-height:1.5;}
+.submit-criteria li::before{content:'·';position:absolute;left:0;color:var(--accent);}
+.submit-cta{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:#080A0E;padding:14px 24px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;cursor:none;transition:opacity .2s;align-self:flex-start;margin-top:4px;font-weight:500;}
+.submit-cta:hover{opacity:.88;}
+
+footer{margin-top:80px;padding:32px 80px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.footer-logo{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:var(--text);}
+.footer-logo span{color:var(--accent);}
+.footer-right{font-size:11px;color:var(--muted);}
+.footer-right a{color:var(--muted);text-decoration:none;margin-left:24px;transition:color .2s;}
+.footer-right a:hover{color:var(--text);}
+
+@media(max-width:960px){
+  nav{padding:18px 28px;}
+  .hero{padding:120px 32px 80px;}
+  .library{padding:60px 32px 80px;}
+  .repo-grid{grid-template-columns:1fr;}
+  .submit-section{grid-template-columns:1fr;margin:0 32px;padding:40px 32px;gap:32px;}
+  .criteria-strip{grid-template-columns:1fr 1fr;margin:40px 32px 0;}
+  footer{flex-direction:column;gap:16px;padding:32px;}
+}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+
+<nav id="nav">
+  <a href="/" class="nav-logo"><span>(R)</span>AI</a>
+  <div class="nav-right">
+    <a href="/" class="nav-link">Home</a>
+    <a href="/open" class="nav-link active">Open</a>
+    <a href="/build" class="nav-link">Developers</a>
+    <a href="/investors" class="nav-link">Investors</a>
+    <a href="#submit" class="nav-cta">Submit a repo</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow-2"></div>
+  <div class="hero-eyebrow">(R)AI Open Library</div>
+  <h1 class="hero-headline">The open-source<br>tools RAI trusts.<br><em>And why.</em></h1>
+  <p class="hero-sub">Not a directory. Not a list. A vetted layer — every repo here has been reviewed by (R)AI against the full L-classification threat taxonomy. <em>Curated for developers building in a world where the interaction layer matters.</em></p>
+  <div class="hero-meta">
+    <div class="meta-stat"><div class="meta-num">1</div><div class="meta-label">Vetted repo</div></div>
+    <div class="meta-divider"></div>
+    <div class="meta-stat"><div class="meta-num">L0–L5</div><div class="meta-label">Threat coverage</div></div>
+    <div class="meta-divider"></div>
+    <div class="meta-stat"><div class="meta-num">Open</div><div class="meta-label">Submit yours</div></div>
+  </div>
+</section>
+
+<section class="library">
+  <div class="library-header">
+    <div class="library-title">Vetted Library · May 2026</div>
+    <div class="library-count">1 repo · growing</div>
+  </div>
+  <div class="filter-row">
+    <button class="filter-pill active" onclick="filterCards('all',this)">All</button>
+    <button class="filter-pill" onclick="filterCards('L0',this)">L0 Prompt Injection</button>
+    <button class="filter-pill" onclick="filterCards('L2',this)">L2 Credential / Exfil</button>
+    <button class="filter-pill" onclick="filterCards('L4',this)">L4 Agent Overreach</button>
+    <button class="filter-pill" onclick="filterCards('ActionGate',this)">ActionGate-relevant</button>
+  </div>
+  <div class="repo-grid" id="repoGrid">
+    <div class="repo-card" data-tags="L0 L2 ActionGate">
+      <div class="card-top">
+        <div class="card-name">Pipelock</div>
+        <div class="scan-badge"><div class="badge-dot"></div><div class="badge-text">RAI Verified</div></div>
+      </div>
+      <div class="card-desc">AI agent firewall — intercepts, inspects, and gates agent actions before execution. Built by Joshua Waldrep / PipeLab as a runtime enforcement layer for agentic pipelines. <em>Covers prompt injection at the agent boundary and credential scope leakage before outbound calls.</em></div>
+      <div class="card-meta">
+        <div class="l-tag" style="border-color:rgba(255,51,51,.4);color:var(--red);">L0 · Prompt Injection</div>
+        <div class="l-tag" style="border-color:rgba(68,136,255,.4);color:var(--blue);">L2 · Credential / Exfil</div>
+        <div class="l-tag" style="border-color:rgba(232,255,71,.3);color:var(--accent);">ActionGate-relevant</div>
+        <div class="card-author">Joshua Waldrep · PipeLab</div>
+      </div>
+      <div class="card-footer">
+        <div class="card-why"><em>Why (R)AI trusts it:</em> Pipelock operates at the pre-execution gate — the same architectural position ActionGate enforces. Runtime interception rather than static analysis. The credential scope isolation pattern maps directly to (R)AI's L2 detection layer.</div>
+        <a href="https://github.com/pipelab/pipelock" class="gh-link" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          GitHub →
+        </a>
+      </div>
+    </div>
+    <div class="repo-card" style="border:1px dashed var(--border);background:transparent;justify-content:center;align-items:center;min-height:320px;gap:16px;text-align:center;">
+      <div style="font-size:28px;opacity:.15;">+</div>
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--dim);">Your repo here</div>
+      <div style="font-size:11px;color:var(--muted);max-width:260px;line-height:1.6;">Submit an open-source AI security project for (R)AI review. We run it against the full L-classification taxonomy.</div>
+      <a href="#submit" style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);text-decoration:none;margin-top:8px;">Submit for review →</a>
+    </div>
+  </div>
+</section>
+
+<div class="criteria-strip">
+  <div class="crit-cell"><div class="crit-icon">⬡</div><div class="crit-label">L-classification</div><div class="crit-text">Every repo is mapped to (R)AI's threat taxonomy: <em>L0 through L5, VCCE, ActionGate-relevant</em>. Not vibes — layer-specific evidence.</div></div>
+  <div class="crit-cell"><div class="crit-icon">◈</div><div class="crit-label">Runtime, not static</div><div class="crit-text">We prioritise tools that operate at the <em>interaction layer</em> — runtime interception, not pre-deploy scanning. Same architectural position as (R)AI.</div></div>
+  <div class="crit-cell"><div class="crit-icon">✦</div><div class="crit-label">Open by default</div><div class="crit-text">MIT or Apache-2.0. Auditable. <em>No black-box vetted repos</em> — if we can't read it, we can't trust it, and neither can you.</div></div>
+  <div class="crit-cell"><div class="crit-icon">◻</div><div class="crit-label">Maintained</div><div class="crit-text">Active commits in the last 90 days. <em>Threat surfaces move fast.</em> A repo that hasn't been touched since the threat class emerged isn't protection — it's theatre.</div></div>
+</div>
+
+<section class="submit-section" id="submit">
+  <div>
+    <div style="font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:20px;">Submit for review</div>
+    <div class="submit-headline">Built something<br>the interaction<br>layer <em>needs?</em></div>
+  </div>
+  <div class="submit-right">
+    <div class="submit-body">(R)AI reviews open-source AI security tools against the full L-classification taxonomy. If it covers a real threat surface at the interaction layer, it belongs here.<br><br><em>What we don't list:</em> output filters, content moderation wrappers, or anything that runs after the user has already been harmed.</div>
+    <ul class="submit-criteria">
+      <li>Open source (MIT / Apache-2.0 or compatible)</li>
+      <li>Addresses at least one L-classification threat class</li>
+      <li>Runtime enforcement preferred over static analysis</li>
+      <li>Active maintenance (commits in last 90 days)</li>
+      <li>Documentation sufficient for (R)AI threat-layer mapping</li>
+    </ul>
+    <a href="mailto:go@withrai.xyz?subject=RAI Open Library Submission" class="submit-cta">Submit your repo →</a>
+    <div style="font-size:10px;color:var(--muted);">go@withrai.xyz · subject: RAI Open Library Submission</div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo"><span>(R)</span>AI · Open Library</div>
+  <div class="footer-right">
+    <span>Security Lab SE</span>
+    <a href="/">withrai.xyz</a>
+    <a href="mailto:go@withrai.xyz">go@withrai.xyz</a>
+    <a href="#">Privacy</a>
+  </div>
+</footer>
+
+<script>
+const cursor=document.getElementById('cursor');
+document.addEventListener('mousemove',e=>{cursor.style.left=e.clientX+'px';cursor.style.top=e.clientY+'px';});
+document.querySelectorAll('a, button').forEach(el=>{el.addEventListener('mouseenter',()=>cursor.classList.add('large'));el.addEventListener('mouseleave',()=>cursor.classList.remove('large'));});
+window.addEventListener('scroll',()=>{document.getElementById('nav').classList.toggle('scrolled',window.scrollY>40);});
+function filterCards(tag,btn){
+  document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.repo-card[data-tags]').forEach(card=>{
+    if(tag==='all'||card.dataset.tags.includes(tag)){card.style.display='';}else{card.style.display='none';}
+  });
+}
+</script>
+</body>
+</html>

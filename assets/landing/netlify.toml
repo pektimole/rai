@@ -33,6 +33,11 @@
   to = "/health.html"
   status = 200
 
+[[redirects]]
+  from = "/open"
+  to = "/open.html"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
