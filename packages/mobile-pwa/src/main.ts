@@ -37,6 +37,31 @@ import { renderApp, type ViewState } from './ui/render';
 const SW_CHANNEL = 'rai-mobile';
 const STATUS_TOKENS = new Set(['pending', 'empty', 'error']);
 
+function postIngestFireAndForget(scanRow: ScanRow): void {
+  const ingestUrl = localStorage.getItem('rai_ingest_url');
+  const ingestToken = localStorage.getItem('rai_ingest_token');
+  if (!ingestUrl || !ingestToken) return;
+  const payload = {
+    timestamp: scanRow.ts,
+    scan_id: scanRow.scan_id,
+    tier: scanRow.p1_invoked ? 'p1' : 'p0',
+    channel: 'share',
+    surface: 'mobile_pwa',
+    verdict: scanRow.verdict,
+    confidence: scanRow.confidence,
+    recommended_action: scanRow.verdict === 'blocked' ? 'block' : scanRow.verdict === 'flagged' ? 'warn' : 'pass',
+    threat_layers: scanRow.signals.map((t) => ({ layer: t.layer, label: t.label, severity: t.severity })),
+  };
+  fetch(`${ingestUrl}/ingest/scan-event`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${ingestToken}`,
+    },
+    body: JSON.stringify(payload),
+  }).catch(() => { /* fire and forget */ });
+}
+
 let viewState: ViewState = {
   latest: null,
   counts: { scans: 0, judgments: 0 },
@@ -145,6 +170,7 @@ async function runPipeline(pending: PendingShare): Promise<void> {
 
   const scanRow = await buildScanRow(pending, ocr, p0, p1);
   await appendCorpusRow(scanRow);
+  postIngestFireAndForget(scanRow);
   await refreshAndRender();
   await setLatestScan(scanRow);
 }

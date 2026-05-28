@@ -2,7 +2,7 @@
 
 > **Auto-generated. Do not edit.**
 > Source of truth: `architecture.json` · Regenerate: `npm run regen-arch`
-> Generated: 2026-05-19 10:18 UTC · Commit: `7fbc970` (`main`) · ⚠ working tree dirty
+> Generated: 2026-05-27 07:00 UTC · Commit: `a50b974` (`main`) · ⚠ working tree dirty
 > Schema version: 1.0 · Last manual edit to source: 2026-05-19
 
 ---

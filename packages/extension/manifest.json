@@ -11,7 +11,8 @@
     "https://chatgpt.com/*",
     "https://chat.openai.com/*",
     "https://gemini.google.com/*",
-    "https://myaccount.google.com/*"
+    "https://myaccount.google.com/*",
+    "http://204.168.133.21/*"
   ],
   "background": {
     "service_worker": "src/background/service-worker.ts",

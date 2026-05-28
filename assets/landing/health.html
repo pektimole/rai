@@ -25,12 +25,12 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:24px 48px;transition:border-color .3s,background .3s;}
 nav.scrolled{border-bottom:1px solid var(--border);background:rgba(8,8,8,.92);backdrop-filter:blur(12px);}
 .nav-logo{font-family:'DM Mono',monospace;font-size:16px;text-decoration:none;color:var(--text);}
-.nav-logo span{color:#e8ff00;}
+.nav-logo span{color:var(--accent);}
 .nav-cta{background:var(--accent);color:#080808;border:none;padding:10px 20px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;cursor:none;text-decoration:none;transition:opacity .2s;}
 .nav-cta:hover{opacity:.85;}
 .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:140px 80px 80px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
 .hero-glow{position:absolute;bottom:-100px;left:50%;transform:translateX(-50%);width:800px;height:400px;background:radial-gradient(ellipse,rgba(0,229,200,.05) 0%,transparent 70%);pointer-events:none;}
-.eyebrow{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:#e8ff00;margin-bottom:32px;}
+.eyebrow{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--accent);margin-bottom:32px;}
 .display{font-family:'Fraunces',serif;font-size:clamp(52px,8vw,108px);line-height:1.0;letter-spacing:-2px;margin-bottom:48px;max-width:800px;}
 .display em{font-style:italic;color:var(--accent);}
 .tension{font-size:16px;color:var(--muted);line-height:1.7;max-width:580px;margin-bottom:32px;}
@@ -60,7 +60,7 @@ nav.scrolled{border-bottom:1px solid var(--border);background:rgba(8,8,8,.92);ba
 .cta-legal{font-size:11px;color:var(--muted);}
 footer{padding:32px 80px;display:flex;align-items:center;justify-content:space-between;}
 .footer-logo{font-family:'DM Mono',monospace;font-size:14px;color:var(--text);}
-.footer-logo span{color:#e8ff00;}
+.footer-logo span{color:var(--accent);}
 .footer-right{font-size:11px;color:var(--muted);}
 .footer-right a{color:var(--muted);text-decoration:none;margin-left:24px;}
 @media(max-width:900px){.hero{padding:120px 32px 80px;}.proof-point{padding:48px 32px;}.cta-section{padding:64px 32px;}footer{flex-direction:column;gap:16px;padding:32px;}}

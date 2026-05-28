@@ -171,6 +171,36 @@ function uuid(): string {
   return (crypto as Crypto & { randomUUID(): string }).randomUUID();
 }
 
+interface IngestConfig {
+  ingest_url?: string;
+  ingest_token?: string;
+}
+
+function postIngestFireAndForget(payload: {
+  timestamp: string;
+  scan_id: string;
+  tier: 'p0' | 'p1';
+  channel: string;
+  surface: string;
+  verdict: string;
+  confidence: number;
+  recommended_action: string;
+  threat_layers: Array<{ layer: string; label: string; severity: string }>;
+}): void {
+  chrome.storage.local.get(['ingest_url', 'ingest_token'], (data) => {
+    const cfg = data as IngestConfig;
+    if (!cfg.ingest_url || !cfg.ingest_token) return;
+    fetch(`${cfg.ingest_url}/ingest/scan-event`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${cfg.ingest_token}`,
+      },
+      body: JSON.stringify(payload),
+    }).catch(() => { /* fire and forget */ });
+  });
+}
+
 async function sha256Hex(s: string): Promise<string> {
   const buf = new TextEncoder().encode(s);
   const digest = await crypto.subtle.digest('SHA-256', buf);
@@ -302,6 +332,18 @@ async function handleRightClickScan(content: string, tab: chrome.tabs.Tab | unde
 
   await chrome.storage.local.set({ latest_scan: latest });
   await appendCorpusRows([corpusRow]);
+
+  postIngestFireAndForget({
+    timestamp: ts,
+    scan_id: scanId,
+    tier: p1_invoked ? 'p1' : 'p0',
+    channel: 'browser',
+    surface: 'browser_extension',
+    verdict: merged.verdict,
+    confidence: merged.confidence,
+    recommended_action: merged.verdict === 'blocked' ? 'block' : merged.verdict === 'flagged' ? 'warn' : 'pass',
+    threat_layers: merged.threat_layers.map((t) => ({ layer: t.layer, label: t.label, severity: t.severity })),
+  });
 
   notifyVerdict(latest);
 }
