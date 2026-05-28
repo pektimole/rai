@@ -351,6 +351,59 @@ The Write Gate is a standalone RAI module candidate for P1+ commercialization.
 - Credential exposure: regex for API key patterns (`sk-`, `Bearer `, `ghp_`), email addresses in unexpected payloads
 - **IPI hiding patterns (2026-04-27, Google/Forcepoint):** CSS-hidden instructions: `font-size:0`, `font-size:1px`, `color:transparent`, `color:#ffffff`, `opacity:0`, `display:none`, `visibility:hidden` on elements containing instruction text. HTML-comment instructions: `<!-- [LLM instruction] -->`. Meta-tag injection: `<meta name="..." content="[instruction]">`. These are invisible to humans but read by agents scraping page content. P0 must scan raw HTML/DOM content, not just rendered text, when web content is ingested.
 
+### Credential / Secret Patterns (tag: pipelock-import)
+
+_Imported 2026-05-28 from github.com/luckyPipewrench/pipelock (Apache 2.0), OL-327. Battle-tested against real agent traffic. The "48 built-in patterns" = immutable core DLP floor (cannot be disabled) + injection floor + redaction token classes. Tagged `pipelock-import` for traceability. NOT a code copy, pattern import only. README claim: "API keys, tokens, credentials, cryptocurrency keys, environment variable secrets, and financial identifiers with checksum validation."_
+
+**Pre-match normalization (mandatory, else patterns are trivially bypassed):** NFKC normalize, strip zero-width chars, recursively decode base64 / hex / base32 / URL-encoding (max depth 3), collapse dot-separated and whitespace-separated segments, then match. Core patterns are prepended and immutable, an operator config cannot turn them off.
+
+**Core credential floor (severity: critical)**
+
+| Class | Pattern (regex shape) |
+|---|---|
+| AWS Access Key ID | `(AKIA\|A3T\|AGPA\|AIDA\|AROA\|AIPA\|ANPA\|ANVA\|ASIA)[A-Z0-9]{16,}` |
+| AWS Secret Access Key | 40-char base64-ish secret in AWS-key context |
+| GCP Service Account Key | `"type"\s*:\s*"service_account"` (JSON key blob) |
+| GitHub Token | `gh[pousr]_[A-Za-z0-9_]{36,}` |
+| GitHub Fine-Grained PAT | `github_pat_[A-Za-z0-9_]{22,}` |
+| GitLab PAT | `glpat-[A-Za-z0-9_-]{20,}` |
+| Slack Token | `xox[bpras]-[A-Za-z0-9-]+` |
+| Private Key Header | `-----BEGIN (RSA\|EC\|OPENSSH\|DSA\|PGP\|ENCRYPTED)? ?PRIVATE KEY-----` |
+
+**Provider API-key classes (redaction token classes, priority-ordered)**
+
+| Class | Pattern shape |
+|---|---|
+| Env-var secret | `KEY=`/`SECRET=`/`TOKEN=`/`PASSWORD=` + value (highest priority) |
+| OpenAI | `sk-(proj\|svcacct)-...` |
+| Anthropic | `sk-ant-...` |
+| Google API Key | `AIza[0-9A-Za-z_-]{35}` |
+| HuggingFace | `hf_[A-Za-z0-9]{34,}` |
+| Replicate | `r8_[a-f0-9]{40}` |
+| Fireworks | `fw_[A-Za-z0-9]{22,}` |
+| Together AI | provider-prefixed key |
+| Vault token | `hvs\.[A-Za-z0-9_-]+` |
+| Databricks PAT | `dapi[0-9a-f]{32,}` |
+| Vercel / Supabase | provider-prefixed key |
+| NPM token | `npm_[A-Za-z0-9]{36}` |
+| PyPI token | `pypi-AgE[A-Za-z0-9_-]+` |
+| Linear | `lin_api_[A-Za-z0-9]+` |
+| Notion | `ntn_[A-Za-z0-9]+` |
+| Sentry | `sntrys_[A-Za-z0-9]+` |
+| Telegram / Discord | bot-token shapes |
+| Bearer token | `Bearer [A-Za-z0-9._-]+` |
+| JWT | `eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+` |
+| SSH private key | inline `-----BEGIN ... PRIVATE KEY-----` body |
+
+**Hash classes** (by hex length): MD5, SHA1, SHA256, SHA512.
+**Network classes:** IPv4, IPv6, CIDR, MAC address.
+**Identity classes:** Email, FQDN, Active Directory user.
+**Financial / PII (checksum-validated):** SSN `\d{3}-\d{2}-\d{4}`, Credit Card (AmEx 15-digit + 16-digit brands with Luhn checksum).
+
+**Injection floor (severity: critical, pairs with existing L0 patterns above):** prompt-injection (`ignore`/`disregard`/`forget`/`abandon` + `previous`/`prior` + `instructions`), system override (`^\s*system\s*:`), role override (`you are now DAN`/`evil`/`unrestricted`/`jailbroken`), credential-path directive (`.ssh`/`.aws/credentials`/`.env`/`id_rsa`/`kubeconfig`), instruction-boundary tokens (`<|im_start|>`, `[/INST]`, `<<SYS>>`).
+
+**Decision rule (Pipelock's, worth adopting):** "Would you be ashamed if this got through?" The core floor is the always-on safety net; everything else is tunable on top.
+
 ---
 
 ## Constraints

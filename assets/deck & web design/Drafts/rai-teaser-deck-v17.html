@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(R)AI — Teaser Deck v17</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,300;0,9..144,400;1,9..144,200;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080808;
+  --surface:#0e0e0e;
+  --border:#1c1c1c;
+  --text:#f0ede8;
+  --muted:#555;
+  --dim:#333;
+  --accent:#e8ff00;
+  --red:#ff3333;
+  --amber:#ffa028;
+  --blue:#4488ff;
+  --violet:#aa44ff;
+  --teal:#00e5c8;
+  --slide-w:1200px;
+  --slide-h:675px;
+}
+html,body{background:#111;font-family:'DM Mono',monospace;color:var(--text);}
+.deck-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,8,8,.95);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:12px 32px;backdrop-filter:blur(12px);}
+.deck-logo{font-size:14px;letter-spacing:.02em;}
+.deck-logo span{color:var(--accent);}
+.nav-controls{display:flex;align-items:center;gap:16px;}
+.slide-counter{font-size:11px;color:var(--muted);letter-spacing:.1em;}
+.nav-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:color .15s,border-color .15s;}
+.nav-btn:hover{color:var(--text);border-color:var(--dim);}
+.thumb-strip{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(8,8,8,.97);border-top:1px solid var(--border);display:flex;gap:8px;padding:12px 24px;overflow-x:auto;backdrop-filter:blur(12px);}
+.thumb{flex-shrink:0;width:120px;height:68px;border:1px solid var(--border);cursor:pointer;transition:border-color .15s;position:relative;overflow:hidden;background:var(--surface);}
+.thumb:hover{border-color:var(--dim);}
+.thumb.active{border-color:var(--accent);}
+.thumb-label{position:absolute;bottom:4px;left:6px;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.thumb-num{position:absolute;top:4px;left:6px;font-size:8px;color:var(--dim);}
+.slide-viewport{padding:72px 0 92px;display:flex;flex-direction:column;align-items:center;gap:32px;min-height:100vh;}
+.slide-wrap{width:var(--slide-w);display:none;}
+.slide-wrap.active{display:block;}
+.slide{width:var(--slide-w);height:var(--slide-h);background:var(--bg);position:relative;overflow:hidden;}
+.slide::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:50;}
+.slide-num{position:absolute;bottom:32px;right:40px;font-size:10px;letter-spacing:.2em;color:var(--dim);}
+.eyebrow{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--accent);margin-bottom:20px;}
+.display{font-family:'Fraunces',serif;line-height:1.0;letter-spacing:-1.5px;}
+.display em{font-style:italic;color:var(--accent);}
+.body-sm{font-size:12px;color:var(--muted);line-height:1.7;}
+.body-sm em{color:var(--text);font-style:normal;}
+
+/* S1 COVER */
+#s1 .inner{padding:80px 80px 60px;display:flex;flex-direction:column;justify-content:space-between;height:100%;}
+#s1 .cover-top{display:flex;align-items:flex-start;justify-content:space-between;}
+#s1 .logo{font-size:20px;letter-spacing:.02em;}
+#s1 .logo span{color:var(--accent);}
+#s1 .cover-tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+#s1 .cover-headline{font-family:'Fraunces',serif;font-size:96px;line-height:.95;letter-spacing:-3px;max-width:700px;}
+#s1 .cover-headline em{font-style:italic;color:var(--accent);}
+#s1 .cover-sub{font-family:'Fraunces',serif;font-style:italic;font-size:20px;color:var(--muted);margin-top:32px;}
+#s1 .cover-bottom{display:flex;align-items:flex-end;justify-content:space-between;}
+#s1 .cover-meta{font-size:10px;color:var(--dim);letter-spacing:.1em;line-height:1.8;}
+#s1 .cover-tagline{font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:var(--muted);text-align:right;}
+#s1 .glow{position:absolute;top:10%;right:-80px;width:500px;height:500px;background:radial-gradient(circle,rgba(232,255,0,.05) 0%,transparent 70%);pointer-events:none;}
+
+/* S2 ARC */
+#s2 .inner{padding:64px 80px;height:100%;display:flex;flex-direction:column;gap:40px;}
+#s2 .arc-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border:1px solid var(--border);flex:1;}
+#s2 .arc-cell{padding:28px 24px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:space-between;}
+#s2 .arc-cell:last-child{border-right:none;border:1px solid rgba(232,255,0,.2);background:rgba(232,255,0,.02);}
+#s2 .arc-era{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+#s2 .arc-event{font-family:'Fraunces',serif;font-size:22px;line-height:1.1;margin-bottom:12px;}
+#s2 .arc-event em{font-style:italic;color:var(--accent);}
+#s2 .arc-desc{font-size:11px;color:var(--muted);line-height:1.6;}
+#s2 .arc-cell:last-child .arc-event{color:var(--accent);}
+#s2 .headline-row{display:flex;align-items:flex-end;gap:48px;}
+#s2 .sub-text{font-size:13px;color:var(--muted);line-height:1.7;max-width:440px;}
+#s2 .sub-text em{color:var(--text);font-style:normal;}
+
+/* S3 THREATS */
+#s3 .inner{padding:0;height:100%;display:grid;grid-template-columns:420px 1fr;}
+#s3 .left{padding:56px 48px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:space-between;}
+#s3 .right{padding:40px 40px;}
+#s3 .threat-list{display:flex;flex-direction:column;gap:0;}
+#s3 .threat-row{display:grid;grid-template-columns:100px 1fr;border-bottom:1px solid var(--border);padding:16px 0;align-items:start;gap:16px;}
+#s3 .threat-row:first-child{border-top:1px solid var(--border);}
+#s3 .layer-tag{font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding-top:2px;}
+#s3 .threat-name{font-family:'Fraunces',serif;font-size:14px;margin-bottom:4px;}
+#s3 .threat-case{font-size:11px;color:var(--muted);line-height:1.5;}
+#s3 .threat-signal{font-size:10px;margin-top:6px;letter-spacing:.04em;}
+
+/* S4 PRODUCT */
+#s4 .inner{padding:56px 80px;height:100%;display:flex;flex-direction:column;gap:32px;}
+#s4 .product-grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--border);flex:1;gap:0;}
+#s4 .product-card{padding:40px 36px;border-right:1px solid var(--border);position:relative;overflow:hidden;}
+#s4 .product-card:last-child{border-right:none;}
+#s4 .accent-line{position:absolute;top:0;left:0;width:100%;height:2px;}
+#s4 .card-tag{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+#s4 .card-title{font-family:'Fraunces',serif;font-size:28px;line-height:1.1;margin-bottom:16px;}
+#s4 .card-title em{font-style:italic;}
+#s4 .card-body{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:24px;}
+#s4 .card-points{list-style:none;display:flex;flex-direction:column;gap:8px;}
+#s4 .card-points li{font-size:11px;color:var(--muted);padding-left:14px;position:relative;}
+#s4 .card-points li::before{content:'–';position:absolute;left:0;color:var(--border);}
+#s4 .engine-bar{border:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+#s4 .engine-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+#s4 .engine-layers{display:flex;gap:8px;}
+#s4 .layer-pill{font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--border);color:var(--muted);}
+
+/* S5 EVOLUTION */
+#s5 .inner{padding:56px 80px;height:100%;display:flex;flex-direction:column;gap:28px;}
+#s5 .evolution-grid{display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid var(--border);flex:1;}
+#s5 .evo-cell{padding:32px 28px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:16px;}
+#s5 .evo-cell:last-child{border-right:none;}
+#s5 .evo-num{font-family:'Fraunces',serif;font-size:52px;line-height:1;letter-spacing:-2px;color:var(--border);}
+#s5 .evo-phase{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+#s5 .evo-title{font-family:'Fraunces',serif;font-size:22px;line-height:1.1;}
+#s5 .evo-title em{font-style:italic;color:var(--accent);}
+#s5 .evo-body{font-size:11px;color:var(--muted);line-height:1.65;}
+#s5 .evo-body em{color:var(--text);font-style:normal;}
+#s5 .evo-proof{font-size:10px;letter-spacing:.04em;margin-top:auto;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);}
+#s5 .evo-proof em{font-style:normal;}
+#s5 .punch{font-family:'Fraunces',serif;font-style:italic;font-size:18px;color:var(--muted);border-left:2px solid var(--accent);padding-left:20px;}
+#s5 .punch em{font-style:normal;color:var(--text);}
+
+/* S6 PROOF */
+#s6 .inner{padding:0;height:100%;}
+#s6 .proof-header{padding:40px 80px 32px;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;gap:64px;}
+#s6 .proof-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;height:calc(100% - 130px);}
+#s6 .proof-card{padding:28px 28px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:12px;}
+#s6 .proof-card:last-child{border-right:none;}
+#s6 .proof-accent{width:100%;height:2px;margin-bottom:4px;}
+#s6 .proof-layer{font-size:9px;letter-spacing:.16em;text-transform:uppercase;}
+#s6 .proof-title{font-family:'Fraunces',serif;font-size:15px;line-height:1.2;}
+#s6 .proof-body{font-size:11px;color:var(--muted);line-height:1.6;flex:1;}
+#s6 .proof-signal{font-size:10px;color:var(--accent);margin-top:auto;}
+
+/* S7 MOAT */
+#s7 .inner{padding:56px 80px;height:100%;display:flex;flex-direction:column;gap:28px;}
+#s7 .moat-top{display:flex;gap:48px;align-items:flex-start;}
+#s7 .moat-intro{font-size:13px;color:var(--muted);line-height:1.7;max-width:360px;padding-top:4px;}
+#s7 .moat-intro em{color:var(--text);font-style:normal;}
+#s7 .antifragile-box{border:1px solid rgba(232,255,0,.2);background:rgba(232,255,0,.02);padding:24px 28px;display:flex;gap:24px;align-items:center;}
+#s7 .af-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);flex-shrink:0;}
+#s7 .af-text{font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--text);}
+#s7 .trust-tiers{border:1px solid var(--border);}
+#s7 .tier-header{display:grid;grid-template-columns:120px 1fr 1fr 1fr;border-bottom:1px solid var(--border);}
+#s7 .tier-row{display:grid;grid-template-columns:120px 1fr 1fr 1fr;border-bottom:1px solid var(--border);}
+#s7 .tier-row:last-child{border-bottom:none;}
+#s7 .tier-cell{padding:12px 16px;border-right:1px solid var(--border);font-size:11px;color:var(--muted);}
+#s7 .tier-cell:last-child{border-right:none;}
+#s7 .tier-cell.head{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}
+#s7 .tier-cell.name{font-family:'Fraunces',serif;font-size:13px;color:var(--text);}
+#s7 .dataset-note{font-size:11px;color:var(--muted);line-height:1.6;border-left:2px solid var(--border);padding-left:16px;}
+#s7 .dataset-note em{color:var(--text);font-style:normal;}
+
+/* S8 ROADMAP */
+#s8 .inner{padding:56px 80px;height:100%;display:flex;flex-direction:column;gap:28px;}
+#s8 .ladder{border:1px solid var(--border);flex:1;}
+#s8 .ladder-header{display:grid;grid-template-columns:120px 140px 1fr 200px;border-bottom:1px solid var(--border);}
+#s8 .ladder-row{display:grid;grid-template-columns:120px 140px 1fr 200px;border-bottom:1px solid var(--border);}
+#s8 .ladder-row:last-child{border-bottom:none;}
+#s8 .ladder-row.now{background:rgba(232,255,0,.02);}
+#s8 .lc{padding:18px 20px;border-right:1px solid var(--border);font-size:11px;}
+#s8 .lc:last-child{border-right:none;}
+#s8 .lc.head{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);}
+#s8 .lc.phase{font-family:'Fraunces',serif;font-size:14px;color:var(--text);}
+#s8 .lc.now-tag{color:var(--accent);}
+#s8 .lc.latency{font-family:'Fraunces',serif;font-size:20px;letter-spacing:-0.5px;color:var(--text);}
+#s8 .lc.latency.accent{color:var(--accent);}
+#s8 .lc.desc{color:var(--muted);font-size:11px;line-height:1.5;}
+#s8 .lc.signal{font-size:11px;color:var(--muted);}
+#s8 .poc-note{font-size:11px;color:var(--muted);line-height:1.6;border-left:2px solid var(--border);padding-left:16px;}
+#s8 .poc-note em{color:var(--text);font-style:normal;}
+#s8 .poc-note strong{color:var(--accent);font-weight:400;}
+
+/* S9 EXIT */
+#s9 .inner{padding:56px 80px;height:100%;display:flex;flex-direction:column;gap:28px;}
+#s9 .exit-table{border:1px solid var(--border);width:100%;border-collapse:collapse;}
+#s9 .exit-table th{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);font-weight:400;}
+#s9 .exit-table td{font-size:12px;padding:14px 16px;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:top;}
+#s9 .exit-table td:first-child{color:var(--text);}
+#s9 .exit-table .rai-row td{color:var(--accent);border-color:rgba(232,255,0,.15);}
+#s9 .exit-table .rai-row td:first-child{font-family:'Fraunces',serif;font-size:14px;}
+#s9 .stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid var(--border);}
+#s9 .stat{padding:20px 24px;border-right:1px solid var(--border);}
+#s9 .stat:last-child{border-right:none;}
+#s9 .stat-num{font-family:'Fraunces',serif;font-size:36px;letter-spacing:-1px;color:var(--text);}
+#s9 .stat-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+
+/* S10 SEED */
+#s10 .inner{padding:80px;height:100%;display:flex;flex-direction:column;justify-content:space-between;}
+#s10 .seed-box{border:1px solid rgba(232,255,0,.25);background:rgba(232,255,0,.02);padding:52px 56px;display:flex;flex-direction:column;gap:16px;flex:1;justify-content:center;position:relative;}
+#s10 .seed-ask{font-family:'Fraunces',serif;font-size:80px;letter-spacing:-3px;color:var(--accent);line-height:1;}
+#s10 .seed-label{font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);}
+#s10 .seed-body{font-size:13px;color:var(--muted);line-height:1.7;max-width:560px;margin-top:8px;}
+#s10 .seed-body em{color:var(--text);font-style:normal;}
+#s10 .seed-cta{display:inline-block;margin-top:24px;font-size:13px;color:var(--accent);letter-spacing:.05em;}
+#s10 .close-line{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--dim);}
+#s10 .glow{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(232,255,0,.04) 0%,transparent 60%);pointer-events:none;}
+</style>
+</head>
+<body>
+
+<nav class="deck-nav">
+  <div class="deck-logo"><span>(R)</span>AI — Teaser Deck v17</div>
+  <div class="nav-controls">
+    <span class="slide-counter" id="counter">1 / 10</span>
+    <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+    <button class="nav-btn" onclick="nextSlide()">Next →</button>
+    <button class="nav-btn" onclick="toggleFull()">Fullscreen</button>
+  </div>
+</nav>
+
+<div class="slide-viewport">
+
+  <div class="slide-wrap active" id="slide-1">
+    <div class="slide" id="s1">
+      <div class="glow"></div>
+      <div class="inner">
+        <div class="cover-top">
+          <div class="logo"><span>(R)</span>AI</div>
+          <div class="cover-tag">Personal Ambient AI Security · Seed 2026</div>
+        </div>
+        <div>
+          <div class="cover-headline">SSL was<br>invented<br><em>once.</em></div>
+          <div class="cover-sub">The AI interaction layer is the protection gap nobody built.</div>
+        </div>
+        <div class="cover-bottom">
+          <div class="cover-meta">(R)AI Security Lab SE<br>Confidential · May 2026<br>go@withrai.xyz</div>
+          <div class="cover-tagline">Your Personal AI Security</div>
+        </div>
+      </div>
+      <div class="slide-num">01</div>
+    </div>
+  </div>
+
+  <div class="slide-wrap" id="slide-2">
+    <div class="slide" id="s2">
+      <div class="inner">
+        <div class="headline-row">
+          <div class="display" style="font-family:'Fraunces',serif;font-size:40px;max-width:480px;line-height:1.05;">Every time the threat layer changed,<br>we built <em>the protection layer.</em></div>
+          <div class="sub-text">Immune systems. Antivirus. SSL. Each time: invented once, deployed everywhere, forgotten about.<br><br><em>AI changed the threat layer overnight. Nobody built the protection layer.</em></div>
+        </div>
+        <div class="arc-row">
+          <div class="arc-cell"><div class="arc-era">Billions of years</div><div class="arc-event">Immune<br>system</div><div class="arc-desc">Adaptive. Invisible. Ambient. Runs without thought. The original protection layer.</div></div>
+          <div class="arc-cell"><div class="arc-era">1987</div><div class="arc-event">Antivirus<br>invented</div><div class="arc-desc">First digital threat surface. Built the layer. Deployed once. Runs on every device.</div></div>
+          <div class="arc-cell"><div class="arc-era">1995</div><div class="arc-event">SSL<br>deployed</div><div class="arc-desc">Every transaction. Nobody configures it. Nobody thinks about it. Built once.</div></div>
+          <div class="arc-cell"><div class="arc-era" style="color:var(--accent);">2026</div><div class="arc-event"><em>(R)AI<br>ships.</em></div><div class="arc-desc" style="color:var(--muted);">AI interaction layer. Zero incumbents. Category gap confirmed. The founding moment.</div></div>
+        </div>
+      </div>
+      <div class="slide-num">02</div>
+    </div>
+  </div>
+
+  <div class="slide-wrap" id="slide-3">
+    <div class="slide" id="s3">
+      <div class="inner">
+        <div class="left">
+          <div>
+            <div class="eyebrow">Beat 1 · Threat Landscape</div>
+            <div class="display" style="font-family:'Fraunces',serif;font-size:42px;line-height:1.05;margin-bottom:20px;">The attack<br>surface is the<br><em>interaction layer.</em></div>
+            <div class="body-sm" style="max-width:280px;">Every AI interaction is a threat vector. The surface isn't the model. It isn't the platform.<em> It's the moment between AI output and human action. That's where harm lands.</em></div>
+          </div>
+          <div style="font-size:10px;color:var(--dim);line-height:1.8;">L-2 Supply chain → L-1 Social engineering<br>L0 Regex/heuristic → L1 Epistemic/provenance<br>L2 Credential/exfil → L4 Agent overreach<br>L5 Synthetic identity</div>
+        </div>
+        <div class="right">
+          <div class="slide-label" style="margin-bottom:16px;">Confirmed incidents · 2025–2026</div>
+          <div class="threat-list">
+            <div class="threat-row"><div><div class="layer-tag" style="color:var(--red);">L5</div></div><div><div class="threat-name">600+ AI-managed LinkedIn DMs. No disclosure.</div><div class="threat-case">@liammouhali: AI agent ran his entire professional presence. Every reply. No human. Thousands of contacts.</div><div class="threat-signal" style="color:var(--red);">→ Synthetic identity at professional scale</div></div></div>
+            <div class="threat-row"><div><div class="layer-tag" style="color:var(--amber);">L1b</div></div><div><div class="threat-name">Mel Robbins × Copilot. 10M followers. Bank statements.</div><div class="threat-case">Trusted public figure prompted millions to share financial documents with an AI. No correction reached the same audience.</div><div class="threat-signal" style="color:var(--amber);">→ Influencer-amplified harm, irreversible</div></div></div>
+            <div class="threat-row"><div><div class="layer-tag" style="color:var(--violet);">L4</div></div><div><div class="threat-name">Confused deputy. 4 teams. 3 surfaces. 48 hours.</div><div class="threat-case">DELEGATE-52: Microsoft Research confirmed 25% doc corruption in delegated AI workflows. Same failure class confirmed independently across all major frontiers.</div><div class="threat-signal" style="color:var(--violet);">→ Agents execute what the prompt never intended</div></div></div>
+            <div class="threat-row"><div><div class="layer-tag" style="color:var(--muted);">VCCE</div></div><div><div class="threat-name">Anthropic installed manifests into 7 browsers. No consent.</div><div class="threat-case">Native Messaging Host manifests: vendor expanded capability into user devices without disclosure. The pattern is named. The gate doesn't exist yet.</div><div class="threat-signal" style="color:var(--muted);">→ Vendor Covert Capability Expansion</div></div></div>
+            <div class="threat-row" style="border-bottom:none;"><div><div class="layer-tag" style="color:var(--blue);">L4</div></div><div><div class="threat-name">MCP STDIO. 200,000 servers. Architectural RCE.</div><div class="threat-case">Prompt injection at protocol level across the dominant AI tool integration standard. Anthropic's documented response: "expected behavior."</div><div class="threat-signal" style="color:var(--blue);">→ Protocol-level gate doesn't exist. RAI adds it.</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-num">03</div>
+    </div>
+  </div>
+
+  <div class="slide-wrap" id="slide-4">
+    <div class="slide" id="s4">
+      <div class="inner">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;">
+          <div><div class="eyebrow">Beat 2 · Product</div><div class="display" style="font-family:'Fraunces',serif;font-size:40px;line-height:1.05;">Two arms. <em>One engine.</em></div></div>
+          <div class="body-sm" style="max-width:380px;text-align:right;">Same scan infrastructure. Same trust engine. Consumer-facing for people. Enterprise-facing for AI stacks.</div>
+        </div>
+        <div class="product-grid">
+          <div class="product-card"><div class="accent-line" style="background:var(--accent);"></div><div class="card-tag">Consumer · Truth Lens</div><div class="card-title">Know what's<br><em>real.</em></div><div class="card-body">AI-managed DMs. Cloned voices. Synthetic personas. Influencer-amplified harm. The outward threat is ambient and accelerating. (R)AI is the layer that runs before you trust.</div><ul class="card-points"><li>Synthetic identity detection (L5)</li><li>Manufactured authority + influencer harm (L1)</li><li>AI-generated persona disclosure</li><li>Trust score before you respond</li><li>Trust &amp; Truth Council: 4-agent web-grounded consensus</li></ul></div>
+          <div class="product-card"><div class="accent-line" style="background:var(--violet);"></div><div class="card-tag">Enterprise · ActionGate</div><div class="card-title" style="color:var(--violet);">Your agents<br><em>inherited your</em><br>privileges.</div><div class="card-body">Every agent you run, every model you use, every recommendation you follow. Without a second layer. The write gate. The scope attestation. The audit matrix. That layer now exists.</div><ul class="card-points"><li>Agent action write gate (L4 confused deputy)</li><li>Prompt injection detection (L0 / MCP STDIO)</li><li>Supply chain monitoring (VCCE)</li><li>Process lineage + scope audit</li><li>Decision provenance trace (clinical tier)</li></ul></div>
+        </div>
+        <div class="engine-bar"><div class="engine-label">Scan Engine · P0 → P1 → P2/BS Council → L4 ActionGate → Phantom</div><div class="engine-layers"><div class="layer-pill">P0 Local</div><div class="layer-pill">P1 AI</div><div class="layer-pill" style="color:var(--accent);border-color:rgba(232,255,0,.3);">P2 Council</div><div class="layer-pill" style="color:var(--violet);border-color:rgba(170,68,255,.3);">ActionGate</div><div class="layer-pill">Phantom</div></div></div>
+      </div>
+      <div class="slide-num">04</div>
+    </div>
+  </div>
+
+  <div class="slide-wrap" id="slide-5">
+    <div class="slide" id="s5">
+      <div class="inner">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;">
+          <div><div class="eyebrow">Beat 3 · Self-Evolution Engine</div><div class="display" style="font-family:'Fraunces',serif;font-size:40px;line-height:1.05;">It learns from<br>you. From the network.<br><em>From every attack.</em></div></div>
+          <div class="punch"><em>"(R)AI gets stronger</em><br>every time someone<br>tries to break it."</div>
+        </div>
+        <div class="evolution-grid">
+          <div class="evo-cell"><div class="evo-num">01</div><div class="evo-phase">Phase 1 · User Signal</div><div class="evo-title">Learns from <em>your corrections.</em></div><div class="evo-body">Every false positive flagged. Every missed threat reported. User corrections = labeled ground truth. <em>Data ownership determined by trust tier.</em> Personal model adapts. Enterprise loop stays air-gapped.</div><div class="evo-proof">Consumer story: <em>"It learns from you."</em></div></div>
+          <div class="evo-cell"><div class="evo-num">02</div><div class="evo-phase">Phase 2 · Network Signal</div><div class="evo-title">Learns from the <em>collective.</em></div><div class="evo-body">Social crawl: Reddit, LinkedIn, HN, X. Three signal types: attack patterns, RAI bypass attempts, victim signals — <em>manipulation described without technical vocabulary.</em> The "that felt off" corpus. Pre-acquisition ground truth nobody else has.</div><div class="evo-proof">Network effect story: <em>"It learns before you sign up."</em></div></div>
+          <div class="evo-cell"><div class="evo-num">03</div><div class="evo-phase">Phase 3 · Adversarial Signal</div><div class="evo-title">Learns from <em>every attack.</em></div><div class="evo-body">Threat actors, vendors, researchers, jailbreak consumers — all four attacker profiles train (R)AI when they probe it. <em>Adversarial pressure = involuntary contribution to the threat library.</em> Nobody else is the target. Nobody else has this dataset.</div><div class="evo-proof">Moat story: <em>"Attacks make it stronger."</em></div></div>
+        </div>
+      </div>
+      <div class="slide-num">05</div>
+    </div>
+  </div>
+
+  <div class="slide-wrap" id="slide-6">
+    <div class="slide" id="s6">
+      <div class="inner">
+        <div class="proof-header">
+          <div class="display" style="font-family:'Fraunces',serif;font-size:38px;line-height:1.05;flex-shrink:0;">The gap is<br><em>confirmed.</em></div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6;max-width:400px;">Moltbook acquired by Meta. OpenClaw backed by OpenAI. CrowdStrike, NanoCo, NemoClaw all named the problem. <em style="color:var(--text);font-style:normal;">None of them own the interaction layer. That gap is structural. That is the category.</em></div>
+        </div>
+        <div class="proof-grid">
+          <div class="proof-card"><div class="proof-accent" style="background:var(--red);"></div><div class="proof-layer" style="color:var(--red);">L5 · Synthetic Identity</div><div class="proof-title">600+ AI conversations. No human. No disclosure.</div><div class="proof-body">@liammouhali's AI agent ran his entire LinkedIn presence. Every reply. Every DM. Thousands of contacts. Your instinct fired. Nobody flagged it.</div><div class="proof-signal">→ RAI: flags on first interaction</div></div>
+          <div class="proof-card"><div class="proof-accent" style="background:var(--amber);"></div><div class="proof-layer" style="color:var(--amber);">L1b · Influencer Harm</div><div class="proof-title">10M followers. Bank statements. Irreversible.</div><div class="proof-body">Mel Robbins × Copilot: trusted figure prompted millions to share financial documents. No correction reached the same audience.</div><div class="proof-signal">→ RAI: trust-source verification before you follow</div></div>
+          <div class="proof-card"><div class="proof-accent" style="background:var(--violet);"></div><div class="proof-layer" style="color:var(--violet);">VCCE · Supply Chain</div><div class="proof-title">NanoCo built the credential vault from scratch. Because the problem is real.</div><div class="proof-body">Agent Vault: credentials never reach the agent, injected at outbound call only. Approval runs with approver identity, not agent identity. Strongest external validation of Beat 2.</div><div class="proof-signal">→ RAI ActionGate: same architecture, interaction layer</div></div>
+          <div class="proof-card"><div class="proof-accent" style="background:var(--teal);"></div><div class="proof-layer" style="color:var(--teal);">L4 · Clinical Gap</div><div class="proof-title">Clinical AI has no audit trail on the interaction.</div><div class="proof-body">The model is audited. The platform is audited. The interaction layer — where the recommendation lands, where the clinician reads it — has no protection layer.</div><div class="proof-signal">→ RAI Clinical: decision provenance trace, one interaction</div></div>
+        </div>
+      </div>
+      <div class="slide-num">06</div>
+    </div>
+  </div>
+
+  <div class="slide-wrap" id="slide-7">
+    <div class="slide" id="s7">
+      <div class="inner">
+        <div><div class="eyebrow">Beat 4 · Moat</div>
+          <div class="moat-top">
+            <div class="display" style="font-family:'Fraunces',serif;font-size:36px;line-height:1.05;max-width:420px;">Three loops that<br>compound.<br><em>One nobody<br>else can copy.</em></div>
+            <div class="moat-intro">Static threat libraries degrade. (R)AI's is the only one that gets stronger from user corrections, network crawl, and adversarial pressure simultaneously.<br><br><em>The pre-acquisition dataset is the hardest layer: victim signals from people who described manipulation without knowing RAI existed. That dataset can't be bought.</em></div>
+          </div>
+        </div>
+        <div class="antifragile-box"><div class="af-label">Antifragile</div><div class="af-text">"(R)AI gets stronger every time someone tries to break it."<br>Threat actors, vendors, researchers, jailbreakers — all four profiles are involuntary contributors to the threat library.</div></div>
+        <div class="trust-tiers">
+          <div class="tier-header"><div class="tier-cell head">Tier</div><div class="tier-cell head">Data ownership</div><div class="tier-cell head">Scan depth</div><div class="tier-cell head">Evolution participation</div></div>
+          <div class="tier-row"><div class="tier-cell name">Simple</div><div class="tier-cell">Centralised, anonymised</div><div class="tier-cell">Ambient output only</div><div class="tier-cell">Default-in, silent</div></div>
+          <div class="tier-row"><div class="tier-cell name">Dev / BYOK</div><div class="tier-cell">Local or BYOK</div><div class="tier-cell">Full layer breakdown + scores</div><div class="tier-cell">Opt-out, or isolated model</div></div>
+          <div class="tier-row"><div class="tier-cell name">Enterprise</div><div class="tier-cell">Air-gapped option</div><div class="tier-cell">Custom threat taxonomy</div><div class="tier-cell">Private evolution loop</div></div>
+        </div>
+        <div class="dataset-note"><em>Architecture implication:</em> participation consent is baked in from day one — not a settings page, an architectural decision. "We built the trust tier into the architecture, not into the terms of service."</div>
+      </div>
+      <div class="slide-num">07</div>
+    </div>
+  </div>
+
+  <div class="slide-wrap" id="slide-8">
+    <div class="slide" id="s8">
+      <div class="inner">
+        <div><div class="eyebrow">Beat 5 · Roadmap</div><div class="display" style="font-family:'Fraunces',serif;font-size:40px;line-height:1.05;">The gap between "first attack"<br>and <em>"everyone protected"</em><br>becomes unmeasurable.</div></div>
+        <div class="ladder">
+          <div class="ladder-header"><div class="lc head">Phase</div><div class="lc head">Latency</div><div class="lc head">Mechanism</div><div class="lc head">Proof point</div></div>
+          <div class="ladder-row now"><div class="lc phase now-tag">POC<br><span style="font-size:9px;color:var(--accent);letter-spacing:.1em;">NOW</span></div><div class="lc latency accent">24–72h</div><div class="lc desc">Manual pattern promotion, human-in-the-loop review. Victim signal crawler live on NanoClaw. 10 novel patterns in 30 days.</div><div class="lc signal" style="color:var(--accent);">"RAI already mapped patterns active in the wild before a single user signed up."</div></div>
+          <div class="ladder-row"><div class="lc phase">v1<br><span style="font-size:9px;color:var(--muted);">6 months</span></div><div class="lc latency">1–4h</div><div class="lc desc">Hot-swappable rule layer. Trust &amp; Truth Council consensus propagation. First 100 Telegram users generating corrections.</div><div class="lc signal">"It learns from you." Consumer evolution loop live.</div></div>
+          <div class="ladder-row"><div class="lc phase">v2<br><span style="font-size:9px;color:var(--muted);">Post-seed</span></div><div class="lc latency">Minutes</div><div class="lc desc">Real-time inference update. Edge deployment. Network crawl pipeline fully automated.</div><div class="lc signal">"It learns from the network." Community trust narrative confirmed.</div></div>
+          <div class="ladder-row" style="border-bottom:none;"><div class="lc phase">Vision<br><span style="font-size:9px;color:var(--muted);">Series A+</span></div><div class="lc latency" style="font-size:14px;">Sub-second</div><div class="lc desc">Federated model updates. M-layer community pool + differential privacy. Attacks absorbed in real time across all nodes.</div><div class="lc signal">"Attacks make it stronger." Antifragile moat at network scale.</div></div>
+        </div>
+        <div class="poc-note"><strong>POC is honest:</strong> 24–72h human-in-loop is the real number. Proves the loop exists. Speed is a v2 story. <em>Never promise real-time if the POC runs on a cron job.</em></div>
+      </div>
+      <div class="slide-num">08</div>
+    </div>
+  </div>
+
+  <div class="slide-wrap" id="slide-9">
+    <div class="slide" id="s9">
+      <div class="inner">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:4px;">
+          <div><div class="eyebrow">Beat 6 · Exit Landscape</div><div class="display" style="font-family:'Fraunces',serif;font-size:38px;line-height:1.05;">The interaction layer <em>gap.</em></div></div>
+          <div class="body-sm" style="max-width:360px;text-align:right;">Security infrastructure acquired within months of category proof. Same acquisition logic as SSL → browser consolidation. Same inevitability.</div>
+        </div>
+        <div class="stat-row" style="margin-bottom:16px;"><div class="stat"><div class="stat-num">$312M</div><div class="stat-label">Avg acquisition value</div></div><div class="stat"><div class="stat-num">5.4mo</div><div class="stat-label">Avg age at exit</div></div><div class="stat"><div class="stat-num">28×</div><div class="stat-label">Avg return</div></div></div>
+        <table class="exit-table">
+          <thead><tr><th>Company</th><th>Exit value</th><th>Age at exit</th><th>Layer protected</th><th>Acquirer</th></tr></thead>
+          <tbody>
+            <tr><td>Trail Security</td><td>$162M</td><td>~18mo</td><td>Endpoint / EDR</td><td>CrowdStrike</td></tr>
+            <tr><td>Ryft</td><td>$100M</td><td>~6mo</td><td>Payment authentication</td><td>Stripe</td></tr>
+            <tr><td>Genie Security</td><td>$50M</td><td>~4mo</td><td>IAM / cloud access</td><td>Google</td></tr>
+            <tr><td>BASE44</td><td>$80M</td><td>~5mo</td><td>DevSecOps pipeline</td><td>Wiz</td></tr>
+            <tr class="rai-row"><td>(R)AI</td><td>TBD</td><td>Now</td><td>AI interaction layer ← the gap</td><td>Anthropic · Microsoft · Google</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="slide-num">09</div>
+    </div>
+  </div>
+
+  <div class="slide-wrap" id="slide-10">
+    <div class="slide" id="s10">
+      <div class="inner">
+        <div class="seed-box">
+          <div class="glow"></div>
+          <div class="seed-label">Seed Round · 2026</div>
+          <div class="seed-ask">€1.5M</div>
+          <div class="seed-label" style="margin-top:4px;">(R)AI Security Lab SE · Seed</div>
+          <div class="seed-body"><em>POC #2 live:</em> victim signal crawler on NanoClaw, 30-day sprint. Trust &amp; Truth Council shipped. Self-evolution architecture defined: 3-phase user/network/adversarial loop. M-layer Phase 1 shipped. Phantom Copilot Phase 2 audio capture built.<br><br>Consumer + enterprise product. 7 surfaces live. Three threat layers covered. Latency ladder: POC (24–72h) → v1 (1–4h) → v2 (minutes) → Vision (sub-second federated).</div>
+          <div class="seed-cta">go@withrai.xyz · withr.ai (at launch) · rai.security</div>
+        </div>
+        <div class="close-line">"SSL was invented once. So was (R)AI."</div>
+      </div>
+      <div class="slide-num">10</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="thumb-strip">
+  <div class="thumb active" onclick="goTo(1)" id="thumb-1"><div class="thumb-num">01</div><div class="thumb-label">Cover</div></div>
+  <div class="thumb" onclick="goTo(2)" id="thumb-2"><div class="thumb-num">02</div><div class="thumb-label">Arc</div></div>
+  <div class="thumb" onclick="goTo(3)" id="thumb-3"><div class="thumb-num">03</div><div class="thumb-label">Threats</div></div>
+  <div class="thumb" onclick="goTo(4)" id="thumb-4"><div class="thumb-num">04</div><div class="thumb-label">Product</div></div>
+  <div class="thumb" onclick="goTo(5)" id="thumb-5" style="border-color:rgba(232,255,0,.25);"><div class="thumb-num" style="color:var(--accent);">05</div><div class="thumb-label" style="color:var(--accent);">Evolution ★</div></div>
+  <div class="thumb" onclick="goTo(6)" id="thumb-6"><div class="thumb-num">06</div><div class="thumb-label">Proof</div></div>
+  <div class="thumb" onclick="goTo(7)" id="thumb-7" style="border-color:rgba(232,255,0,.25);"><div class="thumb-num" style="color:var(--accent);">07</div><div class="thumb-label" style="color:var(--accent);">Moat ★</div></div>
+  <div class="thumb" onclick="goTo(8)" id="thumb-8" style="border-color:rgba(232,255,0,.25);"><div class="thumb-num" style="color:var(--accent);">08</div><div class="thumb-label" style="color:var(--accent);">Ladder ★</div></div>
+  <div class="thumb" onclick="goTo(9)" id="thumb-9"><div class="thumb-num">09</div><div class="thumb-label">Exit</div></div>
+  <div class="thumb" onclick="goTo(10)" id="thumb-10"><div class="thumb-num">10</div><div class="thumb-label">Seed</div></div>
+</div>
+
+<script>
+let current=1;const total=10;
+function goTo(n){document.getElementById('slide-'+current).classList.remove('active');document.getElementById('thumb-'+current).classList.remove('active');current=n;document.getElementById('slide-'+current).classList.add('active');document.getElementById('thumb-'+current).classList.add('active');document.getElementById('counter').textContent=current+' / '+total;document.getElementById('thumb-'+current).scrollIntoView({behavior:'smooth',inline:'center'});}
+function nextSlide(){if(current<total)goTo(current+1);}
+function prevSlide(){if(current>1)goTo(current-1);}
+function toggleFull(){if(!document.fullscreenElement){document.documentElement.requestFullscreen();}else{document.exitFullscreen();}}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown')nextSlide();if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevSlide();if(e.key==='f'||e.key==='F')toggleFull();});
+</script>
+</body>
+</html>

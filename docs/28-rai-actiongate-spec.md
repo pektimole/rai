@@ -18,6 +18,56 @@ NanoClaw's Write Gate (OL-022, shipped 2026-03-21, in production 7+ months) is t
 
 ---
 
+## Capability Separation (Foundational Primitive)
+
+_Source: pipelock-import (github.com/luckyPipewrench/pipelock, Apache 2.0). Architecture pattern, not a code copy. Cross-ref: OL-327._
+
+ActionGate's framing above is **detection-side**: scan the action, apply policy, allow or deny. That is necessary but it shares content-scanning's weakness, it assumes the deciding layer is reachable and uncorrupted. A prompt-injected agent that can reach the policy engine's own controls can try to talk its way past them.
+
+The stronger primitive is **structural**: separate capability so that the component holding secrets cannot reach the network, and the component holding the network cannot read secrets. Even a fully compromised agent then has nothing to exfiltrate to and no control surface to subvert. This is prevention by construction, not prevention by inspection. Detection becomes the second line, not the only line.
+
+### Zone model
+
+Two zones, one mandatory crossing point. All traffic between them crosses the scan boundary; there is no side channel.
+
+```
+┌─────────────────────────────┐         ┌──────────────────────────────┐
+│  PRIVILEGED ZONE            │         │  FIREWALL ZONE               │
+│  (the agent)                │         │  (ActionGate / proxy)        │
+│                             │  IPC    │                              │
+│  • holds API keys,          │ ──────► │  • holds network access      │
+│    credentials, source      │ fetch / │  • holds NO agent secrets    │
+│  • NO direct network access │ CONNECT │  • runs the full scanner +   │
+│                             │ / ws /  │    policy pipeline           │
+│  • network-isolated:        │ MCP     │  • the only path to the      │
+│    cannot dial out itself   │ ◄────── │    internet                  │
+└─────────────────────────────┘         └──────────────┬───────────────┘
+                                                        │ scanned, policy-gated
+                                                        ▼
+                                                   INTERNET
+```
+
+**Invariant:** secrets and network are never co-located. The agent can hold the crown jewels because it physically cannot reach an attacker-controlled endpoint. The firewall can reach the whole internet because it has no jewels to steal and no agent-authority to abuse.
+
+**Why this beats detection-only:** if the agent is prompt-injected into "exfiltrate the API key to evil.example," the injected instruction lands in a process with no network egress. The only egress is through the firewall zone, which scans every byte and enforces policy. The attacker has to defeat the scanner *and* the policy on a request the agent cannot even originate on its own. Compromising the agent's reasoning no longer compromises the controls.
+
+### Scanner floor invariant
+
+When both a behavioral policy (allow this destination) and the scanner (block this payload) have an opinion, **the scanner block always wins over a policy allow.** A contract or allowlist can never widen what the security floor forbids; it can only narrow within it. This keeps the policy layer from becoming an escalation path.
+
+### How this reframes the L4 layer
+
+| | Detection framing (prior) | Capability-separation framing |
+|---|---|---|
+| Question | "Is this action permitted?" | "Can the compromised component even reach a target?" |
+| Failure assumption | Agent output may be malicious | Agent **process** may be fully owned |
+| Primary defense | Policy decision at the gate | Structural isolation; gate is second line |
+| Blast radius of agent compromise | Whatever the policy misses | Nothing, secrets cannot leave the privileged zone, network requests cannot skip the scan boundary |
+
+ActionGate's policy engine (below) is the firewall-zone decision logic. Capability separation is the deployment topology that makes that decision logic the *only* path, not just *a* path. The surface adapters (`shell`, `mcp`, `http`) each enforce the crossing point for their transport.
+
+---
+
 ## What ActionGate Solves
 
 | Gap | RAI today | ActionGate |
