@@ -126,6 +126,33 @@ _This is the authoritative schema. All code, specs, and outputs must use this nu
 | L3 | Systemic harm | Coordinated multi-message pattern, compound injection across sessions. | P2/P3 |
 | L4 | Agent action / unauthorized side-effect | Agent attempts a tool call, file write, shell exec, or MCP invocation outside its permitted scope -- regardless of whether the originating content was clean. Protects environment, not conversation. | ActionGate (spec: 28-rai-actiongate-spec.md) |
 
+### Consumer-Harm Blind Spot (2026-05-30 -- empirically confirmed)
+
+The canonical schema above (L-2..L4) describes **AI-stack-directed threats** -- protecting the AI system and its pipeline from attack. It has **no coverage for human-directed AI-enabled deception**: manipulation of a human by an AI (or by a human wielding AI).
+
+**Empirically confirmed 2026-05-30:** RAI victim signal crawler (OL-338) produced 9 pattern classes from 18 real social-media victim accounts. 6/9 returned `unmapped-consumer-harm` when checked against this taxonomy. Representative unmapped patterns:
+- AI self-gaslighting about its own capabilities and facts (VS3)
+- AI behavioral nudge via manipulative language patterns (VS1)
+- Algorithmic dark-pattern engagement trapping (VS1)
+- Synthetic persona / fabricated identity deceiving a community (VS5)
+- Opaque automated gatekeeping with no human recourse (VS3/VS4)
+
+**VS namespace (victim-signal axis) -- additive, NOT a replacement for L-layer:**
+
+| VS code | Victim experience class |
+|---|---|
+| VS0 | Impersonation: AI/account poses as a specific known entity |
+| VS1 | Behavioral nudge: dark pattern, subtle steering, manufactured engagement |
+| VS2 | False urgency: manufactured scarcity, time pressure, FOMO |
+| VS3 | Gaslighting: AI denies reality, manipulates user's confidence in facts |
+| VS4 | Reality distortion: persistent, destabilizing identity/reality erosion |
+| VS5 | Synthetic persona: voice clone, deepfake, AI-generated human impersonation |
+| VS6 | Authenticity doubt: victim cannot distinguish AI-generated from human content |
+
+VS codes describe the **victim's experience**. rai_layer (L-2..L4) describes RAI's **structural coverage tier**. Both axes are needed for consumer-harm patterns. Unmapped consumer-harm patterns carry `rai_layer = unmapped-consumer-harm` until a new coverage layer is specified post-v1.
+
+**Roadmap implication:** The consumer-harm axis is the Telegram/GenZ beachhead's primary product claim. RAI v1 ships the AI-stack protection layer (L-2..L4). A future v2 consumer-harm layer would close this gap structurally. The victim-signal crawler (OL-338) is the ongoing research arm that feeds the pattern library for both.
+
 ### Provenance Frame (2026-05-03)
 
 RAI is fundamentally an **information-provenance shield**: AI-vs-human authorship is the discriminator, not stylistic manipulation. The named pattern classes (fake-insight-framing, manufactured-urgency, false-consensus, authority-spoofing, overconfidence-absolutes) are **AI-provenance fingerprints** -- features feeding the provenance verdict, not the verdict itself.
