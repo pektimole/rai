@@ -118,6 +118,7 @@ ActionGate is one core engine, many surface adapters. Each adapter binds the eng
 | `http` | Browser extension agentic mode, API clients | fetch, mutation verbs | Spec |
 | `browser-dom` | RAI extension (OL-074) | form submit, click, navigate | Future |
 | `native-messaging-host` | OS (browser NativeMessagingHosts dirs) | manifest write/modify/remove (vendor covert capability expansion) | **Phase A+B live 2026-04-22** (runner + tests + notify hook + launchd; Linux/Windows pending) |
+| `router-audit` | Hybrid-inference router (AI PC OS / on-device classifier) | task routed local↔cloud, sensitivity classification, consent state at the routing boundary | Spec 2026-06-04 (OL-370) |
 
 ### Policy file format
 
@@ -396,7 +397,88 @@ Total Phase A-C: 5 hours for v0.5 (read + normalise + notify + unified audit). P
 
 ### Pitch deck alignment
 
-Surface Adapter `native-messaging-host` is the concrete payoff of Pitch Deck Beat 4 ("The right layer to fix it"). It is the answer to "what does RAI actually do against the Anthropic case?" -- the watcher logs the manifest write, the adapter classifies the vendor, the policy prompts or quarantines, the audit log feeds the dashboard. Demo-able end-to-end from a fresh Claude Desktop install.
+Surface Adapter `native-messaging-host` is the concrete payoff of Pitch Deck Beat 4 ("The right layer to fix it"). It is the answer to "what does RAI actually do against the Anthropic case?", the watcher logs the manifest write, the adapter classifies the vendor, the policy prompts or quarantines, the audit log feeds the dashboard. Demo-able end-to-end from a fresh Claude Desktop install.
+
+---
+
+## Surface Adapter: `router-audit` (OL-370, spec 2026-06-04)
+
+_Covers the hybrid-inference routing threat class: an on-device or vendor classifier decides, task by task and invisibly, what stays local and what is sent to the cloud. The user never sees the decision, never consented to the classifier, and gets no log. Anchor case: Computex 2026-06 convergence, NVIDIA (desk agent silicon), Apple (on-device sensitive inference), Microsoft (AI PC OS), Perplexity (mid-task local/cloud router). Source-of-truth narrative + deck copy: `19-rai-context.md` "hybrid-inference router audit" section (mob:2026-06-04)._
+
+### Why it fits here, not elsewhere
+
+The router decision is an action: it moves user data across a trust boundary. ActionGate already gates verbs that move data (`fs-git`, `http`, `native-messaging-host`); the routing boundary is the same class of event one layer lower, the verb is "send this half of the task to the cloud." RAI's structural claim (Constitution Rule 4) is that it audits this decision **without being the entity that profits from it**, the inverse of a vendor router that classifies and routes and bills. This is the cleanest Rule 4 validation to date: RAI sits on the user's side of the router, the only layer that does.
+
+### Watched surface
+
+The routing boundary itself: every task or sub-task the host classifier evaluates for local-vs-cloud dispatch. v0 is observe-only (read the routing decision + emit the tag); it does not intercept the route. Enforcement (`escalate`/`block`) requires host cooperation or an OS hook and is honestly documented as racy until that exists (same posture as `native-messaging-host` true-`block`).
+
+### Action shape
+
+```typescript
+interface RouterAuditAction {
+  adapter: 'router-audit';
+  routed_to: 'local' | 'cloud';
+  classified_as: 'sensitive' | 'complex' | string;  // host classifier label, verbatim
+  consent_timestamp: string | null;                 // ISO8601, null = no user consent captured
+  policy_ref: string | null;                        // vendor policy/rule id that drove the route
+  contains_pii?: boolean;                            // RAI-side detection, independent of host label
+  task_digest: string;                               // sha256 of the routed payload (no content stored)
+  ts: string;                                        // ISO8601 of the routing event
+}
+```
+
+Schema reuses the OL-315 context-provenance tag near-verbatim; the two compose (a clean provenance tag can still ride a task that the router sends to cloud without consent).
+
+### Policy model (YAML)
+
+```yaml
+version: 1
+adapter: router-audit
+defaults:
+  fail_closed: false   # v0: observe-only, emit tag + warn
+  notify: warn
+  audit: true
+policy_rules:
+  - id: escalate-uncosented-pii-to-cloud
+    when:
+      routed_to: cloud
+      consent_timestamp: null
+      contains_pii: true
+    verdict: escalate
+    reason: "PII routed to cloud with no captured consent. The classifier decided for you."
+  - id: warn-cloud-route-no-consent
+    when:
+      routed_to: cloud
+      consent_timestamp: null
+    verdict: warn
+    reason: "Task left this machine without an explicit consent record."
+  - id: allow-local
+    when:
+      routed_to: local
+    verdict: allow
+```
+
+**Enforcement rule (canonical):** `routed_to: cloud AND consent_timestamp: null AND classified_as involves PII → ESCALATE`.
+
+### Verdicts available to this adapter
+
+| Verdict | Semantics at this layer | Realistic enforcement |
+|---|---|---|
+| `allow` | Local route, or cloud route with valid consent. Log to audit. | Always achievable (observation) |
+| `warn` | Surface the crossing to the user: what was sent, how it was classified, that nobody asked. | Via existing notify channels (WhatsApp/Slack/local) |
+| `escalate` | Demand explicit user confirmation before the next same-class route; flag the pattern. | Achievable as a prompt loop; does not stop the in-flight route in v0 |
+| `block` | Prevent the route. | Racy without host/OS cooperation, documented honestly, not faked (same as `native-messaging-host`) |
+
+**Design decision:** v0 ships `allow + warn + escalate` (signal, never silent verdict, Constitution Rule 1). True `block` is deferred to host-cooperation / OS-hook availability.
+
+### Pitch deck alignment
+
+This adapter is the build-side proof of Pitch Deck v2 Beat 1 ("They told you AI is going local. It's going routed.") and Beat 2 (the Computex four-vendor convergence). POS: "the user's-side observer of the inference routing decision", survives the local-vs-cloud pendulum entirely, because RAI watches the boundary regardless of which way it swings. Deck copy lives in `19-rai-context.md`.
+
+### Cross-ref
+
+OL-370 (this adapter), OL-315 (`context-provenance` gate, schema reuse + composition), OL-265 (`process-spawn` / Confused Deputy, paired pre-flight class), OL-240 (Distributed Sensing Architecture), `19-rai-context.md` "hybrid-inference router audit" section (source-of-truth narrative, enforcement rule, Beat 1+2 deck copy), Constitution Rule 4 (audit-without-profit differentiator).
 
 ---
 
