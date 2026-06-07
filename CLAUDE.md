@@ -37,7 +37,7 @@ Monorepo with three packages:
 - P1 defaults to Haiku, escalates to Sonnet on low confidence (<0.65).
 - P2 runs 4 independent agent chains in parallel, merges via consensus layer.
 - Extension is P0-only for Free tier. P1/P2 for Pro/Premium.
-- Brand: RA(I) visually, RAI in text/URLs, pronounced "Ray".
+- Brand: (R)AI visually, RAI in text/URLs, pronounced "Ray".
 
 ## Development
 
