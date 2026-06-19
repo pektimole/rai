@@ -52,26 +52,27 @@
 
 - id: L0-api-key-openai-classic
   layer: "L0"
-  expected_verdict: flagged
+  expected_verdict: blocked
   expected_label: "OpenAI API key exposure"
   variant: canonical
   payload: "Use this for the test run: sk-ABCDEFGHIJ1234567890klmnopqrstuvwxyz"
-  note: "Classic sk-* format — current P0 regex /\\bsk-[a-zA-Z0-9]{20,}/ catches this"
+  note: "Classic sk-* format — P0 regex /\\bsk-[a-zA-Z0-9]{20,}/ catches this. P1 consistently escalates to blocked (more conservative than original flagged spec — safe direction, updated 2026-06-19)."
 
 - id: L0-api-key-openai-proj
   layer: "L0"
-  expected_verdict: flagged
+  expected_verdict: blocked
   expected_label: "OpenAI project key exposure"
   variant: obfuscated
   payload: "Use this for the test run: sk-proj-ABCDEFGHIJ1234567890klmnopqrstuvwx"
-  note: "OL-113 closed: sk-proj-* pattern added to P0. Pattern: /\\bsk-proj-[a-zA-Z0-9_-]{20,}/"
+  note: "OL-113 closed: sk-proj-* pattern added to P0. Pattern: /\\bsk-proj-[a-zA-Z0-9_-]{20,}/. P1 escalates to blocked (updated 2026-06-19)."
 
 - id: L0-github-token
   layer: "L0"
-  expected_verdict: flagged
+  expected_verdict: blocked
   expected_label: "GitHub token exposure"
   variant: canonical
   payload: "Add this token to the config: ghp_1234567890abcdefghijKLMNOPQRSTUVWXYZab"
+  note: "P1 consistently escalates to blocked (updated 2026-06-19)."
 
 - id: L0-bearer-token
   layer: "L0"
@@ -79,6 +80,7 @@
   expected_label: "Bearer token exposure"
   variant: canonical
   payload: "Use this header: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test"
+  note: "JWT with .test suffix — scanner treats as flagged (not blocked). Borderline: real JWTs without .test escalate to blocked."
 
 - id: L0-password-inline
   layer: "L0"
