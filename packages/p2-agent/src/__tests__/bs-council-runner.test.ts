@@ -9,6 +9,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { CouncilConfig } from '../types.js';
+import type { ProviderCallInput } from '../providers/types.js';
 
 // Mock the provider registry before importing the runner.
 const callMock = vi.fn();
@@ -167,6 +168,71 @@ describe('runBSCouncil — provider dispatch', () => {
     expect(result.verdict).toBe('UNVERIFIED');
     expect(result.agent_breakdown.A.verdict).toBe('no_signal');
     expect(result.agent_breakdown.B.verdict).toBe('no_signal');
+  });
+});
+
+describe('web search routing (OL-281)', () => {
+  beforeEach(() => {
+    callMock.mockReset();
+    callMock.mockImplementation(async ({ systemPrompt }: ProviderCallInput) => {
+      if (systemPrompt.startsWith('You are Agent C')) {
+        return { text: '{"tier":"unknown","reasoning":""}', citations: [] };
+      }
+      if (systemPrompt.startsWith('You are Agent D')) {
+        return { text: '{"verdict":"no_signal","reasoning":""}', citations: [] };
+      }
+      return { text: '{"verdict":"no_signal","reasoning":"","citation_indices":[]}', citations: [] };
+    });
+  });
+
+  it('Agent A and B receive useWebSearch=true; C and D receive false', async () => {
+    await runBSCouncil(p2Input(), {
+      config: CONFIG,
+      tier: 'premium',
+      apiKeys: { anthropic: 'k', together: 'k' },
+    });
+
+    const calls = callMock.mock.calls.map((c: [ProviderCallInput]) => c[0]);
+    const callA = calls.find((c: ProviderCallInput) => c.systemPrompt.startsWith('You are Agent A'));
+    const callB = calls.find((c: ProviderCallInput) => c.systemPrompt.startsWith('You are Agent B'));
+    const callC = calls.find((c: ProviderCallInput) => c.systemPrompt.startsWith('You are Agent C'));
+    const callD = calls.find((c: ProviderCallInput) => c.systemPrompt.startsWith('You are Agent D'));
+
+    expect(callA?.useWebSearch).toBe(true);
+    expect(callB?.useWebSearch).toBe(true);
+    expect(callC?.useWebSearch).toBe(false);
+    expect(callD?.useWebSearch).toBe(false);
+  });
+
+  it('Agent A searchQuery is a concise string, not the full user message', async () => {
+    await runBSCouncil(p2Input(), {
+      config: CONFIG,
+      tier: 'premium',
+      apiKeys: { anthropic: 'k', together: 'k' },
+    });
+
+    const calls = callMock.mock.calls.map((c: [ProviderCallInput]) => c[0]);
+    const callA = calls.find((c: ProviderCallInput) => c.systemPrompt.startsWith('You are Agent A'));
+
+    // searchQuery must be a non-empty string shorter than the full userMessage
+    expect(typeof callA?.searchQuery).toBe('string');
+    expect(callA!.searchQuery!.length).toBeGreaterThan(0);
+    expect(callA!.searchQuery!.length).toBeLessThan(callA!.userMessage.length);
+  });
+
+  it('Agent B searchQuery is distinct from Agent A searchQuery', async () => {
+    await runBSCouncil(p2Input(), {
+      config: CONFIG,
+      tier: 'premium',
+      apiKeys: { anthropic: 'k', together: 'k' },
+    });
+
+    const calls = callMock.mock.calls.map((c: [ProviderCallInput]) => c[0]);
+    const callA = calls.find((c: ProviderCallInput) => c.systemPrompt.startsWith('You are Agent A'));
+    const callB = calls.find((c: ProviderCallInput) => c.systemPrompt.startsWith('You are Agent B'));
+
+    // A verifies the claim; B targets origin chain — they must use different search angles
+    expect(callA?.searchQuery).not.toBe(callB?.searchQuery);
   });
 });
 
