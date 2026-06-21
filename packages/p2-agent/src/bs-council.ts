@@ -103,6 +103,9 @@ export function mergeBSVerdicts(input: MergeBSInput): BSCouncilResult {
     citations: rankedCitations,
     explanation,
     dual_tag_false_alarm: dualTag || undefined,
+    // OL-395: UNVERIFIED ≠ clean. Downstream callers must check this flag and
+    // NOT treat absence of web corroboration as a safe or positive signal.
+    unverified_not_clean: finalVerdict === 'UNVERIFIED' ? true : undefined,
   };
 }
 

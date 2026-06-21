@@ -123,6 +123,12 @@ export interface BSCouncilResult {
   citations: Citation[];
   explanation: string;
   dual_tag_false_alarm?: boolean;
+  /**
+   * OL-395 hard rule: UNVERIFIED does NOT mean clean.
+   * Absence of web corroboration is not a safe verdict.
+   * Downstream consumers must NOT treat UNVERIFIED as equivalent to CONFIRMED.
+   */
+  unverified_not_clean?: true;
 }
 
 export type ProviderName = 'anthropic' | 'together' | 'ollama';

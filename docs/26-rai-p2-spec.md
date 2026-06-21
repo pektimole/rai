@@ -198,8 +198,28 @@ export interface BSCouncilResult {
   };
   citations: Citation[];     // deduped union of A+B citations, ranked by tier × supports-weight
   explanation: string;       // one-line; surfaces in extension popup default state
+  dual_tag_false_alarm?: boolean;
+  /**
+   * OL-395 hard rule: set to `true` when verdict is UNVERIFIED.
+   * Absence of web corroboration is NOT a safe signal. Downstream callers
+   * (ActionGate Gate 2, threat-axis merge, extension popup) MUST treat
+   * UNVERIFIED as "unknown risk": never as "no issue found".
+   */
+  unverified_not_clean?: true;
 }
 ```
+
+### Hard rule: UNVERIFIED ≠ clean (OL-395)
+
+`UNVERIFIED` means the BS Council found no usable web sources to evaluate the claim. It does **not** mean the claim is safe or true. Causes:
+- Brave Search returned no results (rate limit, offline, niche topic)
+- All results blocked by the P0 injection filter in `web-search.ts`
+- Both A and B returned `no_signal`
+- All sources tier ≤ social
+
+**Enforcement:** `BSCouncilResult.unverified_not_clean` is set to `true` whenever `verdict === 'UNVERIFIED'`. Downstream consumers must not treat this field's presence as an escalation trigger on its own, but MUST NOT treat its absence (on non-UNVERIFIED verdicts) as confirmation either. The field is a guard against false-clean classification.
+
+Gate 2 (ActionGate) already blocks on UNVERIFIED by default (`UNVERIFIED or CONTESTED content blocks the action`). This field makes the rationale explicit and machine-checkable.
 
 ### Verdict merge logic (`mergeBSVerdicts`)
 

@@ -266,3 +266,86 @@ describe('Turnbull-flip regression — Shai-Hulud claim', () => {
     }
   });
 });
+
+// ────────────────────────────────────────────────────────────
+// OL-395: UNVERIFIED ≠ clean hard rule
+// ────────────────────────────────────────────────────────────
+
+describe('OL-395 — unverified_not_clean hard rule', () => {
+  it('UNVERIFIED verdict sets unverified_not_clean = true', () => {
+    const result = mergeBSVerdicts({
+      scanId: 'ol395-unverified',
+      A: A('no_signal'),
+      B: B('no_signal'),
+      C: C('unknown'),
+      D: D('no_signal'),
+    });
+    expect(result.verdict).toBe('UNVERIFIED');
+    expect(result.unverified_not_clean).toBe(true);
+  });
+
+  it('UNVERIFIED from social-only citations sets unverified_not_clean = true', () => {
+    const social = [cite('https://twitter.com/x/status/1', 'social')];
+    const result = mergeBSVerdicts({
+      scanId: 'ol395-social-unverified',
+      A: A('supports', social),
+      B: B('supports', social),
+      C: C('social'),
+      D: D('no_signal'),
+    });
+    expect(result.verdict).toBe('UNVERIFIED');
+    expect(result.unverified_not_clean).toBe(true);
+  });
+
+  it('CONFIRMED verdict does NOT set unverified_not_clean', () => {
+    const citations = [cite('https://nvd.nist.gov/x', 'official')];
+    const result = mergeBSVerdicts({
+      scanId: 'ol395-confirmed',
+      A: A('supports', citations),
+      B: B('supports', citations),
+      C: C('official'),
+      D: D('current'),
+    });
+    expect(result.verdict).toBe('CONFIRMED');
+    expect(result.unverified_not_clean).toBeUndefined();
+  });
+
+  it('CONTESTED verdict does NOT set unverified_not_clean', () => {
+    const result = mergeBSVerdicts({
+      scanId: 'ol395-contested',
+      A: A('supports', [cite('https://nvd.nist.gov/x', 'official')]),
+      B: B('contradicts', [cite('https://example.org/debunk', 'established', 'counter')]),
+      C: C('established'),
+      D: D('current'),
+    });
+    expect(result.verdict).toBe('CONTESTED');
+    expect(result.unverified_not_clean).toBeUndefined();
+  });
+
+  it('FALSE-ALARM verdict does NOT set unverified_not_clean', () => {
+    const citations = [cite('https://nvd.nist.gov/x', 'official')];
+    const result = mergeBSVerdicts({
+      scanId: 'ol395-false-alarm',
+      A: A('supports', citations),
+      B: B('supports', citations),
+      C: C('official'),
+      D: D('current'),
+      threatAxisFlaggedMisinfo: true,
+    });
+    expect(result.verdict).toBe('FALSE-ALARM');
+    expect(result.unverified_not_clean).toBeUndefined();
+  });
+
+  it('Temporal demotion to UNVERIFIED sets unverified_not_clean', () => {
+    // CONTESTED demoted by D=outdated → UNVERIFIED
+    const result = mergeBSVerdicts({
+      scanId: 'ol395-demotion',
+      A: A('supports', [cite('https://community.example.com', 'community')]),
+      B: B('no_signal'),
+      C: C('community'),
+      D: D('outdated'),
+    });
+    expect(result.verdict).toBe('UNVERIFIED');
+    expect(result.unverified_not_clean).toBe(true);
+  });
+});
