@@ -94,7 +94,7 @@ export function nanoclawDefaultPolicy(root: string): FsGitPolicy {
     allowedSourceGroups: new Set(['whatsapp_main']),
     allowedSubdirs: new Set(['proposals', 'pending-decisions', 'spikes']),
     allowedExtensions: new Set(['.md']),
-    blockedBasenames: new Set(['00-WAKE.md', '00-README.md', 'REGISTRY.md']),
+    blockedBasenames: new Set(['00-WAKE.md', '00-README.md', 'REGISTRY.md', 'nanoclaw.yaml', 'claude-code-shell.yaml']),
     maxContentBytes: 50_000,
     maxDepth: 2,
   };

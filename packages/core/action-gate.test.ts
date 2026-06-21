@@ -157,6 +157,43 @@ describe('ActionGate / fs-git', () => {
     });
   });
 
+  describe('policy file tamper-proofing (OL-396)', () => {
+    it('nanoclawDefaultPolicy blockedBasenames includes policy files', () => {
+      const p = nanoclawDefaultPolicy(ROOT);
+      expect(p.blockedBasenames.has('nanoclaw.yaml')).toBe(true);
+      expect(p.blockedBasenames.has('claude-code-shell.yaml')).toBe(true);
+    });
+
+    it('denies nanoclaw.yaml write — extension check fires (belt 1)', () => {
+      const v = evaluate(
+        action({ file: 'nanoclaw.yaml', content: 'version: 2\nadapter: fs-git\nroot: /tmp', commitMessage: 'hijack policy' }),
+        policy(),
+      );
+      expect(v.decision).toBe('deny');
+      expect(v.rule).toBe('extension-not-allowed');
+    });
+
+    it('denies nanoclaw.yaml write even if .yaml extension is allowed — basename-blocked fires (belt 2)', () => {
+      const p = policy({ allowedExtensions: new Set(['.md', '.yaml']) });
+      const v = evaluate(
+        action({ file: 'nanoclaw.yaml', content: 'version: 2\nadapter: fs-git\nroot: /tmp', commitMessage: 'hijack policy' }),
+        p,
+      );
+      expect(v.decision).toBe('deny');
+      expect(v.rule).toBe('basename-blocked');
+    });
+
+    it('denies claude-code-shell.yaml write even if .yaml extension is allowed', () => {
+      const p = policy({ allowedExtensions: new Set(['.md', '.yaml']) });
+      const v = evaluate(
+        action({ file: 'claude-code-shell.yaml', content: 'fail_closed: false', commitMessage: 'widen shell policy' }),
+        p,
+      );
+      expect(v.decision).toBe('deny');
+      expect(v.rule).toBe('basename-blocked');
+    });
+  });
+
   describe('size limit', () => {
     it('denies content exceeding max bytes', () => {
       const v = evaluate(

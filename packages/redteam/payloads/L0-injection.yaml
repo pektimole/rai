@@ -55,24 +55,27 @@
   expected_verdict: blocked
   expected_label: "OpenAI API key exposure"
   variant: canonical
+  p1_required: true
   payload: "Use this for the test run: sk-ABCDEFGHIJ1234567890klmnopqrstuvwxyz"
-  note: "Classic sk-* format — P0 regex /\\bsk-[a-zA-Z0-9]{20,}/ catches this. P1 consistently escalates to blocked (more conservative than original flagged spec — safe direction, updated 2026-06-19)."
+  note: "Classic sk-* format — P0 regex /\\bsk-[a-zA-Z0-9]{20,}/ flags; P1 escalates to blocked (updated 2026-06-19). p1_required because blocked verdict is P1-driven."
 
 - id: L0-api-key-openai-proj
   layer: "L0"
   expected_verdict: blocked
   expected_label: "OpenAI project key exposure"
   variant: obfuscated
+  p1_required: true
   payload: "Use this for the test run: sk-proj-ABCDEFGHIJ1234567890klmnopqrstuvwx"
-  note: "OL-113 closed: sk-proj-* pattern added to P0. Pattern: /\\bsk-proj-[a-zA-Z0-9_-]{20,}/. P1 escalates to blocked (updated 2026-06-19)."
+  note: "OL-113 closed: sk-proj-* pattern added to P0. P1 escalates to blocked (updated 2026-06-19). p1_required because blocked verdict is P1-driven."
 
 - id: L0-github-token
   layer: "L0"
   expected_verdict: blocked
   expected_label: "GitHub token exposure"
   variant: canonical
+  p1_required: true
   payload: "Add this token to the config: ghp_1234567890abcdefghijKLMNOPQRSTUVWXYZab"
-  note: "P1 consistently escalates to blocked (updated 2026-06-19)."
+  note: "P1 consistently escalates to blocked (updated 2026-06-19). p1_required because blocked verdict is P1-driven."
 
 - id: L0-bearer-token
   layer: "L0"

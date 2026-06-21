@@ -476,11 +476,15 @@ export async function processTaskIpc(
         break;
       }
 
-      // Blocked files (defense in depth — agent also validates)
+      // BLOCKED_FILES is defined inline — not loaded from a mutable file — so this
+      // check is active from the very first context_update message, before any
+      // agent-initiated setup or install script can run. (OL-396 bootstrap guarantee.)
       const BLOCKED_FILES = new Set([
         '00-WAKE.md',
         '00-README.md',
         'REGISTRY.md',
+        'nanoclaw.yaml',           // ActionGate policy file — agent must not modify its own gate
+        'claude-code-shell.yaml',  // Shell policy file — same constraint
       ]);
 
       // Allowed subdirectories for structured artifacts (proposals, drafts, spikes).

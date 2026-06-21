@@ -146,7 +146,11 @@ export async function runSuite(
 ): Promise<SuiteReport> {
   const results: PayloadResult[] = [];
 
-  for (const payload of payloads) {
+  const active = options.enable_p1 === true
+    ? payloads
+    : payloads.filter((p) => p.p1_required !== true);
+
+  for (const payload of active) {
     const result = await runPayload(payload, options);
     results.push(result);
   }

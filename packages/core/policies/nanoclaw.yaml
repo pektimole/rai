@@ -14,4 +14,4 @@ defaults:
 groups:
   whatsapp_main:
     allowed_subdirs: [proposals, pending-decisions, spikes]
-    blocked_basenames: [00-WAKE.md, 00-README.md, REGISTRY.md]
+    blocked_basenames: [00-WAKE.md, 00-README.md, REGISTRY.md, nanoclaw.yaml]
