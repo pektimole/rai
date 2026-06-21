@@ -1,0 +1,32 @@
+# RAI ActionGate policy: router-audit surface adapter
+# Spec: docs/28-rai-actiongate-spec.md § Surface Adapter: router-audit (OL-370)
+# v0: observe-only — allow + warn + escalate. Block deferred (racy without OS hook).
+
+version: 1
+adapter: router-audit
+defaults:
+  fail_closed: false   # v0: never silently drop, emit tag + warn
+  notify: warn
+  audit: true
+
+policy_rules:
+  - id: escalate-unconsented-pii-to-cloud
+    when:
+      routed_to: cloud
+      consent_timestamp: null
+      contains_pii: true
+    verdict: escalate
+    reason: "PII routed to cloud with no captured consent. The classifier decided for you."
+
+  - id: warn-cloud-route-no-consent
+    when:
+      routed_to: cloud
+      consent_timestamp: null
+    verdict: warn
+    reason: "Task left this machine without an explicit consent record."
+
+  - id: allow-local
+    when:
+      routed_to: local
+    verdict: allow
+    reason: "Task routed to local inference — no cross-boundary data movement."
