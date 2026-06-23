@@ -55,6 +55,30 @@ curl -s -X POST http://127.0.0.1:3848/mcp \
 # → verdict "blocked", proceed false, learn_more_url .../threats/L-2
 ```
 
+## Deploy (VPS, PM2)
+
+Run **on the VPS** (repo already cloned there). Idempotent, safe to re-run:
+
+```bash
+RAI_DIR=~/rai RAI_MCP_PORT=3848 bash scripts/deploy/deploy-mcp-connector.sh
+```
+
+Pull → install → build core+connector → `pm2 startOrReload` → `/health` check.
+PM2 process name: `rai-mcp`. Config: `scripts/deploy/rai-mcp.ecosystem.cjs`.
+Logs: `pm2 logs rai-mcp`.
+
+**TLS prerequisite (manual, infra):** Claude Code's `type:"url"` MCP connector
+requires HTTPS. The server listens plain HTTP on `:3848`, so it must sit behind a
+reverse-proxy vhost terminating TLS:
+
+```
+# nginx / caddy: <subdomain> → 127.0.0.1:3848
+# e.g. rai.ray-ai.com  ->  proxy_pass http://127.0.0.1:3848;
+```
+
+Until that vhost exists, the connector is reachable only locally (`127.0.0.1:3848`)
+and over LAN, not as a paste-able Claude Code URL.
+
 ## Spike scope notes
 
 - **P0 only.** `tier: "p1"` is accepted but `tier_used` is always `p0`; BYOK P1 lands in Phase B (spec §4).
