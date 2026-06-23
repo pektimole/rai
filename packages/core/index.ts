@@ -30,6 +30,9 @@ export * from './scan-log.js';
 export * from './phantom.js';
 export * from './corrections.js';
 
+// ActionGate — L4 action firewall (MCP adapter for inbound connector)
+export * from './action-gate-mcp.js';
+
 // Network Architecture — Phase 1: Private Layer
 export * from './threat-signature.js';
 export * from './private-layer.js';
