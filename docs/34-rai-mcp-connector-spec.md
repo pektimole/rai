@@ -75,17 +75,53 @@ Four tools. Each maps directly to an existing RAI function.
  "threat_layers": [
  { "layer": "L0", "label": "Prompt injection", "signal": "...", "severity": "high" }
  ],
- "explanation": "One sentence. Max 80 chars.",
+ "explanation": "2-sentence plain-English: what was detected + why it matters.",
  "tier_used": "p0 | p1",
+ "learn_more_url": "https://ray-ai.com/threats/L0  (dashboard deep-link for this layer)",
  "latency_ms": 42
 }
 ```
 
 **Auth:** P0 = no key required. P1 = requires `RAI_CLAUDE_KEY` header (BYOK) or Pro subscription token.
 
+**Note:** explanation is inline (the former `rai_threat_explain` tool, folded in). `learn_more_url` is the education-to-signup hook on every response.
+
 ---
 
-### 3.2 `rai_actiongate_check`
+### 3.2 `rai_judge`
+
+**What:** Go/no-go gate. Same backend as `rai_scan` but output collapsed to a decision the caller acts on directly. For agent loops that need "should I proceed?" not a full diagnostic.
+
+**Maps to:** `scripts/rai-judge.py` logic over `rayScan()` + `scanP1()`. P0 fast-path; escalates to P1 when P0 confidence < 0.65. No BS Council (too slow for a pre-action gate).
+
+**Input schema:**
+```json
+{
+ "content": "string: the text to judge (max 32k chars)",
+ "channel": "browser | clipboard | email | telegram | whatsapp | artifact | api",
+ "tier": "p0 | p1 (default: p0, auto-escalates on low confidence)",
+ "session_id": "string: caller's session identifier (opaque)"
+}
+```
+
+**Output schema:**
+```json
+{
+ "verdict": "clean | flagged | blocked",
+ "proceed": true,
+ "confidence": "0.0–1.0",
+ "reason": "string: one line, why this verdict",
+ "learn_more_url": "https://ray-ai.com/threats/L0"
+}
+```
+
+**Auth:** P0 free. P1 BYOK.
+
+**Use case:** Agent calls `rai_judge(content)` before injecting web content / tool results into context. Reads `proceed`; if false, drops the content. Minimal payload, fast.
+
+---
+
+### 3.3 `rai_actiongate_check`
 
 **What:** L4 gate for agent-initiated actions before execution. Returns allow/deny + rule that fired. Deterministic, no LLM call.
 
@@ -123,53 +159,12 @@ Four tools. Each maps directly to an existing RAI function.
 
 ---
 
-### 3.3 `rai_threat_explain`
+### Not MCP tools (deliberate)
 
-**What:** Given a scan_id or raw verdict object, return a 2-sentence plain-English explanation of what was detected and why it matters. Education surface: drives "what is this?" moments to dashboard signups.
+- **`rai_threat_explain`**: folded into `rai_scan`/`rai_judge` output (`explanation` + `learn_more_url`). A separate explain tool needs server-side scan storage (statefulness) and the model rarely calls it. The education-to-signup goal is met by the inline `learn_more_url` deep-link.
+- **`/health`**: plain HTTP endpoint for uptime monitoring, NOT a model-facing MCP tool. Every exposed tool's schema is injected into every conversation's context; health is infra noise there. `GET /health → {status, version, p0, p1, actiongate}`.
 
-**Maps to:** P1 explanation field + threat layer schema in `rai-context.md`
-
-**Input schema:**
-```json
-{
- "scan_id": "string: reference a prior rai_scan result",
- "threat_layer": "L-2 | L-1 | L0 | L1 | L2 | L3 | L4",
- "signal": "string: optional raw signal text"
-}
-```
-
-**Output schema:**
-```json
-{
- "explanation": "string, 2 sentences, plain English",
- "threat_layer": "L0",
- "severity": "high",
- "recommended_next": "string: one action the developer should take"
-}
-```
-
-**Auth:** Free (P0-tier content). P1-quality explanation requires key.
-
----
-
-### 3.4 `rai_health`
-
-**What:** Liveness + version check. Used by Claude Code to verify the server is reachable.
-
-**Input:** None
-
-**Output:**
-```json
-{
- "status": "ok",
- "version": "0.1.0",
- "p0": "ready",
- "p1": "ready | no-key",
- "actiongate": "ready"
-}
-```
-
-**Auth:** None.
+**Tool-list discipline:** 3 model-facing tools on 2 axes: inbound content (`rai_scan`, `rai_judge`) and outbound action (`rai_actiongate_check`). Fewer, sharper tools beat more fuzzy ones for both adoption and per-conversation token cost.
 
 ---
 
@@ -177,12 +172,12 @@ Four tools. Each maps directly to an existing RAI function.
 
 | Tool | Free (no key) | P1 key (BYOK) | Pro token |
 |---|---|---|---|
-| `rai_health` | Yes |, |, |
 | `rai_scan` (P0) | Yes |, |, |
 | `rai_scan` (P1) | No | Yes (caller's Anthropic key) | Yes |
+| `rai_judge` (P0) | Yes |, |, |
+| `rai_judge` (P1) | No | Yes | Yes |
 | `rai_actiongate_check` | Yes |, |, |
-| `rai_threat_explain` (P0 qual.) | Yes |, |, |
-| `rai_threat_explain` (P1 qual.) | No | Yes | Yes |
+| `/health` (HTTP) | Yes |, |, |
 
 **BYOK flow:** caller passes `X-Rai-Claude-Key: sk-ant-...` header. Server uses this key only for the P1 inference call. Never stored. Logged as key-hash only.
 
@@ -192,7 +187,7 @@ Four tools. Each maps directly to an existing RAI function.
 
 ## 5. Analytics Hook
 
-Every `rai_scan` and `rai_actiongate_check` call is logged to the existing `ingest-server.ts` pipeline:
+Every `rai_scan`, `rai_judge`, and `rai_actiongate_check` call is logged to the existing `ingest-server.ts` pipeline:
 
 ```
 POST /ingest/scan-event → ScanLogEntry → scan-log → dream-phase aggregation
@@ -263,8 +258,8 @@ Or via Claude Code settings: `Add MCP server → URL → https://rai.ray-ai.com/
 ### Option A: 1-day spike (P0 connector only)
 
 Scope:
-- HTTP server with MCP JSON-RPC over SSE transport
-- `rai_health` + `rai_scan` (P0 only) + `rai_actiongate_check`
+- HTTP server with MCP streamable HTTP transport
+- `rai_scan` (P0 only) + `rai_judge` (P0 only) + `rai_actiongate_check` + `/health` HTTP endpoint
 - No auth, no telemetry
 - Ships to Hetzner, testable same day
 
@@ -273,7 +268,7 @@ Value: proves the MCP registration flow + distribution hypothesis. Can be shown 
 ### Option B: 1-week sprint (full connector)
 
 Scope:
-- All 4 tools
+- All 3 MCP tools at full tier
 - BYOK P1 auth
 - Telemetry pipeline (ingest-server extension)
 - Deployment config (Netlify or dedicated VPS)
