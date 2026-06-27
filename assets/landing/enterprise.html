@@ -42,7 +42,7 @@ nav.scrolled{border-bottom:1px solid var(--border);background:rgba(8,8,8,.92);ba
 .btn-primary:hover{opacity:.85;}
 .btn-ghost{display:inline-block;color:var(--muted);padding:14px 28px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;cursor:none;border:1px solid var(--border);transition:color .2s,border-color .2s;}
 .btn-ghost:hover{color:var(--text);border-color:var(--muted);}
-/* AUDIT MATRIX */
+/* THREAT MATRIX */
 .matrix-section{border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
 .matrix-header{padding:64px 80px 0;}
 .matrix-h{font-family:'Fraunces',serif;font-size:clamp(28px,3vw,44px);line-height:1.1;margin-bottom:16px;}
@@ -93,7 +93,7 @@ footer{padding:32px 80px;display:flex;align-items:center;justify-content:space-b
  <p class="tension">
  Nobody built the write gate. Four research teams. Three Claude surfaces. 48 hours.
  Same failure class.
- <em>The audit matrix Anthropic hasn't built, RAI built it.</em>
+ <em>The auditor Anthropic can’t be: cross-vendor, including theirs. That’s RAI.</em>
  </p>
  <div class="intro-line"><strong>RA(I)</strong> · <em>your personal ambient AI security.</em></div>
  <div class="cta-group">
@@ -104,8 +104,8 @@ footer{padding:32px 80px;display:flex;align-items:center;justify-content:space-b
 
 <div class="matrix-section" id="matrix">
  <div class="matrix-header">
- <div class="matrix-h">The audit matrix<br><em>Anthropic hasn't built.</em></div>
- <p class="matrix-sub">Three failure classes. All confirmed by independent research. All present in current enterprise AI deployments. RAI built the gates, the logs, and the attestation layer.</p>
+ <div class="matrix-h">The auditor<br><em>Anthropic can’t be.</em></div>
+ <p class="matrix-sub">Three failure classes. All confirmed by independent research. All present in current enterprise AI deployments. A vendor can’t adversarially audit its own consent capture. RAI is the cross-vendor layer that does: the gates, the logs, the attestation. Including theirs.</p>
  </div>
  <div class="matrix-grid">
  <div class="matrix-card">
@@ -117,12 +117,12 @@ footer{padding:32px 80px;display:flex;align-items:center;justify-content:space-b
  <div class="matrix-gate">ActionGate · Write gate · Scope attestation</div>
  </div>
  <div class="matrix-card">
- <div class="matrix-tag"><span class="matrix-dot" style="background:#ff3333;"></span>L0 · Protocol Injection</div>
- <div class="matrix-title">MCP STDIO: architectural RCE at protocol level.</div>
+ <div class="matrix-tag"><span class="matrix-dot" style="background:#00e5c8;"></span>L-1 · Guardrail Bypass</div>
+ <div class="matrix-title">1,000+ hijacked sessions. 9 guardrail flags.</div>
  <p class="matrix-body">
- 200,000+ servers. The Model Context Protocol STDIO transport exposes an architectural remote code execution class. Anthropic's documented response: "expected behavior." No gate existed at the protocol-interaction layer. ActionGate adds the pre-flight gate before any surface adapter fires.
+ OALABS recovered an attacker's logs: Claude Code + Codex drove recon-to-exfil across 14 companies. Across 1,000+ sessions, 9 policy violations fired, nearly all bypassed by reframing as "authorized red team." A vendor can't flag what its own guardrails wave through. RAI gates the action, not the claim.
  </p>
- <div class="matrix-gate">ActionGate · Protocol scan · Pre-flight gate</div>
+ <div class="matrix-gate">ActionGate · Gates the action, not the claim</div>
  </div>
  <div class="matrix-card">
  <div class="matrix-tag"><span class="matrix-dot" style="background:#ffa028;"></span>VCCE · Supply Chain</div>
