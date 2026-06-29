@@ -209,18 +209,49 @@ export const actionGateInputShape = {
       fail_closed: z.boolean().default(true),
     })
     .default({ allowed_tools: [], blocked_tools: [], fail_closed: true })
-    .describe('Inline policy. fail_closed=true denies anything not on the allowlist.'),
+    .describe(
+      'Advisory-only inline policy. If the server was started with a server-side policy, this field is IGNORED (policy_source will be "server"). ' +
+      'An agent controlling this argument cannot bypass a server-side policy. ' +
+      'Without a server-side policy this is a compliance tool for honest agents, not a security gate.',
+    ),
 } as const;
 
-export function runActionGate(args: {
-  action_kind: 'mcp-tool-call' | 'shell' | 'fs-git' | 'http';
-  tool_name?: string;
-  arguments?: Record<string, unknown>;
-  server_name?: string;
-  policy?: { allowed_tools?: string[]; blocked_tools?: string[]; fail_closed?: boolean };
-}) {
+/**
+ * SECURITY NOTE — inline policy trust boundary:
+ *
+ * When called with no serverPolicy, the `policy` arg is caller-provided and
+ * therefore untrusted: a compromised agent can pass permissive rules and the
+ * gate will approve. This is intentional for the voluntary-compliance use-case
+ * (honest agents that want to self-gate before acting).
+ *
+ * To enforce security guarantees (governed agent cannot disable the gate):
+ *   - Pass a serverPolicy pre-loaded from a file the agent cannot reach.
+ *   - serverPolicy ALWAYS takes precedence over args.policy.
+ *   - Use registerTools({ serverPolicy }) to provide it at startup.
+ */
+export function runActionGate(
+  args: {
+    action_kind: 'mcp-tool-call' | 'shell' | 'fs-git' | 'http';
+    tool_name?: string;
+    arguments?: Record<string, unknown>;
+    server_name?: string;
+    policy?: { allowed_tools?: string[]; blocked_tools?: string[]; fail_closed?: boolean };
+  },
+  serverPolicy?: McpPolicy,
+) {
   const serverName = args.server_name ?? 'downstream';
+
+  // Server-side policy takes precedence over caller-provided policy.
+  // If none configured, fall back to caller-provided (advisory/compliance mode).
+  const policySource: 'server' | 'caller-advisory' = serverPolicy ? 'server' : 'caller-advisory';
   const pol = args.policy ?? {};
+  const policy: McpPolicy = serverPolicy ?? {
+    serverName,
+    failClosed: pol.fail_closed ?? true,
+    allowedTools: new Set(pol.allowed_tools ?? []),
+    blockedTools: new Set(pol.blocked_tools ?? []),
+    blockedArgPatterns: new Map(),
+  };
 
   // v0 spike wires the MCP adapter only. Other action kinds fail closed (honest):
   // we never silently "allow" something the engine did not actually evaluate.
@@ -231,6 +262,7 @@ export function runActionGate(args: {
       reason: `action_kind "${args.action_kind}" is not evaluated in the v0 spike; only mcp-tool-call is wired`,
       action_kind: args.action_kind,
       tool_name: args.tool_name ?? null,
+      policy_source: policySource,
     };
   }
 
@@ -241,6 +273,7 @@ export function runActionGate(args: {
       reason: 'mcp-tool-call requires tool_name',
       action_kind: args.action_kind,
       tool_name: null,
+      policy_source: policySource,
     };
   }
 
@@ -251,14 +284,6 @@ export function runActionGate(args: {
     serverName,
   };
 
-  const policy: McpPolicy = {
-    serverName,
-    failClosed: pol.fail_closed ?? true,
-    allowedTools: new Set(pol.allowed_tools ?? []),
-    blockedTools: new Set(pol.blocked_tools ?? []),
-    blockedArgPatterns: new Map(),
-  };
-
   const verdict = evaluateMcp(call, policy);
 
   return {
@@ -267,6 +292,7 @@ export function runActionGate(args: {
     reason: verdict.reason,
     action_kind: args.action_kind,
     tool_name: args.tool_name,
+    policy_source: policySource,
   };
 }
 
@@ -278,7 +304,22 @@ function asContent(result: unknown) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
 }
 
-export function registerTools(server: McpServer): void {
+export interface RegisterToolsOptions {
+  /**
+   * Server-side ActionGate policy loaded at startup (e.g. from a YAML file the
+   * calling agent cannot modify). When set, this overrides any inline `policy`
+   * argument the calling agent provides — making the gate tamper-proof.
+   *
+   * Without this, rai_actiongate_check operates in advisory/compliance mode:
+   * an honest agent can self-gate, but a compromised agent can bypass it by
+   * passing a permissive inline policy.
+   */
+  serverPolicy?: McpPolicy;
+}
+
+export function registerTools(server: McpServer, opts?: RegisterToolsOptions): void {
+  const serverPolicy = opts?.serverPolicy;
+
   server.registerTool(
     'rai_scan',
     {
@@ -306,9 +347,11 @@ export function registerTools(server: McpServer): void {
     {
       title: 'RAI ActionGate Check',
       description:
-        'L4 gate for an agent-initiated action before execution. Deterministic, no LLM call. Pass the tool the agent is about to call plus an inline allow/block policy; returns allow/deny and the rule that fired. Blocks injected tool calls even if content scanning missed them.',
+        'L4 gate for an agent-initiated action before execution. Deterministic, no LLM call. Pass the tool the agent is about to call plus an inline allow/block policy; returns allow/deny and the rule that fired. Blocks injected tool calls even if content scanning missed them. ' +
+        'SECURITY: if the server was started with a server-side policy (policy_source=server), the inline policy argument is ignored — the gate is tamper-proof. ' +
+        'Without server-side policy (policy_source=caller-advisory), a compromised agent could self-approve actions by providing a permissive inline policy.',
       inputSchema: actionGateInputShape,
     },
-    async (args) => asContent(runActionGate(args)),
+    async (args) => asContent(runActionGate(args, serverPolicy)),
   );
 }

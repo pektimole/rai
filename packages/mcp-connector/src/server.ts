@@ -17,9 +17,49 @@
 import * as http from 'http';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import type { McpPolicy } from '@rai/core';
 import { registerTools } from './tools.js';
 
 export const VERSION = '0.1.0';
+
+/**
+ * Load server-side ActionGate policy from RAI_ACTIONGATE_POLICY env var (JSON).
+ *
+ * Format:
+ *   { "server_name": "...", "fail_closed": true, "allowed_tools": [...], "blocked_tools": [...] }
+ *
+ * When set, ALL rai_actiongate_check calls use this policy regardless of the
+ * inline `policy` argument provided by the calling agent. The caller-provided
+ * policy is silently ignored (response includes policy_source: "server").
+ *
+ * Env: RAI_ACTIONGATE_POLICY — JSON string
+ */
+function loadServerPolicy(): McpPolicy | undefined {
+  const raw = process.env.RAI_ACTIONGATE_POLICY;
+  if (!raw) return undefined;
+  try {
+    const parsed = JSON.parse(raw) as {
+      server_name?: string;
+      fail_closed?: boolean;
+      allowed_tools?: string[];
+      blocked_tools?: string[];
+    };
+    const policy: McpPolicy = {
+      serverName: parsed.server_name ?? 'downstream',
+      failClosed: parsed.fail_closed ?? true,
+      allowedTools: new Set(parsed.allowed_tools ?? []),
+      blockedTools: new Set(parsed.blocked_tools ?? []),
+      blockedArgPatterns: new Map(),
+    };
+    process.stdout.write(`[rai-mcp] ActionGate server policy loaded (fail_closed=${policy.failClosed}, allowed=${[...policy.allowedTools].join(',') || '*fail-closed*'})\n`);
+    return policy;
+  } catch (err) {
+    process.stderr.write(`[rai-mcp] WARNING: RAI_ACTIONGATE_POLICY parse error — ActionGate running in caller-advisory mode: ${(err as Error).message}\n`);
+    return undefined;
+  }
+}
+
+const SERVER_POLICY = loadServerPolicy();
 
 const HEALTH = {
   status: 'ok',
@@ -28,11 +68,12 @@ const HEALTH = {
   // Spike is P0-only. P1 (BYOK) + ActionGate-as-LLM land in Phase B.
   p1: false,
   actiongate: true,
+  actiongate_policy: SERVER_POLICY ? 'server' : 'caller-advisory',
 } as const;
 
 function newMcpServer(): McpServer {
   const server = new McpServer({ name: 'rai', version: VERSION });
-  registerTools(server);
+  registerTools(server, SERVER_POLICY ? { serverPolicy: SERVER_POLICY } : undefined);
   return server;
 }
 
