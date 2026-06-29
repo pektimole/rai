@@ -97,6 +97,26 @@ interface Pattern {
   signal: string;
 }
 
+/** Public alias so the L1 manifest/registry layer can produce patterns in the
+ *  exact shape the scanner consumes (OL-300 hot-reload). */
+export type P0Pattern = Pattern;
+
+// Hot-reloaded patterns layered ON TOP OF the static floor below. Default
+// empty, so behavior is identical until an L1 manifest is promoted. A dynamic
+// pattern can only ADD a detection; P0 has no "allow", so a hot-reloaded rule
+// can never weaken the static floor (scanner-floor-wins, per 33-spec).
+let dynamicPatterns: Pattern[] = [];
+
+/** Replace the active dynamic pattern set (called by the L1 registry on
+ *  promote/rollback). */
+export function setDynamicPatterns(patterns: P0Pattern[]): void {
+  dynamicPatterns = patterns;
+}
+
+export function getDynamicPatterns(): P0Pattern[] {
+  return dynamicPatterns;
+}
+
 const PATTERNS: Pattern[] = [
   // --- L-2: Infrastructure / supply chain ---
   {
@@ -492,7 +512,7 @@ export async function rayScan(input: RayScanInput): Promise<RayScanOutput> {
 
   // Run P0 pattern battery with adaptive weights
   const weights = loadP0Weights();
-  for (const pattern of PATTERNS) {
+  for (const pattern of [...PATTERNS, ...dynamicPatterns]) {
     const match = content.match(pattern.regex);
     if (match) {
       const patternWeight = weights.pattern_weights[pattern.label] ?? 1.0;

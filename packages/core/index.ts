@@ -38,3 +38,9 @@ export * from './threat-signature.js';
 export * from './private-layer.js';
 export { runDreamPhase, distillScanLog, type DreamPhaseResult, type DreamPhaseOptions } from './dream-phase.js';
 export { createIngestServer } from './ingest-server.js';
+
+// L1 hot-reload — signed, versioned pattern manifests (OL-300)
+export * from './l1-manifest.js';
+export * from './l1-registry.js';
+export * from './l1-store.js';
+export * from './l1-controller.js';

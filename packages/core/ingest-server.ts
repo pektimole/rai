@@ -18,6 +18,42 @@
 
 import * as http from 'http';
 import { getDefaultScanLog, type ScanLog, type ScanLogEntry } from './scan-log.js';
+import { type L1Controller } from './l1-controller.js';
+import { type ManifestPattern } from './l1-manifest.js';
+
+const THREAT_LAYERS = ['L-2', 'L-1', 'L0', 'L1', 'L2', 'L3'];
+const SEVERITIES = ['low', 'medium', 'high', 'critical'];
+
+/** Validate an inbound L1 rule (POST /rules body). Returns null on any
+ *  malformation — fail-closed before anything reaches the signed store. */
+function validateRule(body: unknown): ManifestPattern | null {
+  if (typeof body !== 'object' || body === null) return null;
+  const r = body as Record<string, unknown>;
+  if (typeof r.id !== 'string' || r.id.length === 0) return null;
+  if (typeof r.regex !== 'string' || r.regex.length === 0) return null;
+  if (typeof r.label !== 'string' || r.label.length === 0) return null;
+  if (typeof r.signal !== 'string') return null;
+  if (typeof r.layer !== 'string' || !THREAT_LAYERS.includes(r.layer)) return null;
+  if (typeof r.severity !== 'string' || !SEVERITIES.includes(r.severity)) return null;
+  const flags = r.flags === undefined ? '' : r.flags;
+  if (typeof flags !== 'string') return null;
+  if (r.state !== undefined && r.state !== 'enforce' && r.state !== 'capture_only') return null;
+  try {
+    new RegExp(r.regex, flags); // reject an uncompilable regex up front
+  } catch {
+    return null;
+  }
+  return {
+    id: r.id,
+    regex: r.regex,
+    flags,
+    label: r.label,
+    layer: r.layer as ManifestPattern['layer'],
+    severity: r.severity as ManifestPattern['severity'],
+    signal: r.signal,
+    state: r.state as ManifestPattern['state'] | undefined,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Payload validation
@@ -41,9 +77,40 @@ function validateEntry(body: unknown): ScanLogEntry | null {
 // Server factory
 // ---------------------------------------------------------------------------
 
-export function createIngestServer(scanLog?: ScanLog, token?: string): http.Server {
+export function createIngestServer(
+  scanLog?: ScanLog,
+  token?: string,
+  l1?: L1Controller,
+): http.Server {
   const log = scanLog ?? getDefaultScanLog();
   const tok = token !== undefined ? token : (process.env.RAI_INGEST_TOKEN ?? '');
+
+  const authed = (req: http.IncomingMessage): boolean =>
+    !tok || (req.headers['authorization'] ?? '') === `Bearer ${tok}`;
+
+  const readJson = (
+    req: http.IncomingMessage,
+    res: http.ServerResponse,
+    cb: (parsed: unknown) => void,
+  ): void => {
+    let body = '';
+    req.on('data', (chunk: Buffer) => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        cb(JSON.parse(body));
+      } catch {
+        res.writeHead(400);
+        res.end();
+      }
+    });
+  };
+
+  const sendJson = (res: http.ServerResponse, code: number, obj: unknown): void => {
+    res.writeHead(code, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(obj));
+  };
 
   return http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -64,6 +131,66 @@ export function createIngestServer(scanLog?: ScanLog, token?: string): http.Serv
       }
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ status: 'ok', ts: new Date().toISOString() }));
+      return;
+    }
+
+    // -- L1 hot-reload rule injection (OL-300) --------------------------------
+    if (req.url === '/rules' || req.url === '/rules/rollback') {
+      if (!l1) {
+        res.writeHead(503);
+        res.end();
+        return;
+      }
+      if (!authed(req)) {
+        res.writeHead(401);
+        res.end();
+        return;
+      }
+
+      // GET /rules — active manifest status (never returns pattern bodies).
+      if (req.url === '/rules' && req.method === 'GET') {
+        sendJson(res, 200, l1.status());
+        return;
+      }
+
+      // POST /rules — inject a new L1 rule, promote, hot-swap live.
+      if (req.url === '/rules' && req.method === 'POST') {
+        readJson(req, res, (parsed) => {
+          const rule = validateRule(parsed);
+          if (!rule) {
+            res.writeHead(400);
+            res.end();
+            return;
+          }
+          try {
+            sendJson(res, 200, l1.addRule(rule));
+          } catch (e) {
+            sendJson(res, 409, { error: (e as Error).message });
+          }
+        });
+        return;
+      }
+
+      // POST /rules/rollback — roll back to a prior generation.
+      if (req.url === '/rules/rollback' && req.method === 'POST') {
+        readJson(req, res, (parsed) => {
+          const p = parsed as { to_generation?: unknown };
+          if (typeof p.to_generation !== 'number') {
+            res.writeHead(400);
+            res.end();
+            return;
+          }
+          try {
+            sendJson(res, 200, l1.rollback(p.to_generation));
+          } catch (e) {
+            sendJson(res, 409, { error: (e as Error).message });
+          }
+        });
+        return;
+      }
+
+      res.writeHead(405);
+      res.end();
       return;
     }
 
