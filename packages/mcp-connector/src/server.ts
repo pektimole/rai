@@ -193,10 +193,14 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse): Prom
 // CLI entry
 // ---------------------------------------------------------------------------
 
+// pm2 fork mode loads this file via import() inside ProcessContainerFork.js, so
+// process.argv[1] points to the pm2 container, not server.js. Fall back to the
+// pm_exec_path env var that pm2 sets to the actual script path.
 const runningAsCli =
   typeof process !== 'undefined' &&
-  process.argv[1] != null &&
-  (process.argv[1].endsWith('server.ts') || process.argv[1].endsWith('server.js'));
+  ((process.argv[1] != null &&
+    (process.argv[1].endsWith('server.ts') || process.argv[1].endsWith('server.js'))) ||
+    process.env.pm_exec_path?.endsWith('server.js') === true);
 
 if (runningAsCli) {
   const port = parseInt(process.env.RAI_MCP_PORT ?? '3848', 10);
