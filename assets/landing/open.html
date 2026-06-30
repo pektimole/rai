@@ -148,11 +148,7 @@ footer{margin-top:80px;padding:32px 80px;border-top:1px solid var(--border);disp
   <h1 class="hero-headline">The open-source<br>tools RAI trusts.<br><em>And why.</em></h1>
   <p class="hero-sub">Not a directory. Not a list. A vetted layer — every repo here has been reviewed by (R)AI against the full L-classification threat taxonomy. <em>Curated for developers building in a world where the interaction layer matters.</em></p>
   <div class="hero-meta">
-    <div class="meta-stat"><div class="meta-num">1</div><div class="meta-label">Vetted repo</div></div>
-    <div class="meta-divider"></div>
-    <div class="meta-stat"><div class="meta-num">L0–L5</div><div class="meta-label">Threat coverage</div></div>
-    <div class="meta-divider"></div>
-    <div class="meta-stat"><div class="meta-num">Open</div><div class="meta-label">Submit yours</div></div>
+    <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:600;color:var(--text);letter-spacing:-.2px;max-width:520px;line-height:1.35;">The first public library of named, verified AI interaction threats: classified, curated, and open to the community.</div>
   </div>
 </section>
 
@@ -211,16 +207,41 @@ footer{margin-top:80px;padding:32px 80px;border-top:1px solid var(--border);disp
     <div class="submit-headline">Built something<br>the interaction<br>layer <em>needs?</em></div>
   </div>
   <div class="submit-right">
-    <div class="submit-body">(R)AI reviews open-source AI security tools against the full L-classification taxonomy. If it covers a real threat surface at the interaction layer, it belongs here.<br><br><em>What we don't list:</em> output filters, content moderation wrappers, or anything that runs after the user has already been harmed.</div>
-    <ul class="submit-criteria">
-      <li>Open source (MIT / Apache-2.0 or compatible)</li>
-      <li>Addresses at least one L-classification threat class</li>
-      <li>Runtime enforcement preferred over static analysis</li>
-      <li>Active maintenance (commits in last 90 days)</li>
-      <li>Documentation sufficient for (R)AI threat-layer mapping</li>
-    </ul>
-    <a href="mailto:go@withrai.xyz?subject=RAI Open Library Submission" class="submit-cta">Submit your repo →</a>
-    <div style="font-size:10px;color:var(--muted);">go@withrai.xyz · subject: RAI Open Library Submission</div>
+    <form id="submitForm" onsubmit="handleSubmit(event)" style="display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);">Pattern / Repo Name *</label>
+        <input type="text" id="f-name" required placeholder="e.g. Pipelock" style="background:var(--bg);border:1px solid var(--border-hi);color:var(--text);padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border-hi)'" />
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);">Threat Class (L-layer) *</label>
+        <select id="f-layer" required style="background:var(--bg);border:1px solid var(--border-hi);color:var(--text);padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;outline:none;appearance:none;transition:border-color .2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border-hi)'">
+          <option value="" disabled selected>Select a threat layer</option>
+          <option>L0 · Prompt Injection</option>
+          <option>L1 · Input Manipulation</option>
+          <option>L2 · Credential / Exfil</option>
+          <option>L3 · Output Deception</option>
+          <option>L4 · Agent Overreach</option>
+          <option>L5 · Supply Chain</option>
+          <option>VCCE · Vendor Covert Capability</option>
+          <option>ActionGate-relevant</option>
+          <option>Multiple / Other</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);">Description *</label>
+        <textarea id="f-desc" required rows="3" placeholder="What does it do? What threat does it address?" style="background:var(--bg);border:1px solid var(--border-hi);color:var(--text);padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;outline:none;resize:vertical;transition:border-color .2s;line-height:1.6;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border-hi)'"></textarea>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);">Source / Evidence *</label>
+        <input type="text" id="f-src" required placeholder="GitHub URL, paper, CVE, writeup link" style="background:var(--bg);border:1px solid var(--border-hi);color:var(--text);padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border-hi)'" />
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);">Your handle (optional)</label>
+        <input type="text" id="f-handle" placeholder="GitHub, X/Twitter, or email" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
+      </div>
+      <button type="submit" class="submit-cta" style="border:none;cursor:none;">Submit for review →</button>
+      <div style="font-size:10px;color:var(--muted);">Opens your email client · go@withrai.xyz</div>
+    </form>
   </div>
 </section>
 
@@ -239,6 +260,26 @@ const cursor=document.getElementById('cursor');
 document.addEventListener('mousemove',e=>{cursor.style.left=e.clientX+'px';cursor.style.top=e.clientY+'px';});
 document.querySelectorAll('a, button').forEach(el=>{el.addEventListener('mouseenter',()=>cursor.classList.add('large'));el.addEventListener('mouseleave',()=>cursor.classList.remove('large'));});
 window.addEventListener('scroll',()=>{document.getElementById('nav').classList.toggle('scrolled',window.scrollY>40);});
+function handleSubmit(e){
+  e.preventDefault();
+  const name=document.getElementById('f-name').value.trim();
+  const layer=document.getElementById('f-layer').value;
+  const desc=document.getElementById('f-desc').value.trim();
+  const src=document.getElementById('f-src').value.trim();
+  const handle=document.getElementById('f-handle').value.trim();
+  const body=[
+    `Pattern / Repo Name: ${name}`,
+    `Threat Class: ${layer}`,
+    ``,
+    `Description:`,
+    desc,
+    ``,
+    `Source / Evidence:`,
+    src,
+    handle?`\nSubmitter: ${handle}`:'',
+  ].join('\n');
+  window.location.href=`mailto:go@withrai.xyz?subject=RAI Open Library Submission: ${encodeURIComponent(name)}&body=${encodeURIComponent(body)}`;
+}
 function filterCards(tag,btn){
   document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');

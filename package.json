@@ -4,6 +4,7 @@
   "description": "RA(I) — AI Interaction Firewall",
   "workspaces": [
     "packages/core",
+    "packages/mcp-connector",
     "packages/p2-agent",
     "packages/extension",
     "packages/mobile-pwa",

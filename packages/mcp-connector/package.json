@@ -1,0 +1,23 @@
+{
+  "name": "@rai/mcp-connector",
+  "version": "0.1.0",
+  "description": "RAI inbound MCP server — exposes rai_scan / rai_judge / rai_actiongate_check to Claude Code over streamable HTTP",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx src/server.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@rai/core": "*",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "tsx": "^4.22.3",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}

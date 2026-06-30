@@ -97,6 +97,26 @@ interface Pattern {
   signal: string;
 }
 
+/** Public alias so the L1 manifest/registry layer can produce patterns in the
+ *  exact shape the scanner consumes (OL-300 hot-reload). */
+export type P0Pattern = Pattern;
+
+// Hot-reloaded patterns layered ON TOP OF the static floor below. Default
+// empty, so behavior is identical until an L1 manifest is promoted. A dynamic
+// pattern can only ADD a detection; P0 has no "allow", so a hot-reloaded rule
+// can never weaken the static floor (scanner-floor-wins, per 33-spec).
+let dynamicPatterns: Pattern[] = [];
+
+/** Replace the active dynamic pattern set (called by the L1 registry on
+ *  promote/rollback). */
+export function setDynamicPatterns(patterns: P0Pattern[]): void {
+  dynamicPatterns = patterns;
+}
+
+export function getDynamicPatterns(): P0Pattern[] {
+  return dynamicPatterns;
+}
+
 const PATTERNS: Pattern[] = [
   // --- L-2: Infrastructure / supply chain ---
   {
@@ -251,6 +271,77 @@ const PATTERNS: Pattern[] = [
     layer: 'L0',
     severity: 'critical',
     signal: 'Instruction to exfiltrate data via URL-encoded payload',
+  },
+
+  // --- L-1: Scan-bypass / authority-framing injection ---
+  {
+    regex: /ignore\s+(?:all\s+)?(?:scan|firewall|rai|security|inspection)\s+(?:instructions?|rules?|procedures?|settings?|checks?)/i,
+    label: 'Scan-bypass injection',
+    layer: 'L-1',
+    severity: 'critical',
+    signal: 'Instruction to ignore scan/firewall rules embedded in payload',
+  },
+  {
+    regex: /(?:pre-?verified|already\s+verified|security\s+team\s+(?:approved|certified|verified|pre-?cleared)|output\s+(?:only\s+)?clean|return\s+(?:verdict\s+)?(?::|=)?\s*clean)/i,
+    label: 'Scan-bypass injection',
+    layer: 'L-1',
+    severity: 'critical',
+    signal: 'Claim of pre-verification or instruction to return CLEAN verdict',
+  },
+  {
+    regex: /(?:important\s+security\s+update|maintenance\s+window|policy\s+override\s+active|system\s+administrator)[^.]{0,80}(?:ignore|bypass|override|skip|disable)/i,
+    label: 'Authority-framing injection',
+    layer: 'L-1',
+    severity: 'critical',
+    signal: 'Authority-framing language used to justify bypassing scan instructions',
+  },
+
+  // --- L-1: Multilingual injection (German) ---
+  {
+    regex: /ignoriere\s+(?:alle?\s+)?(?:vorherigen?|früheren?|bisherigen?)?\s*(?:anweisungen?|regeln?|instruktionen?|einschränkungen?)|vergiss\s+(?:alle?\s+)?(?:regeln?|anweisungen?|instruktionen?)/i,
+    label: 'Multilingual prompt injection (DE)',
+    layer: 'L-1',
+    severity: 'critical',
+    signal: 'German-language instruction override pattern detected',
+  },
+  {
+    regex: /du\s+bist\s+jetzt\s+(?:ein|eine|im|in)\s+(?:neuen?|anderen?|freien?|uneingeschränkten?)|deine\s+neue\s+(?:identität|rolle|persona|aufgabe)\s+ist/i,
+    label: 'Multilingual persona replacement (DE)',
+    layer: 'L-1',
+    severity: 'critical',
+    signal: 'German-language persona replacement pattern detected',
+  },
+
+  // --- L0: Format/template injection (model token abuse, HTML comment hiding) ---
+  {
+    regex: /\[INST\]|\[\/INST\]|<\|im_start\|>|<\|im_end\|>|<<SYS>>|<\/SYS>>|\[SYSTEM\]|\[USER\]|\[ASSISTANT\]/,
+    label: 'Model token injection',
+    layer: 'L0',
+    severity: 'critical',
+    signal: 'LLM prompt template token detected in payload (Llama/Mistral/ChatML format)',
+  },
+  {
+    regex: /<!--[\s\S]{0,200}(?:ignore|override|bypass|inject|system|instruction)[\s\S]{0,200}-->/i,
+    label: 'HTML comment instruction hiding',
+    layer: 'L0',
+    severity: 'high',
+    signal: 'Instructions hidden inside HTML comment block',
+  },
+
+  // --- L-2: Shell/URL exfiltration command ---
+  {
+    regex: /(?:curl|wget|nc|netcat|python\s+-c|bash\s+-c)[^\n]{0,60}(?:https?:\/\/|evil|exfil|attacker|C2)/i,
+    label: 'Shell exfiltration command',
+    layer: 'L-2',
+    severity: 'critical',
+    signal: 'Shell command targeting external URL detected (potential data exfil)',
+  },
+  {
+    regex: /@~\/\.ssh\/|@~\/\.aws\/|@~\/\.env\b|@\/etc\/passwd|@\/etc\/shadow/,
+    label: 'Credential file exfiltration',
+    layer: 'L-2',
+    severity: 'critical',
+    signal: 'Reference to sensitive credential file in exfil-style path',
   },
 
   // --- L0: Unintentional exposure (credentials / PII) ---
@@ -421,7 +512,7 @@ export async function rayScan(input: RayScanInput): Promise<RayScanOutput> {
 
   // Run P0 pattern battery with adaptive weights
   const weights = loadP0Weights();
-  for (const pattern of PATTERNS) {
+  for (const pattern of [...PATTERNS, ...dynamicPatterns]) {
     const match = content.match(pattern.regex);
     if (match) {
       const patternWeight = weights.pattern_weights[pattern.label] ?? 1.0;
