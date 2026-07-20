@@ -21,7 +21,6 @@ _Cron: `scripts/drain-queue-cron.sh` (headless nightly, cwd=~/rai). Skips silent
 ## Pending
 <!-- Add jobs below. Top = next. Self-contained + state how to verify green. -->
 
-- [ ] **RAI extension smoke-test harness** (packages/extension, OL-241). Add a headless vitest/Playwright smoke that loads the built MV3 bundle and asserts the P0 scanner fires on a known injection string. Why-now: OL-241 lists "smoke test browser_extension" as the open pending item. GUARD: pure test-add, but if it needs a real browser download/install, Block for Tim to authorize (download-execute gate).
 
 ## Suggested
 <!-- Candidate dev loops. `/drain-queue` sweeps this first: gate-clean non-design items auto-promote.
@@ -37,3 +36,4 @@ Design/architecture forks stay for Tim's glance. Each: what + which package/OL +
 
 - [x] Add a fast `typecheck` script to each package + root, fixed p2-agent's pre-existing red first (bs-council-runner.test.ts type-narrowing) so root typecheck lands clean across all 7 packages. `3b47cfa` 2026-07-20
 - [x] Wire `rayScan()` to call `blockReasonFromScanSignals` and attach `block_reason` to blocked verdicts (per Tim's explicit go); commit block-reason v1 module fully green, 22/22 block-reason tests, 281/281 core suite, build+typecheck+test clean across all 7 packages. `44da6d7` 2026-07-20
+- [x] RAI extension smoke-test harness (packages/extension, OL-241): vitest smoke that loads the real `npm run build` output (manifest.json + service-worker chunk) with a mocked chrome API, asserts P0 blocks a known injection string end-to-end, and asserts every manifest-declared file exists in dist/. Playwright/real-browser path skipped: not installed, would need a network download (job's own guard). `44eed44` 2026-07-20
