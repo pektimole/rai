@@ -21,12 +21,14 @@ _Cron: `scripts/drain-queue-cron.sh` (headless nightly, cwd=~/rai). Skips silent
 ## Pending
 <!-- Add jobs below. Top = next. Self-contained + state how to verify green. -->
 
+- [ ] **Wire Gate 1 enforcement into P1 scan output** (packages/core/rai-scan-p1.ts). `maybeRunCouncil()` already computes `bs_council` (BS Council verdict) but nothing downstream reads it, `deriveAction`/verdict/confidence are finalized before the council runs and never revised (per docs/26-rai-p2-spec.md §Two-Gate Protocol Gate 1: "threat-axis verdict cannot be high_confidence if verifiability verdict is UNVERIFIED or CONTESTED, forced to uncertain, recommended_action: human_review"). After `maybeRunCouncil()` resolves, if `bs_council.verdict` is `UNVERIFIED` or `CONTESTED`, downgrade verdict→`flagged`, confidence→cap uncertain, action→`human_review`; leave output unchanged for `CONFIRMED`/`FALSE-ALARM`/no-council-ran. Add tests covering all three branches. Also fix the stale "agents stubbed" claim at CLAUDE.md:12 (BS Council is fully implemented and wired, tests confirm) in the same commit. Verify green: `npm run build && npm test && npm run typecheck` for core (and p2-agent if touched).
 
 ## Suggested
 <!-- Candidate dev loops. `/drain-queue` sweeps this first: gate-clean non-design items auto-promote.
 Design/architecture forks stay for Tim's glance. Each: what + which package/OL + one-line why-now. -->
 
-- [ ] **[DESIGN-PROPOSAL] P2 agent implementation** (packages/p2-agent, agents stubbed per CLAUDE.md). Multi-agent consensus reasoning is judgment-heavy and the consensus contract is a locked schema: architecture decision, needs Tim. Do NOT auto-promote. When Tim scopes it, split into per-agent build jobs.
+- [ ] **[DECISION] Legacy 4-agent P2 path fate** (packages/p2-agent: `scanP2`/`mergeVerdicts`/`consensus.ts`/`agents/{provenance,cross-ref,temporal}.ts` LLM wrappers/`call-agent.ts`). Not called anywhere in rai-scan-p1.ts, BS Council (OL-281, 2026-05-19) fully superseded it in the live path; only `agents/credibility.ts`'s `lookupCredibility` table got physically reused. Keep as documented fallback, or delete as dead code (~40% of package)? Needs Tim's call, do NOT auto-promote.
+- [ ] **Gate 2 / ActionGate build** (docs/28-rai-actiongate-spec.md, packages/core/actiongate/: doesn't exist yet). Real net-new work; spec's own step 9, deferred until BS Council engine was green (it now is, tests pass). Scope into its own job list when Tim's ready to start it.
 
 ## Blocked
 <!-- Jobs the drain hit a gate on. Each: what it needs from Tim. -->
