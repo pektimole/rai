@@ -21,12 +21,21 @@ _Cron: `scripts/drain-queue-cron.sh` (headless nightly, cwd=~/rai). Skips silent
 ## Pending
 <!-- Add jobs below. Top = next. Self-contained + state how to verify green. -->
 
+- [ ] **Delete legacy 4-agent P2 path** (packages/p2-agent). Tim's explicit call on the `[DECISION]` item below: delete, don't keep as fallback. Confirmed orphaned: not called anywhere outside p2-agent itself except one coupled test block in core (see below). Remove:
+  - `scanP2()` export + implementation in `src/index.ts` (lines 36-50), and its imports of `runProvenanceAgent`/`runCrossRefAgent`/`runTemporalAgent`/`mergeVerdicts`
+  - `src/consensus.ts` (`mergeVerdicts`) + `src/__tests__/consensus.test.ts`
+  - `src/agents/provenance.ts`, `src/agents/cross-ref.ts`, `src/agents/temporal.ts` (the LLM-wrapper `run*Agent` functions)
+  - `src/agents/call-agent.ts` (`callAgent()`) + `src/__tests__/call-agent.test.ts`
+  - Corresponding `export`/`export type` lines in `src/index.ts` (`mergeVerdicts`, `runProvenanceAgent`, `runCrossRefAgent`, `runTemporalAgent`, and any now-unused types from `types.ts`: check `P2Input`/`P2Result`/`P2Weights`/`AgentVerdict` for other live consumers first, see coupling note)
+  - **Keep**: `src/agents/credibility.ts` in full (`runCredibilityAgent` + `lookupCredibility`/`CREDIBILITY_SEED`), BS Council still uses the credibility table, and keep `src/__tests__/credibility.test.ts`.
+  - **Coupling to fix in the same commit**: `packages/core/phantom.test.ts` lines 327-402 (`describe('P2 Weighted Consensus', ...)`) dynamically imports `mergeVerdicts` from `p2-agent/src/consensus.js` and is the only consumer outside p2-agent: delete this describe block too (it tests the legacy consensus layer, not Phantom itself; nothing else in `phantom.ts`/`threat-weights.ts` touches p2-agent, their `P2Weights` type is an unrelated same-named interface for Phantom's own tier-weight config, not a shared type).
+  - Verify green: `npm run build && npm test && npm run typecheck` across all 7 packages, core suite count should drop by the ~3 P2-Weighted-Consensus tests removed, no orphaned imports/exports left in `p2-agent/src/index.ts` or `types.ts`.
 
 ## Suggested
 <!-- Candidate dev loops. `/drain-queue` sweeps this first: gate-clean non-design items auto-promote.
 Design/architecture forks stay for Tim's glance. Each: what + which package/OL + one-line why-now. -->
 
-- [ ] **[DECISION] Legacy 4-agent P2 path fate** (packages/p2-agent: `scanP2`/`mergeVerdicts`/`consensus.ts`/`agents/{provenance,cross-ref,temporal}.ts` LLM wrappers/`call-agent.ts`). Not called anywhere in rai-scan-p1.ts, BS Council (OL-281, 2026-05-19) fully superseded it in the live path; only `agents/credibility.ts`'s `lookupCredibility` table got physically reused. Keep as documented fallback, or delete as dead code (~40% of package)? Needs Tim's call, do NOT auto-promote.
+- [ ] **[DECISION] Legacy 4-agent P2 path fate**, RESOLVED 2026-07-21: Tim said delete. Job moved to Pending above. Leaving this line as a record until that job closes.
 - [ ] **Gate 2 / ActionGate build** (docs/28-rai-actiongate-spec.md, packages/core/actiongate/: doesn't exist yet). Real net-new work; spec's own step 9, deferred until BS Council engine was green (it now is, tests pass). Scope into its own job list when Tim's ready to start it.
 
 ## Blocked
