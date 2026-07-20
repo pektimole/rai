@@ -32,9 +32,9 @@ Design/architecture forks stay for Tim's glance. Each: what + which package/OL +
 ## Blocked
 <!-- Jobs the drain hit a gate on. Each: what it needs from Tim. -->
 
-- [ ] **Add a fast `typecheck` script to each package + root**, baseline red: `packages/p2-agent` (`tsc --noEmit` fails, 3x TS2345 in `src/__tests__/bs-council-runner.test.ts(195|214|230)`, pre-existing, unrelated to this job, confirmed `npm run build` already failed on the same package before any change). Per the job's own VERIFY clause, did not fix the unrelated errors and did not commit; package.json edits were reverted (`git restore`) to keep the tree exactly as found. All 6 other packages + core typecheck clean. Needs Tim: either fix `bs-council-runner.test.ts`'s type error first, or say it's OK to land the typecheck scripts red-for-p2-agent (drain will re-run cleanly on that package once fixed).
-
 - [ ] **Commit the block-reason v1 module as a tested unit**, not fully green: `npm test -w packages/core, block-reason` is 21/22 passing. The one failure is `rayScan block_reason integration > populates block_reason on a blocked verdict` (`block-reason.test.ts:241`, `expected undefined to be defined`), `rai-scan-p0.ts`'s `rayScan()` is not yet wired to call `blockReasonFromScanSignals` and attach `block_reason` to blocked verdicts. Per the job's own GUARD (only auto-close if fully green), left `block-reason.ts` + `block-reason.test.ts` untracked/uncommitted, did not wire the integration myself (real feature addition, out of scope for this job). Needs Tim: either finish wiring `rayScan` to `block_reason`, or say the WIP should land with that integration test skipped/pending.
 
 ## Done
 <!-- Auto-appended by /drain-queue: - [x] JOB, <commit> <date> -->
+
+- [x] Add a fast `typecheck` script to each package + root, fixed p2-agent's pre-existing red first (bs-council-runner.test.ts type-narrowing) so root typecheck lands clean across all 7 packages. `3b47cfa` 2026-07-20
