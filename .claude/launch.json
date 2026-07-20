@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "rai-landing",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "assets/landing", "-p", "4488", "--no-clipboard"],
+      "port": 4488
+    }
+  ]
+}

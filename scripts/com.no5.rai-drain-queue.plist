@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.no5.rai-drain-queue</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/ich/rai/scripts/drain-queue-cron.sh</string>
+    </array>
+
+    <!-- Nightly 03:45 local — after the no5-context drain (03:15) so the two
+         never contend, and after daily-sync/judge-nightly. -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>3</integer>
+        <key>Minute</key>
+        <integer>45</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/ich/rai/scratch/drain-queue-launchd.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/ich/rai/scratch/drain-queue-launchd.err.log</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>
