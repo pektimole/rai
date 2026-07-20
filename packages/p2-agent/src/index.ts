@@ -8,43 +8,16 @@
  * - Explicit /rai-deep command
  */
 
-export { mergeVerdicts } from './consensus.js';
 export { mergeBSVerdicts } from './bs-council.js';
 export { runBSCouncil, runBSCouncilForScan } from './bs-council-runner.js';
 export type { RunBSCouncilOptions, RunBSCouncilForScanInput } from './bs-council-runner.js';
 export { loadCouncilConfig, resolveAgentConfig } from './council-config.js';
 export { shouldRunBSCouncil, extractVerifiableClaim } from './gate1.js';
 export type { Gate1Input, Gate1Output, Gate1Reason } from './gate1.js';
-export { runProvenanceAgent } from './agents/provenance.js';
-export { runCrossRefAgent } from './agents/cross-ref.js';
-export { runTemporalAgent } from './agents/temporal.js';
 export { runCredibilityAgent, lookupCredibility, CREDIBILITY_SEED } from './agents/credibility.js';
 export type {
-  P2Input, P2Result, P2Weights, AgentVerdict, CredibilityTier, SourceCredibility, ScanHistoryEntry,
+  P2Input, AgentVerdict, CredibilityTier, SourceCredibility, ScanHistoryEntry,
   BSCouncilVerdict, BSCouncilResult, Citation, CouncilRole, CouncilBreakdown,
   CouncilBreakdownA, CouncilBreakdownB, CouncilBreakdownC, CouncilBreakdownD,
   AgentABVerdict, AgentDVerdict, CouncilConfig, AgentConfig, ProviderName, RaiTier,
 } from './types.js';
-
-import type { P2Input, P2Result, P2Weights } from './types.js';
-import { runProvenanceAgent } from './agents/provenance.js';
-import { runCrossRefAgent } from './agents/cross-ref.js';
-import { runTemporalAgent } from './agents/temporal.js';
-import { runCredibilityAgent } from './agents/credibility.js';
-import { mergeVerdicts } from './consensus.js';
-
-/**
- * Run full P2 multi-agent consensus scan.
- * All 4 agents run in parallel, results merged via consensus layer.
- * Optional weights parameter for Phantom adaptive weighting.
- */
-export async function scanP2(input: P2Input, apiKey: string, weights?: P2Weights): Promise<P2Result> {
-  const [provenance, crossRef, temporal, credibility] = await Promise.all([
-    runProvenanceAgent(input, apiKey),
-    runCrossRefAgent(input, apiKey),
-    runTemporalAgent(input, apiKey),
-    runCredibilityAgent(input, apiKey),
-  ]);
-
-  return mergeVerdicts(input.scan_id, [provenance, crossRef, temporal, credibility], weights);
-}
