@@ -21,13 +21,13 @@ _Cron: `scripts/drain-queue-cron.sh` (headless nightly, cwd=~/rai). Skips silent
 ## Pending
 <!-- Add jobs below. Top = next. Self-contained + state how to verify green. -->
 
+- [ ] **RAI extension smoke-test harness** (packages/extension, OL-241). Add a headless vitest/Playwright smoke that loads the built MV3 bundle and asserts the P0 scanner fires on a known injection string. Why-now: OL-241 lists "smoke test browser_extension" as the open pending item. GUARD: pure test-add, but if it needs a real browser download/install, Block for Tim to authorize (download-execute gate).
+
 ## Suggested
 <!-- Candidate dev loops. `/drain-queue` sweeps this first: gate-clean non-design items auto-promote.
 Design/architecture forks stay for Tim's glance. Each: what + which package/OL + one-line why-now. -->
 
 - [ ] **[DESIGN-PROPOSAL] P2 agent implementation** (packages/p2-agent, agents stubbed per CLAUDE.md). Multi-agent consensus reasoning is judgment-heavy and the consensus contract is a locked schema: architecture decision, needs Tim. Do NOT auto-promote. When Tim scopes it, split into per-agent build jobs.
-
-- [ ] **RAI extension smoke-test harness** (packages/extension, OL-241). Add a headless vitest/Playwright smoke that loads the built MV3 bundle and asserts the P0 scanner fires on a known injection string. Why-now: OL-241 lists "smoke test browser_extension" as the open pending item. GUARD: pure test-add, but if it needs a real browser download/install, Block for Tim to authorize (download-execute gate).
 
 ## Blocked
 <!-- Jobs the drain hit a gate on. Each: what it needs from Tim. -->
