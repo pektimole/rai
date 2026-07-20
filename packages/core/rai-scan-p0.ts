@@ -23,6 +23,11 @@
 import { randomUUID } from 'crypto';
 import { loadP0Weights } from './threat-weights.js';
 import { getDefaultScanLog } from './scan-log.js';
+import {
+  blockReasonFromScanSignals,
+  buildBlockReasonHeaders,
+  type BlockReasonHeaders,
+} from './block-reason.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -83,6 +88,7 @@ export interface RayScanOutput {
   recommended_action: RecommendedAction;
   explanation: string;
   raw_signals: string[];
+  block_reason?: BlockReasonHeaders;
 }
 
 // ---------------------------------------------------------------------------
@@ -566,6 +572,19 @@ export async function rayScan(input: RayScanInput): Promise<RayScanOutput> {
     });
   } catch { /* never block scan pipeline on log failure */ }
 
+  const block_reason =
+    verdict === 'blocked'
+      ? buildBlockReasonHeaders(
+          blockReasonFromScanSignals(
+            finalSignals.map((s) => ({
+              layer: s.layer,
+              severity: s.severity,
+              label: s.label,
+            })),
+          ),
+        )
+      : undefined;
+
   return {
     scan_id,
     verdict,
@@ -574,6 +593,7 @@ export async function rayScan(input: RayScanInput): Promise<RayScanOutput> {
     recommended_action,
     explanation,
     raw_signals,
+    ...(block_reason ? { block_reason } : {}),
   };
 }
 
