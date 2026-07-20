@@ -1,12 +1,12 @@
 ---
-description: Unattended RAI dev-loop drain. Do ONE pending job from rai/queue.md, verify build+test green, commit to the rai repo, stop when empty. Fire as /loop /drain-queue from ~/rai.
+description: Unattended RAI dev-loop drain. Do ONE pending job from rai/queue.md, verify build+test green, commit to the rai repo, stop when empty. Fire as /loop /drain-queue-rai from ~/rai.
 ---
 
-# /drain-queue: Unattended RAI development loop
+# /drain-queue-rai: Unattended RAI development loop
 
-Repo-scoped twin of the no5-context `/drain-queue`. This one runs **inside the rai product repo** (`/Users/ich/rai`, github.com/pektimole/rai) and closes jobs by **committing working code**, not by writing OLs/decision-log. It resolves only when cwd = `~/rai` (project command). No5-context files are OUT OF SCOPE here: never touch them from this drain.
+Repo-scoped twin of the no5-context `/drain-queue`. Named `-rai` (not just `/drain-queue`) to avoid colliding with the global user-level `/drain-queue` command, which shadows same-named project commands in headless (`claude -p`) invocations. This one runs **inside the rai product repo** (`/Users/ich/rai`, github.com/pektimole/rai) and closes jobs by **committing working code**, not by writing OLs/decision-log. It resolves only when cwd = `~/rai` (project command). No5-context files are OUT OF SCOPE here: never touch them from this drain.
 
-Designed to be fired as **`/loop /drain-queue`** so each job runs in a fresh context (accurate disk state). Standalone `/drain-queue` also works: one job, then report.
+Designed to be fired as **`/loop /drain-queue-rai`** so each job runs in a fresh context (accurate disk state). Standalone `/drain-queue-rai` also works: one job, then report.
 
 Firing this over the queue IS Tim's Phase B `go` for each job's commit. He is away. Do not ask him anything mid-run; use the **Blocked** bucket instead.
 

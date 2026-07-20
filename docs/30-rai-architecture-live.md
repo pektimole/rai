@@ -2,7 +2,7 @@
 
 > **Auto-generated. Do not edit.**
 > Source of truth: `architecture.json` · Regenerate: `npm run regen-arch`
-> Generated: 2026-06-26 07:07 UTC · Commit: `6738de6` (`feat/ol-404-mcp-connector`) · ⚠ working tree dirty
+> Generated: 2026-07-20 07:17 UTC · Commit: `d376202` (`main`) · ⚠ working tree dirty
 > Schema version: 1.0 · Last manual edit to source: 2026-05-19
 
 ---

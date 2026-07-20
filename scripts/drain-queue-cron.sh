@@ -1,9 +1,12 @@
 #!/bin/bash
 # drain-queue-cron.sh — unattended nightly RAI dev-loop runner.
-# Fires headless `claude -p "/drain-queue"` from ~/rai repeatedly until Pending
+# Fires headless `claude -p "/drain-queue-rai"` from ~/rai repeatedly until Pending
 # is empty or a safety cap hits. Mirrors no5-context/scripts/drain-queue-cron.sh,
 # but scoped to the rai product repo (commits code, not OLs).
-# The cwd = ~/rai is what makes the project-scoped /drain-queue command resolve.
+# Command is named /drain-queue-rai (not /drain-queue): the global user-level
+# /drain-queue command shadows same-named project commands in headless `claude -p`
+# invocations regardless of cwd — confirmed 2026-07-20, a same-named project
+# command silently resolved to the no5-context one for 10 iterations, no-op.
 # launchd: com.no5.rai-drain-queue.plist, nightly 03:45 (after no5 drain 03:15).
 
 export PATH="/Users/ich/.nvm/versions/node/v22.19.0/bin:$PATH"
@@ -55,7 +58,7 @@ while [ "$i" -lt "$MAX_ITER" ]; do
   # allowlist at all, so the drain physically cannot cross those gates
   # regardless of what a job or injected content tries — belt-and-suspenders
   # on top of the command's own gate step.
-  claude -p "/drain-queue" \
+  claude -p "/drain-queue-rai" \
     --model sonnet \
     --allowedTools "Read" "Write" "Edit" "Bash" "WebFetch" "WebSearch" \
     >> "$LOG" 2>&1

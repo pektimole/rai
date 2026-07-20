@@ -4,13 +4,13 @@ _Repo-scoped twin of no5-context/queue.md. Closes jobs by committing green code,
 
 ## How to use
 1. Add jobs under **Pending** (one `- [ ]` per job, self-contained: what + which package/files + acceptance/how-to-verify + any constraint), OR let a session drop a candidate into **Suggested**, auto-promoted next drain if unambiguously safe.
-2. Drain it: fire **`/loop /drain-queue`** from `/Users/ich/rai`, or let the nightly headless runner do it (see cron below). Each pass does ONE job: verify green baseline → build → test → commit to the rai repo → next.
+2. Drain it: fire **`/loop /drain-queue-rai`** from `/Users/ich/rai`, or let the nightly headless runner do it (see cron below). Each pass does ONE job: verify green baseline → build → test → commit to the rai repo → next.
 3. On return: read **Done** (commit refs) + **Blocked** (jobs that hit a gate or couldn't close green) + **Suggested** (candidates needing your glance).
 
 _Cron: `scripts/drain-queue-cron.sh` (headless nightly, cwd=~/rai). Skips silently if Pending is empty. Not yet loaded into launchd: see the plist in scripts/ and the one-liner Tim runs to enable it._
 
 ## Contract (what firing the queue authorizes)
-- Firing `/drain-queue` over a job IS the Phase B `go` for that job's commit. Each job self-commits to the rai repo.
+- Firing `/drain-queue-rai` over a job IS the Phase B `go` for that job's commit. Each job self-commits to the rai repo.
 - **Green is the close gate.** `npm run build` + `npm test` for every touched package must pass. A red tree → restore-to-green + move to Blocked. Never commit red.
 - **Serialized, never parallel.** One job fully committed before the next starts.
 - **Hard stop, never guessed** (moved to Blocked): CWS/store publish, VPS/host deploy, npm publish, external send/post/DM, `.env`/secrets/`_vendored/` scp, delete/overwrite non-run files, git-history rewrite, money/paid-API spend, breaking a locked vocab/schema without a stated compat path, or any genuine decision fork with no safe default.
