@@ -9,6 +9,7 @@
 import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import { applyGate1 } from './rai-scan-p1.js';
 
 // Read the source rather than importing -- the SYSTEM_PROMPT is module-private.
 // This is intentional: the test verifies the prompt as it lives in source.
@@ -63,6 +64,58 @@ describe('P1 system prompt — OL-124 AI-provenance fingerprint classes', () => 
     expect(P1_SOURCE).toMatch(
       /AI-provenance fingerprints is typically low or medium/i,
     );
+  });
+});
+
+describe('Gate 1 — BS Council verdict merge (docs/26-rai-p2-spec.md §Two-Gate Protocol)', () => {
+  it('downgrades verdict, caps confidence, and forces human_review on UNVERIFIED', () => {
+    const result = applyGate1('blocked', 0.92, 'block', 'UNVERIFIED', 0.65);
+    expect(result).toEqual({
+      verdict: 'flagged',
+      confidence: 0.65,
+      recommended_action: 'human_review',
+    });
+  });
+
+  it('downgrades verdict, caps confidence, and forces human_review on CONTESTED', () => {
+    const result = applyGate1('flagged', 0.8, 'warn', 'CONTESTED', 0.65);
+    expect(result).toEqual({
+      verdict: 'flagged',
+      confidence: 0.65,
+      recommended_action: 'human_review',
+    });
+  });
+
+  it('does not raise confidence when it is already below the uncertain cap', () => {
+    const result = applyGate1('blocked', 0.4, 'block', 'CONTESTED', 0.65);
+    expect(result.confidence).toBe(0.4);
+  });
+
+  it('leaves the verdict untouched on CONFIRMED', () => {
+    const result = applyGate1('blocked', 0.92, 'block', 'CONFIRMED', 0.65);
+    expect(result).toEqual({
+      verdict: 'blocked',
+      confidence: 0.92,
+      recommended_action: 'block',
+    });
+  });
+
+  it('leaves the verdict untouched on FALSE-ALARM', () => {
+    const result = applyGate1('blocked', 0.9, 'block', 'FALSE-ALARM', 0.65);
+    expect(result).toEqual({
+      verdict: 'blocked',
+      confidence: 0.9,
+      recommended_action: 'block',
+    });
+  });
+
+  it('leaves the verdict untouched when the council never ran', () => {
+    const result = applyGate1('clean', 0.95, 'pass', undefined, 0.65);
+    expect(result).toEqual({
+      verdict: 'clean',
+      confidence: 0.95,
+      recommended_action: 'pass',
+    });
   });
 });
 

@@ -9,7 +9,7 @@ Monorepo with three packages:
 | Package | What | Status |
 |---|---|---|
 | `packages/core` | P0 regex scanner + P1 Claude API scanner | Extracted from NanoClaw, production-proven |
-| `packages/p2-agent` | Multi-agent consensus (4 independent chains) | Scaffolded, agents stubbed |
+| `packages/p2-agent` | Multi-agent consensus (4 independent chains) + BS Council verifiability axis | BS Council fully implemented and wired into P1, tests confirm; legacy 4-agent consensus path scaffolded/unused |
 | `packages/extension` | Chromium MV3 browser extension | MVP complete, builds, ready for CWS |
 
 ## Spec files

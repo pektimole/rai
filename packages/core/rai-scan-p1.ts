@@ -18,7 +18,7 @@ import { runBSCouncilForScan, type BSCouncilResult, type RaiTier } from "@rai/p2
 export type ThreatLayer = "L-2" | "L-1" | "L0" | "L1" | "L2" | "L3";
 export type Verdict = "clean" | "flagged" | "blocked";
 export type Severity = "low" | "medium" | "high" | "critical";
-export type RecommendedAction = "pass" | "warn" | "quarantine" | "block";
+export type RecommendedAction = "pass" | "warn" | "quarantine" | "block" | "human_review";
 
 export interface ScanInput {
   scan_id: string;
@@ -103,6 +103,31 @@ function deriveAction(
   if (hasL1Misinfo) return "warn";
   if (verdict === "flagged") return "warn";
   return "pass";
+}
+
+// ─── Gate 1 — Verify-Before-Verdict (docs/26-rai-p2-spec.md §Two-Gate Protocol) ─
+
+/**
+ * Merges the BS Council verifiability axis into the finalized P1 threat verdict.
+ * Spec: threat-axis verdict cannot be high-confidence if verifiability is UNVERIFIED
+ * or CONTESTED -- forced to flagged/uncertain confidence, action human_review.
+ * CONFIRMED, FALSE-ALARM, and "council never ran" all leave the P1 verdict untouched.
+ */
+export function applyGate1(
+  verdict: Verdict,
+  confidence: number,
+  action: RecommendedAction,
+  councilVerdict: BSCouncilResult["verdict"] | undefined,
+  uncertainConfidenceCap: number,
+): { verdict: Verdict; confidence: number; recommended_action: RecommendedAction } {
+  const downgrade = councilVerdict === "UNVERIFIED" || councilVerdict === "CONTESTED";
+  if (!downgrade) return { verdict, confidence, recommended_action: action };
+
+  return {
+    verdict: "flagged",
+    confidence: Math.min(confidence, uncertainConfidenceCap),
+    recommended_action: "human_review",
+  };
 }
 
 // ─── System prompt ────────────────────────────────────────────────────────────
@@ -247,13 +272,20 @@ export async function scanP1(input: ScanInput, options: ScanP1Options = {}): Pro
   } catch { /* never block scan pipeline on log failure */ }
 
   const bs_council = await maybeRunCouncil(input, parsed, options);
+  const gate1 = applyGate1(
+    parsed.verdict,
+    parsed.confidence,
+    action,
+    bs_council?.verdict,
+    ESCALATION_THRESHOLD,
+  );
 
   return {
     scan_id: input.scan_id,
-    verdict: parsed.verdict,
-    confidence: parsed.confidence,
+    verdict: gate1.verdict,
+    confidence: gate1.confidence,
     threat_layers: parsed.threat_layers ?? [],
-    recommended_action: action,
+    recommended_action: gate1.recommended_action,
     explanation: parsed.explanation,
     raw_signals: parsed.raw_signals ?? [],
     p1_invoked: true,
