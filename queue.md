@@ -21,8 +21,6 @@ _Cron: `scripts/drain-queue-cron.sh` (headless nightly, cwd=~/rai). Skips silent
 ## Pending
 <!-- Add jobs below. Top = next. Self-contained + state how to verify green. -->
 
-- [ ] **Add a fast `typecheck` script to each package + root** (dev-loop infra, self-improving). In every `packages/*/package.json`, add `"typecheck": "tsc --noEmit"` to `scripts` (skip any package that has no `tsconfig.json`, note which). In root `package.json`, add `"typecheck": "npm run typecheck --workspaces --if-present"`. Purpose: give the drain's green-gate a fast check that doesn't emit build artifacts. VERIFY: `npm run typecheck` runs clean at root (core already passes `tsc --noEmit`; if another package is red, that's a pre-existing red, Block with the failing package, do NOT "fix" unrelated type errors in this job). Internal, no gates, safe to commit.
-
 - [ ] **Commit the block-reason v1 module as a tested unit** (packages/core, OL-300 33- Part B). `block-reason.ts` + `block-reason.test.ts` currently sit untracked in packages/core. Job: run `npm test -w packages/core`; if the block-reason suite is green, `git add` exactly those two files and commit `feat(core): block-reason v1 header set (OL-300)`. GUARD: this stages in-flight WIP Tim authored: only auto-close if the suite is fully green and the diff is exactly those two files; otherwise Block. Why-now: WIP is tested and idle, closing it locks the v1 vocabulary.
 
 ## Suggested
@@ -35,6 +33,8 @@ Design/architecture forks stay for Tim's glance. Each: what + which package/OL +
 
 ## Blocked
 <!-- Jobs the drain hit a gate on. Each: what it needs from Tim. -->
+
+- [ ] **Add a fast `typecheck` script to each package + root**, baseline red: `packages/p2-agent` (`tsc --noEmit` fails, 3x TS2345 in `src/__tests__/bs-council-runner.test.ts(195|214|230)`, pre-existing, unrelated to this job, confirmed `npm run build` already failed on the same package before any change). Per the job's own VERIFY clause, did not fix the unrelated errors and did not commit; package.json edits were reverted (`git restore`) to keep the tree exactly as found. All 6 other packages + core typecheck clean. Needs Tim: either fix `bs-council-runner.test.ts`'s type error first, or say it's OK to land the typecheck scripts red-for-p2-agent (drain will re-run cleanly on that package once fixed).
 
 ## Done
 <!-- Auto-appended by /drain-queue: - [x] JOB, <commit> <date> -->
