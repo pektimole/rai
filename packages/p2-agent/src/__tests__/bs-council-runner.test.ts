@@ -192,7 +192,7 @@ describe('web search routing (OL-281)', () => {
       apiKeys: { anthropic: 'k', together: 'k' },
     });
 
-    const calls = callMock.mock.calls.map((c: [ProviderCallInput]) => c[0]);
+    const calls = callMock.mock.calls.map((c: any[]) => c[0] as ProviderCallInput);
     const callA = calls.find((c: ProviderCallInput) => c.systemPrompt.startsWith('You are Agent A'));
     const callB = calls.find((c: ProviderCallInput) => c.systemPrompt.startsWith('You are Agent B'));
     const callC = calls.find((c: ProviderCallInput) => c.systemPrompt.startsWith('You are Agent C'));
@@ -211,7 +211,7 @@ describe('web search routing (OL-281)', () => {
       apiKeys: { anthropic: 'k', together: 'k' },
     });
 
-    const calls = callMock.mock.calls.map((c: [ProviderCallInput]) => c[0]);
+    const calls = callMock.mock.calls.map((c: any[]) => c[0] as ProviderCallInput);
     const callA = calls.find((c: ProviderCallInput) => c.systemPrompt.startsWith('You are Agent A'));
 
     // searchQuery must be a non-empty string shorter than the full userMessage
@@ -227,7 +227,7 @@ describe('web search routing (OL-281)', () => {
       apiKeys: { anthropic: 'k', together: 'k' },
     });
 
-    const calls = callMock.mock.calls.map((c: [ProviderCallInput]) => c[0]);
+    const calls = callMock.mock.calls.map((c: any[]) => c[0] as ProviderCallInput);
     const callA = calls.find((c: ProviderCallInput) => c.systemPrompt.startsWith('You are Agent A'));
     const callB = calls.find((c: ProviderCallInput) => c.systemPrompt.startsWith('You are Agent B'));
 

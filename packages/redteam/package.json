@@ -10,7 +10,8 @@
   "scripts": {
     "build": "tsc && node dist/bundle.js",
     "test": "vitest run",
-    "run-suite": "node dist/cli.js"
+    "run-suite": "node dist/cli.js",
+    "typecheck": "tsc --noEmit"
   },
   "files": [
     "dist",

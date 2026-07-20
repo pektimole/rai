@@ -9,7 +9,8 @@
     "build": "tsc",
     "test": "vitest run",
     "smoke": "node --env-file=../../.env --import tsx/esm src/smoke-test.ts",
-    "smoke:debug": "RAI_DEBUG=1 node --env-file=../../.env --import tsx/esm src/smoke-test.ts"
+    "smoke:debug": "RAI_DEBUG=1 node --env-file=../../.env --import tsx/esm src/smoke-test.ts",
+    "typecheck": "tsc --noEmit"
   },
   "files": ["dist"],
   "devDependencies": {

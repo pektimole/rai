@@ -14,6 +14,7 @@
   "scripts": {
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "regen-arch": "tsx scripts/regen-architecture.ts"
   },
   "devDependencies": {

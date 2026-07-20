@@ -8,7 +8,8 @@
   "scripts": {
     "build": "tsc && npm run copy-weights",
     "copy-weights": "node -e \"require('fs').cpSync('weights', 'dist/weights', {recursive: true})\"",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "files": [
     "dist"
