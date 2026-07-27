@@ -48,3 +48,5 @@ export * from './l1-controller.js';
 // Learn-and-lock — policy generation pipeline (OL-461)
 // Phase 1: observe (hash-chained flight recorder)
 export * from './contract-recorder.js';
+// Phase 2: compile (behavioral-contract inference + signing)
+export * from './contract-compile.js';
