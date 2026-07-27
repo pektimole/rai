@@ -198,6 +198,17 @@ html,body{background:#111;font-family:'DM Mono',monospace;color:var(--text);}
 #s10 .seed-cta{display:inline-block;margin-top:24px;font-size:13px;color:var(--accent);letter-spacing:.05em;}
 #s10 .close-line{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--dim);}
 #s10 .glow{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(232,255,0,.04) 0%,transparent 60%);pointer-events:none;}
+
+/* SDIFF DIFFERENTIATION (4-locus, added 2026-07-26) */
+#sdiff .inner{padding:56px 80px;height:100%;display:flex;flex-direction:column;gap:28px;}
+#sdiff .exit-table{border:1px solid var(--border);width:100%;border-collapse:collapse;}
+#sdiff .exit-table th{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);font-weight:400;}
+#sdiff .exit-table td{font-size:12px;padding:14px 16px;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:top;}
+#sdiff .exit-table td:first-child{color:var(--text);}
+#sdiff .exit-table .rai-row td{color:var(--accent);border-color:rgba(232,255,0,.15);}
+#sdiff .exit-table .rai-row td:first-child{font-family:'Fraunces',serif;font-size:14px;}
+#sdiff .dataset-note{font-size:11px;color:var(--muted);line-height:1.6;border-left:2px solid var(--border);padding-left:16px;}
+#sdiff .dataset-note em{color:var(--text);font-style:normal;}
 </style>
 </head>
 <body>
@@ -205,7 +216,7 @@ html,body{background:#111;font-family:'DM Mono',monospace;color:var(--text);}
 <nav class="deck-nav">
   <div class="deck-logo"><span>(R)</span>AI — Teaser Deck v17</div>
   <div class="nav-controls">
-    <span class="slide-counter" id="counter">1 / 10</span>
+    <span class="slide-counter" id="counter">1 / 11</span>
     <button class="nav-btn" onclick="prevSlide()">← Prev</button>
     <button class="nav-btn" onclick="nextSlide()">Next →</button>
     <button class="nav-btn" onclick="toggleFull()">Fullscreen</button>
@@ -294,7 +305,7 @@ html,body{background:#111;font-family:'DM Mono',monospace;color:var(--text);}
         </div>
         <div class="product-grid">
           <div class="product-card"><div class="accent-line" style="background:var(--accent);"></div><div class="card-tag">Consumer · Truth Lens</div><div class="card-title">Know what's<br><em>real.</em></div><div class="card-body">AI-managed DMs. Cloned voices. Synthetic personas. Influencer-amplified harm. The outward threat is ambient and accelerating. (R)AI is the layer that runs before you trust.</div><ul class="card-points"><li>Synthetic identity detection (L5)</li><li>Manufactured authority + influencer harm (L1)</li><li>AI-generated persona disclosure</li><li>Trust score before you respond</li><li>Trust &amp; Truth Council: 4-agent web-grounded consensus</li></ul></div>
-          <div class="product-card"><div class="accent-line" style="background:var(--violet);"></div><div class="card-tag">Enterprise · ActionGate</div><div class="card-title" style="color:var(--violet);">Your agents<br><em>inherited your</em><br>privileges.</div><div class="card-body">Every agent you run, every model you use, every recommendation you follow. Without a second layer. The write gate. The scope attestation. The auditor your AI vendor can't be: cross-vendor, including theirs.</div><div style="font-size:11px;color:var(--violet);margin:14px 0 2px;font-weight:600;line-height:1.4;">9 guardrail flags · 1,000+ agent sessions (OALABS). Enforcement holds where intent classification doesn't.</div><ul class="card-points"><li>Agent action write gate (L4 confused deputy)</li><li>Prompt injection detection (L0 / MCP STDIO)</li><li>Supply chain monitoring (VCCE)</li><li>Process lineage + scope audit</li><li>Decision provenance trace (clinical tier)</li></ul></div>
+          <div class="product-card"><div class="accent-line" style="background:var(--violet);"></div><div class="card-tag">Enterprise · ActionGate</div><div class="card-title" style="color:var(--violet);">Your agents<br><em>inherited your</em><br>privileges.</div><div class="card-body">Every agent you run, every model you use, every recommendation you follow. Without a second layer. The write gate. The scope attestation. Vendors now ship their own in-harness guards, but a vendor auditing itself is not an audit. The auditor your AI vendor can't be: cross-vendor, and on your side of the wire, including theirs.</div><div style="font-size:11px;color:var(--violet);margin:14px 0 2px;font-weight:600;line-height:1.4;">9 guardrail flags · 1,000+ agent sessions (OALABS). Enforcement holds where intent classification doesn't.</div><ul class="card-points"><li>Agent action write gate (L4 confused deputy)</li><li>Prompt injection detection (L0 / MCP STDIO)</li><li>Supply chain monitoring (VCCE)</li><li>Process lineage + scope audit</li><li>Decision provenance trace (clinical tier)</li></ul></div>
         </div>
         <div class="engine-bar"><div class="engine-label">Scan Engine · P0 → P1 → P2/BS Council → L4 ActionGate → Phantom</div><div class="engine-layers"><div class="layer-pill">P0 Local</div><div class="layer-pill">P1 AI</div><div class="layer-pill" style="color:var(--accent);border-color:rgba(232,255,0,.3);">P2 Council</div><div class="layer-pill" style="color:var(--violet);border-color:rgba(170,68,255,.3);">ActionGate</div><div class="layer-pill">Phantom</div></div></div>
       </div>
@@ -360,6 +371,29 @@ html,body{background:#111;font-family:'DM Mono',monospace;color:var(--text);}
   </div>
 
   <div class="slide-wrap" id="slide-8">
+    <div class="slide" id="sdiff">
+      <div class="inner">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:4px;">
+          <div><div class="eyebrow">Beat 2/4 · Differentiation</div><div class="display" style="font-family:'Fraunces',serif;font-size:38px;line-height:1.05;">Where the guard <em>sits.</em></div></div>
+          <div class="body-sm" style="max-width:380px;text-align:right;">Every rival guard needs you to own or instrument the agent, or it only watches its own vendor. (R)AI is the only counterparty-side, cross-vendor layer.</div>
+        </div>
+        <table class="exit-table">
+          <thead><tr><th>Where the guard sits</th><th>Player</th><th>Needs you to own / instrument?</th><th>Whose side is it on?</th></tr></thead>
+          <tbody>
+            <tr><td>Enterprise IdP-registered</td><td>SecureAuth</td><td>Yes</td><td>The enterprise's</td></tr>
+            <tr><td>Runtime-instrumented fleet</td><td>Geordie AI</td><td>Yes</td><td>The enterprise's</td></tr>
+            <tr><td>Owned infra (canaries)</td><td>Tracebit</td><td>Yes</td><td>The enterprise SOC's</td></tr>
+            <tr><td>Vendor-side, in-harness</td><td>Auto Mode (Anthropic)</td><td>No</td><td>The vendor's (audits itself)</td></tr>
+            <tr class="rai-row"><td>Counterparty-side, cross-vendor</td><td>(R)AI</td><td>No</td><td>Yours</td></tr>
+          </tbody>
+        </table>
+        <div class="dataset-note"><em>The narrowing:</em> once a vendor ships its own no-ownership guard, (R)AI's edge is the two axes it still holds alone: cross-vendor (it guards every LLM surface, including the vendor's own) and counterparty-side (a vendor auditing itself is not an audit). Cross-ref OL-266, OL-267.</div>
+      </div>
+      <div class="slide-num">08</div>
+    </div>
+  </div>
+
+  <div class="slide-wrap" id="slide-9">
     <div class="slide" id="s8">
       <div class="inner">
         <div><div class="eyebrow">Beat 5 · Roadmap</div><div class="display" style="font-family:'Fraunces',serif;font-size:40px;line-height:1.05;">The gap between "first attack"<br>and <em>"everyone protected"</em><br>becomes unmeasurable.</div></div>
@@ -372,11 +406,11 @@ html,body{background:#111;font-family:'DM Mono',monospace;color:var(--text);}
         </div>
         <div class="poc-note"><strong>POC is honest:</strong> 24–72h human-in-loop is the real number. Proves the loop exists. Speed is a v2 story. <em>Never promise real-time if the POC runs on a cron job.</em></div>
       </div>
-      <div class="slide-num">08</div>
+      <div class="slide-num">09</div>
     </div>
   </div>
 
-  <div class="slide-wrap" id="slide-9">
+  <div class="slide-wrap" id="slide-10">
     <div class="slide" id="s9">
       <div class="inner">
         <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:4px;">
@@ -395,11 +429,11 @@ html,body{background:#111;font-family:'DM Mono',monospace;color:var(--text);}
           </tbody>
         </table>
       </div>
-      <div class="slide-num">09</div>
+      <div class="slide-num">10</div>
     </div>
   </div>
 
-  <div class="slide-wrap" id="slide-10">
+  <div class="slide-wrap" id="slide-11">
     <div class="slide" id="s10">
       <div class="inner">
         <div class="seed-box">
@@ -412,7 +446,7 @@ html,body{background:#111;font-family:'DM Mono',monospace;color:var(--text);}
         </div>
         <div class="close-line">"SSL was invented once. So was (R)AI."</div>
       </div>
-      <div class="slide-num">10</div>
+      <div class="slide-num">11</div>
     </div>
   </div>
 
@@ -426,13 +460,14 @@ html,body{background:#111;font-family:'DM Mono',monospace;color:var(--text);}
   <div class="thumb" onclick="goTo(5)" id="thumb-5" style="border-color:rgba(232,255,0,.25);"><div class="thumb-num" style="color:var(--accent);">05</div><div class="thumb-label" style="color:var(--accent);">Evolution ★</div></div>
   <div class="thumb" onclick="goTo(6)" id="thumb-6"><div class="thumb-num">06</div><div class="thumb-label">Proof</div></div>
   <div class="thumb" onclick="goTo(7)" id="thumb-7" style="border-color:rgba(232,255,0,.25);"><div class="thumb-num" style="color:var(--accent);">07</div><div class="thumb-label" style="color:var(--accent);">Moat ★</div></div>
-  <div class="thumb" onclick="goTo(8)" id="thumb-8" style="border-color:rgba(232,255,0,.25);"><div class="thumb-num" style="color:var(--accent);">08</div><div class="thumb-label" style="color:var(--accent);">Ladder ★</div></div>
-  <div class="thumb" onclick="goTo(9)" id="thumb-9"><div class="thumb-num">09</div><div class="thumb-label">Exit</div></div>
-  <div class="thumb" onclick="goTo(10)" id="thumb-10"><div class="thumb-num">10</div><div class="thumb-label">Seed</div></div>
+  <div class="thumb" onclick="goTo(8)" id="thumb-8"><div class="thumb-num">08</div><div class="thumb-label">Edge</div></div>
+  <div class="thumb" onclick="goTo(9)" id="thumb-9" style="border-color:rgba(232,255,0,.25);"><div class="thumb-num" style="color:var(--accent);">09</div><div class="thumb-label" style="color:var(--accent);">Ladder ★</div></div>
+  <div class="thumb" onclick="goTo(10)" id="thumb-10"><div class="thumb-num">10</div><div class="thumb-label">Exit</div></div>
+  <div class="thumb" onclick="goTo(11)" id="thumb-11"><div class="thumb-num">11</div><div class="thumb-label">Seed</div></div>
 </div>
 
 <script>
-let current=1;const total=10;
+let current=1;const total=11;
 function goTo(n){document.getElementById('slide-'+current).classList.remove('active');document.getElementById('thumb-'+current).classList.remove('active');current=n;document.getElementById('slide-'+current).classList.add('active');document.getElementById('thumb-'+current).classList.add('active');document.getElementById('counter').textContent=current+' / '+total;document.getElementById('thumb-'+current).scrollIntoView({behavior:'smooth',inline:'center'});}
 function nextSlide(){if(current<total)goTo(current+1);}
 function prevSlide(){if(current>1)goTo(current-1);}
