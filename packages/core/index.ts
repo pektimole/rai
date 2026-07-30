@@ -52,3 +52,5 @@ export * from './contract-recorder.js';
 export * from './contract-compile.js';
 // Phase 2a: live capture (fail-open bridge from the gate seams to the recorder)
 export * from './contract-capture.js';
+// Phase 3: shadow (dry-run replay of a candidate contract, would-block deltas)
+export * from './contract-shadow.js';
