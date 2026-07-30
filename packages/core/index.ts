@@ -54,3 +54,5 @@ export * from './contract-compile.js';
 export * from './contract-capture.js';
 // Phase 3: shadow (dry-run replay of a candidate contract, would-block deltas)
 export * from './contract-shadow.js';
+// Phase 4: activate (ratify stable rules → enforce, promote via signed CAS swap)
+export * from './contract-ratify.js';
