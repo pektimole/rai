@@ -50,3 +50,5 @@ export * from './l1-controller.js';
 export * from './contract-recorder.js';
 // Phase 2: compile (behavioral-contract inference + signing)
 export * from './contract-compile.js';
+// Phase 2a: live capture (fail-open bridge from the gate seams to the recorder)
+export * from './contract-capture.js';

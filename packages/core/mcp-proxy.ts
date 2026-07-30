@@ -40,6 +40,7 @@ import {
   type McpPolicyYaml,
   type McpToolCall,
 } from './action-gate-mcp';
+import { defaultCaptureSession } from './contract-capture';
 
 // ---------------------------------------------------------------------------
 // CLI argument parsing
@@ -263,6 +264,12 @@ async function startRawProxy(
             isError: true,
           });
         } else {
+          // Learn-and-lock (OL-461, phase 2a): observe the permitted call.
+          // No-op unless RAI_CAPTURE is set; fail-open so capture can never
+          // turn an allowed call into a failed one. Recorded before forwarding
+          // so a downstream error does not drop the observation.
+          defaultCaptureSession().captureMcp({ server: policy.serverName, tool: toolName });
+
           // Forward to downstream
           const result = await downstream.callTool({ name: toolName, arguments: args });
           respond(request.id, result);
