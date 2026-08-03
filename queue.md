@@ -21,11 +21,16 @@ _Cron: `scripts/drain-queue-cron.sh` (headless nightly, cwd=~/rai). Skips silent
 ## Pending
 <!-- Add jobs below. Top = next. Self-contained + state how to verify green. -->
 
+- [ ] Lift NanoClaw write-gate into packages/core/src/action-gate/ (rai/docs/28-rai-actiongate-spec.md Step 1). Port the 5-layer deterministic policy logic, no behavior change. Acceptance: new module compiles, existing NanoClaw write-gate tests ported and green, `npm run build && npm test` clean across all packages.
+- [ ] YAML policy loader + schema for ActionGate (Step 2, depends on Step 1). Define policy file format per spec's "Policy file format" section. Acceptance: loader parses a sample policy file, schema validation rejects malformed YAML, unit tests green.
+- [ ] ActionGate.evaluate() API + unit tests (Step 3, depends on Step 2). Core evaluate(action, policy) -> verdict interface. Acceptance: unit tests cover allow/deny/escalate paths, build+typecheck+test green across all 7 packages.
+- [ ] Re-bind NanoClaw to new ActionGate module + regression test (Step 4, depends on Step 3). Swap NanoClaw's internal write-gate call to the new packages/core module. Acceptance: NanoClaw regression suite green, no behavior change vs pre-migration baseline.
+
 ## Suggested
 <!-- Candidate dev loops. `/drain-queue` sweeps this first: gate-clean non-design items auto-promote.
 Design/architecture forks stay for Tim's glance. Each: what + which package/OL + one-line why-now. -->
 
-- [ ] **Gate 2 / ActionGate build** (docs/28-rai-actiongate-spec.md, packages/core/actiongate/: doesn't exist yet). Real net-new work; spec's own step 9, deferred until BS Council engine was green (it now is, tests pass). Scope into its own job list when Tim's ready to start it.
+- [ ] **ActionGate Steps 5-8** (docs/28-rai-actiongate-spec.md: `shell` adapter + Claude Code PreToolUse hook integration, `mcp` adapter, audit log, docs). Held back from Pending: Step 6 (MCP adapter) is explicitly "a separate sprint" per the spec, Step 5 touches hook integration (more surface-sensitive). Scope into Pending once Steps 1-4 are closed and Tim's ready for the next wave.
 
 ## Blocked
 <!-- Jobs the drain hit a gate on. Each: what it needs from Tim. -->
