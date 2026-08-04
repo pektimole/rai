@@ -28,10 +28,12 @@ Design/architecture forks stay for Tim's glance. Each: what + which package/OL +
 ## Blocked
 <!-- Jobs the drain hit a gate on. Each: what it needs from Tim. -->
 
-- [ ] Re-bind NanoClaw to new ActionGate module + regression test (Step 4, rai/docs/28-rai-actiongate-spec.md). Grep-before-building on `/drain-queue-rai` found NanoClaw is NOT a package inside this repo (no `*nanoclaw*` dir under packages/, no `find` hit), it's a separate production system (VPS write-back, tracked in no5-context/02b-nanoclaw-open-loops.md), running independently since 2026-03-21 per action-gate.ts's own header comment. "Re-binding" it means editing NanoClaw's own codebase to call rai's `packages/core/action-gate.ts` instead of its internal write-gate, cross-repo work outside rai-repo scope, and ActionGate has since grown its own adapters (shell/mcp/NMH/router-audit, see Done below) as an independent product surface without NanoClaw ever being re-bound. Tim's call: (a) still want NanoClaw re-bound, if so, where does NanoClaw's repo live so this can be scoped as a job there, or (b) drop it, NanoClaw's write-gate has run fine on its own for 4+ months, ActionGate diverged into its own thing.
+
 
 ## Done
 <!-- Auto-appended by /drain-queue: - [x] JOB, <commit> <date> -->
+
+- [x] Re-bind NanoClaw to new ActionGate module (Step 4, rai/docs/28-rai-actiongate-spec.md): **won't-do, Tim's decision 2026-08-04.** NanoClaw's write-gate has run standalone in production since 2026-03-21 with zero breaches; ActionGate was lifted from it April 2026 and has since grown its own adapters (shell/mcp/NMH/router-audit) that NanoClaw never uses. Rebind would be cross-repo work (NanoClaw isn't a package in this repo) for no functional gain over the proven standalone gate. Decided to let them stay separate rather than couple a stable production system to a diverging one. No code change; doc + spec updated to reflect this as closed, not blocked.
 
 - [x] Lift NanoClaw write-gate into ActionGate (Step 1): grep-before-building on `/drain-queue-rai` found this already shipped (module lives flat at `packages/core/action-gate.ts`, not the `src/action-gate/` subdir the job text named, functionally equivalent). Verified green: full repo `npm run build` clean, `packages/core` test suite 366/366 passing (includes `action-gate.test.ts`). `89cba87` 2026-04-09 (pre-existing, not built this session)
 - [x] YAML policy loader + schema for ActionGate (Step 2): already shipped alongside the shell adapter. `38f45d7` 2026-04-09 (pre-existing, not built this session)

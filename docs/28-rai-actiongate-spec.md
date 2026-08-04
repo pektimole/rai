@@ -203,11 +203,11 @@ The `fs-git` adapter exists today on the VPS as the NanoClaw Write Gate. Concret
 1. ✅ Lift current write-gate code from NanoClaw repo into `packages/core/action-gate.ts`, shipped `89cba87` 2026-04-09. (Landed as a flat file in `packages/core/`, not the `src/action-gate/` subdir this line originally named, functionally equivalent, module ships from `packages/core/` same as every other adapter file.)
 2. ✅ Genericize: extract policy from hardcoded constants into YAML loader: shipped `38f45d7` 2026-04-09, policy files in `packages/core/policies/*.yaml`.
 3. ✅ Wrap as `ActionGate.evaluate(action, context) -> Verdict`: shipped `89cba87` 2026-04-09.
-4. ⛔ **Re-bind NanoClaw to the new module (no behavior change), NOT done.** NanoClaw is a separate production system (VPS write-back, not a package in this repo), running its own original 5-layer write-gate independently since 2026-03-21. Re-binding it means editing NanoClaw's own codebase to call this module instead, cross-repo work, blocked pending Tim's call (see `rai/queue.md` ## Blocked, added 2026-08-04). ActionGate has since grown adapters of its own (`shell`, `mcp`, `native-messaging-host`, `router-audit`) as an independent product surface without this rebind ever happening.
+4. 🚫 **Re-bind NanoClaw to the new module: won't-do, Tim's decision 2026-08-04.** NanoClaw is a separate production system (VPS write-back, not a package in this repo), running its own original 5-layer write-gate independently since 2026-03-21 with zero breaches. Rebinding would mean editing NanoClaw's own codebase to call this module instead, cross-repo work with no functional gain over the proven standalone gate. ActionGate has since grown adapters of its own (`shell`, `mcp`, `native-messaging-host`, `router-audit`) as an independent product surface; decided to let the two stay separate rather than couple a stable production system to a diverging one. See `rai/queue.md` ## Done.
 5. `@rai/action-gate` as a published npm package: not done; module lives internal to `packages/core` only.
 6. ✅ Build `shell` and `mcp` adapters from the same engine: shipped `38f45d7` + `bf4da33` 2026-04-09.
 
-Steps 1-3 + 6 shipped 2026-04-09 (one day, as estimated). Step 4 (NanoClaw rebind) and step 5 (standalone npm package) remain open: see Implementation Plan below.
+Steps 1-3 + 6 shipped 2026-04-09 (one day, as estimated). Step 4 (NanoClaw rebind) is closed as won't-do (2026-08-04); step 5 (standalone npm package) remains open.
 
 ---
 
@@ -230,7 +230,7 @@ Steps 1-3 + 6 shipped 2026-04-09 (one day, as estimated). Step 4 (NanoClaw rebin
 | 1 | Lift NanoClaw write-gate into `packages/core/action-gate.ts` | 2h | Nothing | ✅ Done, `89cba87` 2026-04-09 |
 | 2 | YAML policy loader + schema | 2h | Step 1 | ✅ Done, `38f45d7` 2026-04-09 |
 | 3 | `ActionGate.evaluate()` API + unit tests | 2h | Step 2 | ✅ Done, `89cba87` 2026-04-09 |
-| 4 | Re-bind NanoClaw to new module, regression test | 1h | Step 3 | ⛔ **Blocked**: cross-repo, see `rai/queue.md` ## Blocked |
+| 4 | Re-bind NanoClaw to new module, regression test | 1h | Step 3 | 🚫 **Won't-do** (Tim's call 2026-08-04): NanoClaw's standalone gate proven since 2026-03-21, cross-repo work for no gain, see `rai/queue.md` ## Done |
 | 5 | `shell` adapter + Claude Code PreToolUse hook integration | 3h | Step 3 | ✅ Done, `38f45d7` 2026-04-09 |
 | 6 | `mcp` adapter (proxy server) | 1d | Step 3 | ✅ Done, `bf4da33` 2026-04-09 |
 | 7 | Audit log with scan_id correlation | 2h | Step 3 | ✅ Done, `c921f91` 2026-04-10 (`packages/core/audit-log.ts`) |
