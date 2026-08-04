@@ -4,18 +4,20 @@
  * Deterministic, fail-closed policy engine for agent-initiated actions.
  * Lifted from NanoClaw 5-layer Write Gate (in production since 2026-03-21).
  *
- * Spec: no5-context/28-rai-actiongate-spec.md
+ * Spec: docs/28-rai-actiongate-spec.md
  *
  * Threat layer: L4 — Agent action / unauthorized side-effect.
  * Composes with P0/P1/P2: content scanners decide what the model reads,
  * ActionGate decides what the model is allowed to do with that output.
  *
- * Surface adapters (planned):
- *   fs-git    — file write + git commit/push       (this file, lifted from NanoClaw)
- *   shell     — exec / spawn                       (TODO)
- *   mcp       — tool invocation                    (TODO)
- *   http      — fetch / mutation verbs             (TODO)
- *   browser   — DOM submit / navigate              (TODO)
+ * Surface adapters:
+ *   fs-git               — file write + git commit/push       (this file, lifted from NanoClaw)
+ *   shell                — exec / spawn                       (action-gate-shell.ts, live)
+ *   mcp                  — tool invocation                    (action-gate-mcp.ts + mcp-proxy.ts, live)
+ *   native-messaging-host — vendor IPC manifest write/modify   (action-gate-native-messaging-host.ts, live)
+ *   router-audit         — local/cloud inference routing       (action-gate-router-audit.ts, live)
+ *   http                 — fetch / mutation verbs             (not built)
+ *   browser              — DOM submit / navigate              (not built)
  *
  * Usage:
  *   import { evaluate, FsGitPolicy, FsGitAction } from './action-gate';

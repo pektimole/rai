@@ -1,6 +1,6 @@
 # RAI ActionGate: Agent Action Firewall
 _Created: 2026-04-08_
-_Status: Spec draft_
+_Status: **Core engine + `fs-git`, `shell`, `mcp`, `native-messaging-host`, `router-audit` adapters, audit log: all Live.** `http` + `browser-dom` adapters not built. Doc synced 2026-08-04 (was stale since 2026-04-08 draft; code shipped Apr-Jul 2026, doc never caught up)._
 _Trigger: NanoClaw write-gate pattern (OL-022) reviewed in RAI session 2026-04-08_
 _Dependency: P0 live, P1 live, NanoClaw 5-layer Write Gate live (proven in production)_
 
@@ -112,13 +112,13 @@ ActionGate is one core engine, many surface adapters. Each adapter binds the eng
 
 | Adapter | Host | Action types | Status |
 |---|---|---|---|
-| `fs-git` | NanoClaw write-back | git add/commit/push, file write | **Live** (proven, 5-layer) |
-| `shell` | Claude Code, Cursor, Aider | exec, spawn | Spec |
-| `mcp` | Any MCP server | tool invocation | Spec |
-| `http` | Browser extension agentic mode, API clients | fetch, mutation verbs | Spec |
-| `browser-dom` | RAI extension (OL-074) | form submit, click, navigate | Future |
-| `native-messaging-host` | OS (browser NativeMessagingHosts dirs) | manifest write/modify/remove (vendor covert capability expansion) | **Phase A+B live 2026-04-22** (runner + tests + notify hook + launchd; Linux/Windows pending) |
-| `router-audit` | Hybrid-inference router (AI PC OS / on-device classifier) | task routed local↔cloud, sensitivity classification, consent state at the routing boundary | Spec 2026-06-04 (OL-370) |
+| `fs-git` | NanoClaw write-back | git add/commit/push, file write | **Live** (proven, 5-layer), `packages/core/action-gate.ts`, `89cba87` 2026-04-09 |
+| `shell` | Claude Code, Cursor, Aider | exec, spawn | **Live**, `packages/core/action-gate-shell.ts`, `38f45d7` 2026-04-09 |
+| `mcp` | Any MCP server | tool invocation | **Live**, `packages/core/action-gate-mcp.ts` + `mcp-proxy.ts` (transparent proxy), `bf4da33` 2026-04-09 |
+| `http` | Browser extension agentic mode, API clients | fetch, mutation verbs | Spec (not built) |
+| `browser-dom` | RAI extension (OL-074) | form submit, click, navigate | Future (not built) |
+| `native-messaging-host` | OS (browser NativeMessagingHosts dirs) | manifest write/modify/remove (vendor covert capability expansion) | **Live**, Phase A+B (`72bfb28` 2026-05-02: runner + tests + notify hook + launchd; Linux/Windows pending) |
+| `router-audit` | Hybrid-inference router (AI PC OS / on-device classifier) | task routed local↔cloud, sensitivity classification, consent state at the routing boundary | **Live** (OL-370), `packages/core/action-gate-router-audit.ts`, `32d44de` 2026-06-21 |
 
 ### Policy file format
 
@@ -200,14 +200,14 @@ This is the second commercial tier differentiator after P2. P2 = trust verdicts 
 
 The `fs-git` adapter exists today on the VPS as the NanoClaw Write Gate. Concrete path:
 
-1. Lift current write-gate code from NanoClaw repo into `packages/core/src/action-gate/`
-2. Genericize: extract policy from hardcoded constants into YAML loader
-3. Wrap as `ActionGate.evaluate(action, context) -> Verdict`
-4. Re-bind NanoClaw to the new module (no behavior change)
-5. Ship `@rai/action-gate` as the first published surface
-6. Build `shell` and `mcp` adapters from the same engine
+1. ✅ Lift current write-gate code from NanoClaw repo into `packages/core/action-gate.ts`, shipped `89cba87` 2026-04-09. (Landed as a flat file in `packages/core/`, not the `src/action-gate/` subdir this line originally named, functionally equivalent, module ships from `packages/core/` same as every other adapter file.)
+2. ✅ Genericize: extract policy from hardcoded constants into YAML loader: shipped `38f45d7` 2026-04-09, policy files in `packages/core/policies/*.yaml`.
+3. ✅ Wrap as `ActionGate.evaluate(action, context) -> Verdict`: shipped `89cba87` 2026-04-09.
+4. ⛔ **Re-bind NanoClaw to the new module (no behavior change), NOT done.** NanoClaw is a separate production system (VPS write-back, not a package in this repo), running its own original 5-layer write-gate independently since 2026-03-21. Re-binding it means editing NanoClaw's own codebase to call this module instead, cross-repo work, blocked pending Tim's call (see `rai/queue.md` ## Blocked, added 2026-08-04). ActionGate has since grown adapters of its own (`shell`, `mcp`, `native-messaging-host`, `router-audit`) as an independent product surface without this rebind ever happening.
+5. `@rai/action-gate` as a published npm package: not done; module lives internal to `packages/core` only.
+6. ✅ Build `shell` and `mcp` adapters from the same engine: shipped `38f45d7` + `bf4da33` 2026-04-09.
 
-Effort: ~1 day for steps 1-4 (refactor + tests). Net new for steps 5-6.
+Steps 1-3 + 6 shipped 2026-04-09 (one day, as estimated). Step 4 (NanoClaw rebind) and step 5 (standalone npm package) remain open: see Implementation Plan below.
 
 ---
 
@@ -225,18 +225,20 @@ Effort: ~1 day for steps 1-4 (refactor + tests). Net new for steps 5-6.
 
 ## Implementation Plan
 
-| Step | What | Effort | Depends on |
-|---|---|---|---|
-| 1 | Lift NanoClaw write-gate into `packages/core/src/action-gate/` | 2h | Nothing |
-| 2 | YAML policy loader + schema | 2h | Step 1 |
-| 3 | `ActionGate.evaluate()` API + unit tests | 2h | Step 2 |
-| 4 | Re-bind NanoClaw to new module, regression test | 1h | Step 3 |
-| 5 | `shell` adapter + Claude Code PreToolUse hook integration | 3h | Step 3 |
-| 6 | `mcp` adapter (proxy server) | 1d | Step 3 |
-| 7 | Audit log with scan_id correlation | 2h | Step 3 |
-| 8 | Documentation + landing page section | 2h | Steps 1-7 |
+| Step | What | Effort | Depends on | Status |
+|---|---|---|---|---|
+| 1 | Lift NanoClaw write-gate into `packages/core/action-gate.ts` | 2h | Nothing | ✅ Done, `89cba87` 2026-04-09 |
+| 2 | YAML policy loader + schema | 2h | Step 1 | ✅ Done, `38f45d7` 2026-04-09 |
+| 3 | `ActionGate.evaluate()` API + unit tests | 2h | Step 2 | ✅ Done, `89cba87` 2026-04-09 |
+| 4 | Re-bind NanoClaw to new module, regression test | 1h | Step 3 | ⛔ **Blocked**: cross-repo, see `rai/queue.md` ## Blocked |
+| 5 | `shell` adapter + Claude Code PreToolUse hook integration | 3h | Step 3 | ✅ Done, `38f45d7` 2026-04-09 |
+| 6 | `mcp` adapter (proxy server) | 1d | Step 3 | ✅ Done, `bf4da33` 2026-04-09 |
+| 7 | Audit log with scan_id correlation | 2h | Step 3 | ✅ Done, `c921f91` 2026-04-10 (`packages/core/audit-log.ts`) |
+| 8 | Documentation + landing page section | 2h | Steps 1-7 | 🔶 Spec doc synced 2026-08-04 (this pass). Landing page section not verified. |
 
-Total: ~3 focused days for Pro tier coverage (`fs-git` + `shell`). MCP adapter is a separate sprint.
+Plus adapters built beyond this plan's original scope: `native-messaging-host` (OL-140, `72bfb28` 2026-05-02), tamper-proofing (OL-396, `133ea25` 2026-06-21), `router-audit` (OL-370, `32d44de` 2026-06-21): see their own sections below, already accurate.
+
+Steps 1-3, 5-7 shipped 2026-04-09/10, close to the ~3-day estimate. Step 4 is the one open item, and it's a decision fork (does NanoClaw's separate repo still get rebound to this module, 4 months after ActionGate diverged into its own product surface), not a build task: flagged to Tim via `queue.md`.
 
 ---
 
