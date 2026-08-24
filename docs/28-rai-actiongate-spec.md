@@ -181,6 +181,52 @@ P2 says "trust this." ActionGate says "even if trusted, this is in scope."
 
 ---
 
+## Threat Signature: trusted-sender-attachment-injection
+
+_Added 2026-08-24, source: OL-261 (threat class, 2026-05-13) + OL-323 (live case, 2026-05-27, GoMedicus Series A DD). Full incident + Beat 2 evidence: `19-rai-context.md` Evidence Card, this date._
+
+**Not an ActionGate adapter.** This threat operates at ingestion (L0/L1, before the LLM parses content); ActionGate operates at egress (L4, after the LLM decides to act). Documented here because it composes directly with ActionGate's policy chain: content that clears Pre-Parse still passes through ActionGate before any resulting action executes, and content that fails Pre-Parse never reaches the point where an ActionGate-gated action could even be proposed. Two independent gates, same firewall.
+
+**Signature definition:** four co-occurring low-suspicion factors that individually pass every human heuristic and together define the threat.
+
+| Factor | Why it defeats scrutiny |
+|---|---|
+| High-trust sender | Institutional counterparty, no priors suggesting distrust (PE fund, DD professional, colleague) |
+| High-trust format | Markdown/plaintext reads as inert, not "executable" the way a macro or script would |
+| Business-critical context | Deal pressure, deadline pressure suppress caution that would apply to a cold attachment |
+| Low token volume | Short files draw the least suspicion, "why hide anything in something this small" |
+
+**Pre-Parse Hook spec:**
+```
+Attachment received (any surface: Claude Desktop, Claude Code, Gmail Plugin, DD dataroom upload)
+  |
+  v
+[PRE-PARSE HOOK], fires before content enters LLM context, trust-tier-independent
+  |-- 1. Deterministic structural scan: instruction-shaped constructs
+  |     - imperative mood + address-to-AI framing + authority claim
+  |     - not literal keyword match (defeats trigger-phrase evasion, see 19-rai-context.md Voice-Channel card 2026-07-10)
+  |-- 2. Hidden-content scan: white-on-white text, zero-width chars, off-screen markdown comments
+  |     - reuses OL-394 novel-hiding detection family
+  |-- 3. Provenance tag: {sender_id, channel, trust_tier} attached to every parsed chunk
+  |     - trust_tier does NOT gate scan priority (the whole threat is that high-trust skips scrutiny)
+  \-- 4. Verdict: clean-pass | flagged-report-only | block
+        - flagged content is surfaced to Tim as reportable content, never treated as instruction
+  |
+  v
+Content enters LLM context (if clean-pass or flagged-report-only)
+  |
+  v
+[ActionGate, L4], any downstream action still gated independently, per existing policy chain
+```
+
+**Surface priority** (highest attachment-threat-density first): Gmail Plugin (OL-260, email = primary AI-phishing surface) > DD dataroom upload paths (this incident's actual vector) > Claude Desktop drag-drop > Claude Code file read. Cross-ref `WS-rai-surface-architecture.md` for surface build sequencing.
+
+**Status:** Spec, not built. No adapter code exists yet; this section documents the signature + hook contract for the eventual build. Build trigger: next attachment-bearing surface (Gmail Plugin, OL-260) enters active build.
+
+**Cross-ref:** OL-261 (threat class), OL-323 (this live case), `19-rai-context.md` Evidence Card 2026-08-24, Voice-Channel Evidence Card (2026-07-10, `19-rai-context.md`, structural pre-parse precedent), OL-394 (hidden-content detection family), `WS-rai-surface-architecture.md`.
+
+---
+
 ## Commercial Mapping
 
 | RAI Tier | ActionGate Coverage |
