@@ -119,6 +119,7 @@ ActionGate is one core engine, many surface adapters. Each adapter binds the eng
 | `browser-dom` | RAI extension (OL-074) | form submit, click, navigate | Future (not built) |
 | `native-messaging-host` | OS (browser NativeMessagingHosts dirs) | manifest write/modify/remove (vendor covert capability expansion) | **Live**, Phase A+B (`72bfb28` 2026-05-02: runner + tests + notify hook + launchd; Linux/Windows pending) |
 | `router-audit` | Hybrid-inference router (AI PC OS / on-device classifier) | task routed local↔cloud, sensitivity classification, consent state at the routing boundary | **Live** (OL-370), `packages/core/action-gate-router-audit.ts`, `32d44de` 2026-06-21 |
+| `process-spawn` | OS process tree (browser/shell processes an agent runs in) | lineage check: human-spawned vs. agent-spawned session, Confused Deputy detection | Spec (not built), OL-265, see Pre-Flight Gate section below |
 
 ### Policy file format
 
@@ -650,4 +651,113 @@ This gate is the concrete payoff of Beat 1 ("The Unowned Gap") in Pitch Deck v2.
 ### Cross-ref
 
 OL-315 (Silent Context Injection threat class, this gate's origin), OL-265 (ActionGate process-spawn / Confused Deputy, paired pre-flight gate), OL-240 (Distributed Sensing Architecture), `19-rai-context.md` Beat 1 diagram spec + Context Provenance Tag Schema section (source-of-truth for the schema), KIT/KASTEL BFI paper (CCS '25, ScienceDaily 2026-05-22, anchor evidence).
+
+---
+
+## Pre-Flight Gate: `process-spawn` (OL-265, spec 2026-08-25)
+
+_Covers the Confused Deputy threat class: an agent process inherits the trust and permissions of the human session it runs inside, with no distinction made between "the human is driving this browser/shell tab" and "another agent spawned this browser/shell tab to act through it." Anchor case: VentureBeat 2026-05-13, four independent research teams surfaced the pattern across three Claude surfaces within 48h; Anthropic's standing response ("the user consented to the agent's actions") does not distinguish a human-initiated session from an agent-initiated one, because today nothing upstream of the model records that distinction. Paired with the `context-provenance` adapter (OL-315) as the two ActionGate pre-flight extensions that protect the agent's pre-action state, see "Pairing with the process-spawn adapter" above. Full narrative + Beat 3 Evidence Card: `19-rai-context.md` (2026-05-13/14, mob:2026-05-14)._
+
+### Why it fits here, not elsewhere
+
+Confused Deputy sits strictly below P0/P1 (content) and below P2 (output consensus), same as Silent Context Injection. The harmful state is established **before the agent's next action is even proposed**, a browser tab, shell session, or subprocess exists, and nothing in that process's ambient state says whether a human clicked to open it or an upstream agent spawned it to reach a permission boundary the human never crossed. Content scanning is blind to this by construction, since the spawned process looks identical either way at the tool-call layer.
+
+The right layer is ActionGate, because:
+
+1. The relevant event is **process lineage at spawn time**, not a conversation message or a completed tool call.
+2. The enforcement target is **which process is asking**, not what it asks for, `fs-git`/`shell`/`mcp` already gate the verb, but none of them ask "was this session opened by a human or by another agent" before evaluating the verb.
+3. The policy model is a lineage tag + verdict, structurally identical to `context-provenance`'s `(source, method, consent)` tuple: here the tuple is `(spawned_by, session_origin, consent)`.
+
+Difference from the surface adapters above: like `context-provenance`, this gate runs *before* a tool call exists to evaluate. It does not gate verbs, it gates the lineage of the process the agent is about to act through. Both pre-flight gates must pass before any surface adapter (`fs-git`, `shell`, `mcp`, `http`, `browser-dom`, `native-messaging-host`) gets to evaluate the actual action.
+
+### Watched surfaces
+
+| Surface | Lineage signal |
+|---|---|
+| Browser tab / window (Claude in Chrome, agentic browser modes) | Process parent: opened by user click/keystroke vs. `window.open`/CDP/automation API call from another agent process |
+| Shell session (Claude Code, Cursor, Aider, CLI agents) | Parent PID chain: interactive shell (TTY-attached, human-typed command in history) vs. spawned by a script or another agent's `exec`/`spawn` call with no TTY |
+| Subprocess / child agent (agent-spawns-agent patterns, MCP server chains) | Whether the spawning agent itself passed a human-consent token down the chain, or spawned silently on the strength of its own permissions |
+
+v0 is observe-only: log lineage at spawn time, tag the session, do not intercept spawn. Enforcement (`escalate`/`block`) requires an OS-level or runtime-level spawn hook and is honestly documented as unbuilt until that exists (same posture as `native-messaging-host` true-`block`).
+
+### Action shape
+
+```typescript
+interface ProcessSpawnAction {
+  adapter: 'process-spawn';
+  session_id: string;
+  spawned_by: 'human_session' | 'agent_process' | 'unknown';
+  spawning_agent_id?: string;       // present when spawned_by == 'agent_process'
+  session_origin: 'tty_interactive' | 'browser_user_gesture' | 'automation_api' | 'script_exec';
+  consent_token?: string;           // passed down from a human-authorized parent, if any
+  consent_timestamp: string | null; // ISO8601, null = no consent record for this spawn
+  target_surface: 'browser' | 'shell' | 'subprocess';
+  ts: string;                       // ISO8601 of the spawn event
+}
+```
+
+### Policy model (YAML)
+
+```yaml
+version: 1
+adapter: process-spawn
+defaults:
+  fail_closed: true
+  unknown_lineage: escalate
+lineage_rules:
+  human_session:
+    session_origin: [tty_interactive, browser_user_gesture]
+    verdict: allow
+  agent_process_with_consent:
+    spawned_by: agent_process
+    consent_token: present
+    verdict: warn        # record + surface, still allow
+  agent_process_without_consent:
+    spawned_by: agent_process
+    consent_token: absent
+    verdict: escalate     # hold, require explicit user grant
+  unknown:
+    spawned_by: unknown
+    verdict: escalate
+deny_list:
+  - session_origin: automation_api
+    consent_token: absent
+    verdict: block
+```
+
+**Canonical hard rule:** if `spawned_by: agent_process` AND `consent_token` absent → ESCALATE (BLOCK if `session_origin: automation_api`, no interactive origin to fall back on).
+
+### Verdicts available to this gate
+
+| Verdict | Semantics |
+|---|---|
+| `allow` | Lineage traces to a human-initiated session, or an agent-spawned session carrying a valid consent token |
+| `warn` | Agent-spawned with consent present, but record + surface so the user sees the chain |
+| `escalate` | Agent-spawned with no consent token, or lineage unknown, hold the agent turn, prompt user to grant or deny |
+| `block` | Automation-API-spawned with no consent token, no interactive origin to fall back on, refuse to let the action chain start |
+
+`block` and `escalate` both require an OS/runtime spawn hook to intercept before the process is usable; without it this gate is observe + tag + warn only, same honesty posture as `native-messaging-host`'s racy `block`.
+
+### Migration path / build status
+
+**Status: Spec, not built.** No spawn-hook implementation exists yet on any surface. Sequencing, once prioritized:
+
+1. **Phase A, shell lineage (Claude Code, CLI agents):** tag session at launch via parent-PID + TTY check, emit to the same `~/.rai/audit/rai-actiongate.jsonl` schema as the other adapters. Cheapest surface, no browser API dependency.
+2. **Phase B, browser lineage:** requires either a browser extension hook (OL-074, `browser-dom` adapter territory) or CDP-level spawn interception. Harder, depends on `browser-dom` adapter landing first.
+3. **Phase C, consent-token propagation:** define how a human-authorized parent agent passes a signed consent token to a child it spawns, so `agent_process_with_consent` is actually achievable rather than always falling to `escalate`.
+4. **Phase D, enforcement (`escalate`/`block`):** needs host cooperation or an OS hook, same open question as the other pre-flight/surface adapters that currently ship observe-only.
+
+### Open questions
+
+1. **Consent-token design.** No spec yet for how a token is minted, signed, or verified across process boundaries. This is the single biggest unblock for making `agent_process_with_consent` real instead of theoretical.
+2. **Cross-platform spawn detection.** TTY/PID lineage is straightforward on macOS/Linux; Windows process ancestry (and CDP-driven headless Chrome on any OS) needs its own detection path, mirroring the OS-by-OS build-out `native-messaging-host` already did.
+3. **Composition with `router-audit`.** A cloud-routed task and an agent-spawned process are independent trust crossings that can co-occur; whether they need a combined verdict or can stay two separate audit-log rows is undecided, revisit once both have runtime data.
+
+### Pitch deck alignment
+
+This gate is the concrete payoff of Pitch Deck Beat 3 ("Confused Deputy"): the answer to "what does RAI actually do against the pattern four research teams found across three Claude surfaces in 48 hours?", lineage is tagged at spawn, unconsented agent-spawned sessions escalate instead of silently inheriting the human's trust, and the audit log gives a record Anthropic's current "the user consented" framing does not produce today. Beat 3 slide copy already lives in `19-rai-context.md`; this section is the technical spec that copy references forward to.
+
+### Cross-ref
+
+OL-265 (Confused Deputy threat class, this gate's origin), OL-315 (`context-provenance` gate, paired pre-flight class, see "Pairing with the process-spawn adapter" above), OL-191 (MCP STDIO trust boundary), OL-178 (CVE-2026-33068), OL-140 (`native-messaging-host` / VCCE, build-out pattern reused here), `19-rai-context.md` Beat 3 Evidence Card (source-of-truth narrative, VentureBeat 2026-05-13 sourcing).
 
