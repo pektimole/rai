@@ -41,6 +41,102 @@ import {
   type McpToolCall,
 } from './action-gate-mcp';
 import { defaultCaptureSession } from './contract-capture';
+import { rayScan, type RayScanInput, type RayScanOutput } from './rai-scan-p0';
+
+// ---------------------------------------------------------------------------
+// OL-301 — result-path P0 inspection
+//
+// ActionGate above gates the CALL (tool name + args, allow/deny). Nothing
+// previously inspected the RESULT flowing back from the downstream server
+// into model context -- an unscanned return path. This section closes that
+// gap with a synchronous P0 (regex, local, negligible cost) scan on every
+// tool result before it re-enters context, mirroring ActionGate's
+// pre-commit posture. Deliberately NOT async: an async scan loses to the
+// act-before-verdict window (see WS-rai.md Frontier Stress-Test table).
+//
+// HONEST-LAYER NOTE, keep this true in every comment and any deck: this is a
+// SIGNAL layer, not enforcement. A smarter generator can phrase a poisoned
+// result to dodge regex matching (detector-generator asymmetry). The durable
+// guarantee stays with ActionGate's call-leg allow/deny above -- this hook
+// does not gate an action, it only flags/blocks based on pattern match on
+// content. Never describe this as protection beyond that.
+//
+// P1-lite (Haiku-class) escalation on P0-flag/network-tool-class, and the
+// OL-394 instruction-isolation hardening it would need (see rai-scan-p1.ts's
+// <untrusted-content> wrapper + closing-tag escape), are intentionally NOT
+// built here -- classifier-tiering thresholds are an open design fork with
+// cost implications, surfaced to Tim rather than defaulted. P0 has no LLM in
+// the loop, so it is not itself a fresh injection surface: regex matching
+// cannot be talked out of a match by embedded text.
+// ---------------------------------------------------------------------------
+
+interface ScanableResult {
+  content?: Array<{ type: string; text?: string; [key: string]: unknown }>;
+  isError?: boolean;
+  [key: string]: unknown;
+}
+
+/**
+ * Extract concatenated text from an MCP result/args payload and run it
+ * through rayScan (P0). Fails open on any scanner error -- a scanner crash
+ * must never turn a good result into a dropped one.
+ *
+ * NOTE on `sender`: rayScan's isExempt() auto-clears the scan when sender is
+ * null/undefined (its "Tim typing natively" exemption). Always pass a
+ * concrete, non-trusted sender string here (serverName) so proxy traffic is
+ * never accidentally exempted.
+ */
+async function scanText(
+  text: string,
+  serverName: string,
+  pipelineStage: RayScanInput['source']['pipeline_stage'],
+): Promise<RayScanOutput | null> {
+  if (!text) return null;
+  try {
+    return await rayScan({
+      source: {
+        channel: 'mcp',
+        pipeline_stage: pipelineStage,
+        sender: serverName,
+        is_forward: false,
+      },
+      payload: { type: 'text', content: text },
+      context: { session_id: `mcp-proxy:${serverName}`, host_environment: 'api' },
+    });
+  } catch (err) {
+    process.stderr.write(
+      `[rai-mcp-proxy] P0 scan error (failing open): ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    return null;
+  }
+}
+
+function extractText(result: ScanableResult): string {
+  return (result.content ?? [])
+    .filter((b) => b.type === 'text' && typeof b.text === 'string')
+    .map((b) => b.text as string)
+    .join('\n');
+}
+
+/** Item 1 (primary): scan the tool RESULT before it is returned to the client. */
+async function scanResult(
+  toolName: string,
+  serverName: string,
+  result: ScanableResult,
+): Promise<{ verdict: RayScanOutput['verdict'] | 'clean'; scanned: RayScanOutput | null }> {
+  const text = extractText(result);
+  const scanned = await scanText(text, serverName, 'output');
+  return { verdict: scanned?.verdict ?? 'clean', scanned };
+}
+
+/** Item 4 (secondary): scan outbound call ARGS for L-2 credential/exfil markers. */
+async function scanCallArgs(
+  args: Record<string, unknown>,
+  serverName: string,
+): Promise<{ verdict: RayScanOutput['verdict'] | 'clean'; scanned: RayScanOutput | null }> {
+  const scanned = await scanText(JSON.stringify(args), serverName, 'process');
+  return { verdict: scanned?.verdict ?? 'clean', scanned };
+}
 
 // ---------------------------------------------------------------------------
 // CLI argument parsing
@@ -264,6 +360,29 @@ async function startRawProxy(
             isError: true,
           });
         } else {
+          const resultScanEnabled = policy.resultScan?.enabled ?? true;
+
+          // OL-301 item 4 (secondary): scan the outbound call args for L-2
+          // credential/exfil markers, independent of the allow/deny above.
+          if (resultScanEnabled) {
+            const argScan = await scanCallArgs(args, policy.serverName);
+            if (argScan.verdict === 'blocked') {
+              process.stderr.write(
+                `[rai-mcp-proxy] CALL ARGS BLOCKED (P0): ${toolName} — ${argScan.scanned?.explanation}\n`,
+              );
+              respond(request.id, {
+                content: [
+                  {
+                    type: 'text',
+                    text: `[RAI P0 call-scan] Tool call blocked: ${argScan.scanned?.explanation ?? 'blocked pattern in arguments'} (server: ${policy.serverName}, tool: ${toolName})`,
+                  },
+                ],
+                isError: true,
+              });
+              continue;
+            }
+          }
+
           // Learn-and-lock (OL-461, phase 2a): observe the permitted call.
           // No-op unless RAI_CAPTURE is set; fail-open so capture can never
           // turn an allowed call into a failed one. Recorded before forwarding
@@ -272,7 +391,51 @@ async function startRawProxy(
 
           // Forward to downstream
           const result = await downstream.callTool({ name: toolName, arguments: args });
-          respond(request.id, result);
+
+          // OL-301 item 1 (primary): scan the RESULT before it re-enters
+          // model context. SIGNAL layer only -- see the header comment above
+          // scanResult() for the honest-layer note.
+          if (!resultScanEnabled) {
+            respond(request.id, result);
+          } else {
+            const { verdict: resultVerdict, scanned } = await scanResult(
+              toolName,
+              policy.serverName,
+              result as ScanableResult,
+            );
+
+            if (resultVerdict === 'blocked') {
+              process.stderr.write(
+                `[rai-mcp-proxy] RESULT BLOCKED (P0): ${toolName} — ${scanned?.explanation}\n`,
+              );
+              respond(request.id, {
+                content: [
+                  {
+                    type: 'text',
+                    text: `[RAI P0 result-scan] Tool result withheld: ${scanned?.explanation ?? 'blocked pattern matched'} (server: ${policy.serverName}, tool: ${toolName})`,
+                  },
+                ],
+                isError: true,
+              });
+            } else if (resultVerdict === 'flagged') {
+              process.stderr.write(
+                `[rai-mcp-proxy] result flagged (P0): ${toolName} — ${scanned?.explanation}\n`,
+              );
+              const original = (result as ScanableResult).content ?? [];
+              respond(request.id, {
+                ...(result as ScanableResult),
+                content: [
+                  {
+                    type: 'text',
+                    text: `[RAI P0 result-scan WARNING] ${scanned?.explanation ?? 'suspicious pattern in tool result'}`,
+                  },
+                  ...original,
+                ],
+              });
+            } else {
+              respond(request.id, result);
+            }
+          }
         }
       } else if (request.method === 'ping') {
         respond(request.id, {});

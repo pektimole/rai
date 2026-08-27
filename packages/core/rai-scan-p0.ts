@@ -41,7 +41,9 @@ export type Channel =
   | 'email'
   | 'browser'
   | 'clipboard'
-  | 'artifact';
+  | 'artifact'
+  // OL-301: MCP tool call/result traffic through the ActionGate mcp-proxy.
+  | 'mcp';
 export type PipelineStage = 'ingest' | 'process' | 'output' | 'display';
 export type PayloadType = 'text' | 'image' | 'file' | 'mixed';
 export type HostEnvironment = 'nanoclaw' | 'browser_extension' | 'api';
