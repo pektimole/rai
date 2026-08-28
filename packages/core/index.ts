@@ -56,3 +56,6 @@ export * from './contract-capture.js';
 export * from './contract-shadow.js';
 // Phase 4: activate (ratify stable rules → enforce, promote via signed CAS swap)
 export * from './contract-ratify.js';
+
+// Repo/URL pre-ingest scan -- L1 authenticity + L2 static hidden-channel scan (OL-453)
+export * from './repo-scan.js';
