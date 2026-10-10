@@ -53,6 +53,29 @@ export interface McpPolicy {
    * upstream, to avoid double cost).
    */
   resultScan?: { enabled: boolean };
+  /**
+   * P1-lite (Haiku-class) escalation tiering, DECIDED [cc:2026-08-27] (see
+   * pending-decisions/rai-next-session.md): escalation triggers ONLY on
+   * results from network-enabled tools -- tools that fetch external content
+   * (web, email, docs, any upstream RAI doesn't control). That is the
+   * surface where "a smarter generator poisoned the upstream result" is a
+   * plausible threat; escalating every P0 flag regardless of tool burns
+   * Haiku-class cost on results where that threat model doesn't apply.
+   * Declare tool names here, or "*" to mark every tool on this server
+   * network-enabled. Empty/absent = no escalation for this server (safe
+   * default -- opt in per-server, do not guess).
+   */
+  networkTools?: Set<string>;
+}
+
+/**
+ * True if `toolName` is declared network-enabled by policy -- the gate for
+ * P1-lite escalation (mcp-proxy.ts). See McpPolicy.networkTools.
+ */
+export function isNetworkEnabledTool(toolName: string, policy: McpPolicy): boolean {
+  const tools = policy.networkTools;
+  if (!tools || tools.size === 0) return false;
+  return tools.has('*') || tools.has(toolName);
 }
 
 // ---------------------------------------------------------------------------
@@ -118,6 +141,8 @@ export interface McpPolicyYaml {
   blocked_arg_patterns?: Record<string, string[]>;
   /** OL-301: result-path P0 scan toggle. See McpPolicy.resultScan. */
   result_scan?: { enabled?: boolean };
+  /** P1-lite tiering. See McpPolicy.networkTools. */
+  network_tools?: string[];
 }
 
 export function loadMcpPolicy(doc: McpPolicyYaml): McpPolicy {
@@ -145,5 +170,6 @@ export function loadMcpPolicy(doc: McpPolicyYaml): McpPolicy {
     blockedTools: new Set(doc.blocked_tools ?? []),
     blockedArgPatterns,
     resultScan: { enabled: doc.result_scan?.enabled ?? true },
+    networkTools: new Set(doc.network_tools ?? []),
   };
 }

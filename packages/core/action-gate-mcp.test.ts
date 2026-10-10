@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   evaluateMcp,
+  isNetworkEnabledTool,
   loadMcpPolicy,
   type McpToolCall,
   type McpPolicy,
@@ -191,5 +192,53 @@ describe('loadMcpPolicy', () => {
     expect(() =>
       loadMcpPolicy({ version: 1, adapter: 'mcp', server_name: '' }),
     ).toThrow('missing required field');
+  });
+
+  it('defaults network_tools to an empty set when absent', () => {
+    const p = loadMcpPolicy({
+      version: 1,
+      adapter: 'mcp',
+      server_name: 'test',
+    });
+    expect(p.networkTools).toEqual(new Set());
+  });
+
+  it('parses network_tools from yaml', () => {
+    const p = loadMcpPolicy({
+      version: 1,
+      adapter: 'mcp',
+      server_name: 'test',
+      network_tools: ['web_fetch', 'search'],
+    });
+    expect(p.networkTools).toEqual(new Set(['web_fetch', 'search']));
+  });
+});
+
+// OL-301 P1-lite: which tools are network-enabled (gates escalation).
+describe('isNetworkEnabledTool', () => {
+  it('returns false when networkTools is absent', () => {
+    expect(isNetworkEnabledTool('web_fetch', policy({ networkTools: undefined }))).toBe(false);
+  });
+
+  it('returns false when networkTools is empty', () => {
+    expect(isNetworkEnabledTool('web_fetch', policy({ networkTools: new Set() }))).toBe(false);
+  });
+
+  it('returns true for an explicitly declared tool name', () => {
+    expect(
+      isNetworkEnabledTool('web_fetch', policy({ networkTools: new Set(['web_fetch']) })),
+    ).toBe(true);
+  });
+
+  it('returns false for a tool not in the declared set', () => {
+    expect(
+      isNetworkEnabledTool('read_file', policy({ networkTools: new Set(['web_fetch']) })),
+    ).toBe(false);
+  });
+
+  it('returns true for any tool when "*" is declared', () => {
+    expect(
+      isNetworkEnabledTool('anything', policy({ networkTools: new Set(['*']) })),
+    ).toBe(true);
   });
 });

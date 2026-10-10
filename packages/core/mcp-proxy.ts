@@ -27,6 +27,8 @@
  */
 
 import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 import * as yaml from 'js-yaml';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
@@ -35,6 +37,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import {
   evaluateMcp,
+  isNetworkEnabledTool,
   loadMcpPolicy,
   type McpPolicy,
   type McpPolicyYaml,
@@ -42,6 +45,12 @@ import {
 } from './action-gate-mcp';
 import { defaultCaptureSession } from './contract-capture';
 import { rayScan, type RayScanInput, type RayScanOutput } from './rai-scan-p0';
+import {
+  scanP1,
+  shouldEscalateToP1,
+  type ScanInput as P1ScanInput,
+  type ScanOutput as P1ScanOutput,
+} from './rai-scan-p1';
 
 // ---------------------------------------------------------------------------
 // OL-301 — result-path P0 inspection
@@ -61,13 +70,23 @@ import { rayScan, type RayScanInput, type RayScanOutput } from './rai-scan-p0';
 // does not gate an action, it only flags/blocks based on pattern match on
 // content. Never describe this as protection beyond that.
 //
-// P1-lite (Haiku-class) escalation on P0-flag/network-tool-class, and the
-// OL-394 instruction-isolation hardening it would need (see rai-scan-p1.ts's
-// <untrusted-content> wrapper + closing-tag escape), are intentionally NOT
-// built here -- classifier-tiering thresholds are an open design fork with
-// cost implications, surfaced to Tim rather than defaulted. P0 has no LLM in
-// the loop, so it is not itself a fresh injection surface: regex matching
-// cannot be talked out of a match by embedded text.
+// P1-lite (Haiku-class) escalation, built [cc:2026-08-27] per Tim's
+// build-authorization ("lets do it") following the tiering decision in
+// pending-decisions/rai-next-session.md: triggers ONLY when the result-leg
+// P0 scan flags (or returns a low-confidence clean) AND the tool is
+// declared network-enabled in policy (McpPolicy.networkTools / see
+// action-gate-mcp.ts's isNetworkEnabledTool()). Narrowest surface matching
+// the real risk -- a poisoned-upstream scenario -- not the broadest.
+//
+// OL-394 instruction isolation is inherited from rai-scan-p1.ts's own
+// buildUserMessage() (<untrusted-content> wrapper + closing-tag escape),
+// not re-implemented here. P0 itself has no LLM in the loop, so it is not
+// a fresh injection surface; P1-lite is, which is exactly why it needs
+// that isolation and P0 doesn't.
+//
+// Fail-open discipline extends to this tier: a P1-lite API failure must
+// never turn a passthrough into a block, and must never silently clear a
+// P0 flag either. See maybeEscalateToP1()'s doc comment.
 // ---------------------------------------------------------------------------
 
 interface ScanableResult {
@@ -136,6 +155,129 @@ async function scanCallArgs(
 ): Promise<{ verdict: RayScanOutput['verdict'] | 'clean'; scanned: RayScanOutput | null }> {
   const scanned = await scanText(JSON.stringify(args), serverName, 'process');
   return { verdict: scanned?.verdict ?? 'clean', scanned };
+}
+
+/**
+ * P1-lite escalation: re-scan a P0-flagged (or low-confidence-clean)
+ * network-tool result with the Haiku-class classifier in rai-scan-p1.ts.
+ * Gating (network-tool-class + shouldEscalateToP1) happens at the call
+ * site; this function just runs the escalation and fails open.
+ *
+ * Fails open on ANY error -- missing ANTHROPIC_API_KEY, network failure,
+ * malformed model output -- by returning null. scanP1() itself already
+ * fails open internally (returns verdict 'clean' with a
+ * 'P1_API_FAILURE' raw signal rather than throwing on an API error); that
+ * case is also normalized to null here, because a failed scan is
+ * inconclusive, not a genuine clean verdict -- it must not be used to
+ * silently clear a real P0 flag. The caller falls back to the P0-only
+ * verdict whenever this returns null.
+ */
+async function maybeEscalateToP1(
+  toolName: string,
+  serverName: string,
+  resultText: string,
+  p0: RayScanOutput,
+): Promise<P1ScanOutput | null> {
+  try {
+    const input: P1ScanInput = {
+      scan_id: p0.scan_id,
+      timestamp: new Date().toISOString(),
+      source: {
+        channel: 'mcp',
+        pipeline_stage: 'output',
+        sender: serverName,
+        origin_url: null,
+        is_forward: false,
+      },
+      payload: { type: 'text', content: resultText },
+      context: {
+        session_id: `mcp-proxy:${serverName}`,
+        prior_scan_ids: [],
+        host_environment: 'api',
+      },
+      p0_result: {
+        verdict: p0.verdict,
+        matched_patterns: p0.raw_signals,
+        confidence: p0.confidence,
+      },
+    };
+    const result = await scanP1(input);
+    if (result.raw_signals.includes('P1_API_FAILURE')) return null;
+    return result;
+  } catch (err) {
+    process.stderr.write(
+      `[rai-mcp-proxy] P1-lite escalation error (failing open): ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    return null;
+  }
+}
+
+/**
+ * Decide the client-facing reply for a scanned tool result. Pure function
+ * (no I/O) so it is unit-testable without spawning the proxy or hitting a
+ * live model -- see mcp-proxy.test.ts.
+ *
+ * When `p1` is present it supersedes the P0 verdict: `blocked` withholds
+ * the result, `flagged` keeps passthrough with the P1 explanation as the
+ * warning, `clean` clears the P0 flag and passes the original result
+ * through untouched (a second, more expensive opinion overriding a
+ * cheaper one's false positive). When `p1` is null (not escalated, or
+ * escalation failed open), behavior is exactly the pre-P1-lite P0-only
+ * logic, unchanged.
+ */
+export function buildResultReply(
+  toolName: string,
+  serverName: string,
+  original: ScanableResult,
+  p0: { verdict: RayScanOutput['verdict'] | 'clean'; scanned: RayScanOutput | null },
+  p1: P1ScanOutput | null,
+): ScanableResult {
+  if (p1) {
+    if (p1.verdict === 'blocked') {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `[RAI P1-lite result-scan] Tool result withheld: ${p1.explanation} (server: ${serverName}, tool: ${toolName})`,
+          },
+        ],
+        isError: true,
+      };
+    }
+    if (p1.verdict === 'flagged') {
+      return {
+        ...original,
+        content: [
+          { type: 'text', text: `[RAI P1-lite result-scan WARNING] ${p1.explanation}` },
+          ...(original.content ?? []),
+        ],
+      };
+    }
+    // p1.verdict === 'clean': second opinion clears the P0 flag.
+    return original;
+  }
+
+  if (p0.verdict === 'blocked') {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `[RAI P0 result-scan] Tool result withheld: ${p0.scanned?.explanation ?? 'blocked pattern matched'} (server: ${serverName}, tool: ${toolName})`,
+        },
+      ],
+      isError: true,
+    };
+  }
+  if (p0.verdict === 'flagged') {
+    return {
+      ...original,
+      content: [
+        { type: 'text', text: `[RAI P0 result-scan WARNING] ${p0.scanned?.explanation ?? 'suspicious pattern in tool result'}` },
+        ...(original.content ?? []),
+      ],
+    };
+  }
+  return original;
 }
 
 // ---------------------------------------------------------------------------
@@ -417,23 +559,49 @@ async function startRawProxy(
                 ],
                 isError: true,
               });
-            } else if (resultVerdict === 'flagged') {
-              process.stderr.write(
-                `[rai-mcp-proxy] result flagged (P0): ${toolName} — ${scanned?.explanation}\n`,
-              );
-              const original = (result as ScanableResult).content ?? [];
-              respond(request.id, {
-                ...(result as ScanableResult),
-                content: [
-                  {
-                    type: 'text',
-                    text: `[RAI P0 result-scan WARNING] ${scanned?.explanation ?? 'suspicious pattern in tool result'}`,
-                  },
-                  ...original,
-                ],
-              });
             } else {
-              respond(request.id, result);
+              // OL-301 P1-lite: escalate to the Haiku-class scanner only for
+              // results from network-enabled tools (per policy), and only
+              // when shouldEscalateToP1() says the P0 verdict warrants it
+              // (every 'flagged', or low-confidence 'clean'). 'blocked' is
+              // handled above and never reaches here.
+              let p1: P1ScanOutput | null = null;
+              if (
+                scanned &&
+                isNetworkEnabledTool(toolName, policy) &&
+                shouldEscalateToP1(scanned.verdict, scanned.confidence)
+              ) {
+                p1 = await maybeEscalateToP1(
+                  toolName,
+                  policy.serverName,
+                  extractText(result as ScanableResult),
+                  scanned,
+                );
+                if (p1) {
+                  process.stderr.write(
+                    `[rai-mcp-proxy] P1-lite escalation (${toolName}): P0=${resultVerdict} -> P1=${p1.verdict}\n`,
+                  );
+                } else {
+                  process.stderr.write(
+                    `[rai-mcp-proxy] P1-lite escalation attempted but failed open (${toolName}), falling back to P0 verdict\n`,
+                  );
+                }
+              }
+
+              if (resultVerdict === 'flagged' && !p1) {
+                process.stderr.write(
+                  `[rai-mcp-proxy] result flagged (P0): ${toolName} — ${scanned?.explanation}\n`,
+                );
+              }
+
+              const reply = buildResultReply(
+                toolName,
+                policy.serverName,
+                result as ScanableResult,
+                { verdict: resultVerdict, scanned },
+                p1,
+              );
+              respond(request.id, reply);
             }
           }
         }
@@ -469,7 +637,20 @@ function respondError(
   process.stdout.write(response + '\n');
 }
 
-main().catch((err) => {
-  process.stderr.write(`[rai-mcp-proxy] fatal: ${err}\n`);
-  process.exit(1);
-});
+// Only run main() when this file is the CLI entry point, not when it's
+// imported (e.g. by mcp-proxy.test.ts for unit-testing buildResultReply()
+// and friends without spawning the proxy or triggering process.exit()).
+const isMain = (() => {
+  try {
+    return fileURLToPath(import.meta.url) === path.resolve(process.argv[1] ?? '');
+  } catch {
+    return false;
+  }
+})();
+
+if (isMain) {
+  main().catch((err) => {
+    process.stderr.write(`[rai-mcp-proxy] fatal: ${err}\n`);
+    process.exit(1);
+  });
+}

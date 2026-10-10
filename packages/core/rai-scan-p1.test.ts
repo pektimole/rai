@@ -9,7 +9,8 @@
 import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { applyGate1 } from './rai-scan-p1.js';
+import { applyGate1, shouldEscalateToP1 } from './rai-scan-p1.js';
+import { loadP1Weights } from './threat-weights.js';
 
 // Read the source rather than importing -- the SYSTEM_PROMPT is module-private.
 // This is intentional: the test verifies the prompt as it lives in source.
@@ -116,6 +117,30 @@ describe('Gate 1 — BS Council verdict merge (docs/26-rai-p2-spec.md §Two-Gate
       confidence: 0.95,
       recommended_action: 'pass',
     });
+  });
+});
+
+// OL-301 P1-lite: escalation trigger rule (mcp-proxy.ts's network-tool
+// gating calls this once it has already confirmed the tool is
+// network-enabled -- this suite covers the P0-verdict/confidence logic
+// alone, independent of that gate).
+describe('shouldEscalateToP1', () => {
+  const threshold = loadP1Weights().p0_trigger_threshold;
+
+  it('always escalates on a flagged P0 verdict, regardless of confidence', () => {
+    expect(shouldEscalateToP1('flagged', 0.99)).toBe(true);
+    expect(shouldEscalateToP1('flagged', 0.01)).toBe(true);
+  });
+
+  it('never escalates on a blocked P0 verdict', () => {
+    expect(shouldEscalateToP1('blocked', 0.01)).toBe(false);
+    expect(shouldEscalateToP1('blocked', 0.99)).toBe(false);
+  });
+
+  it('escalates a clean verdict only when confidence is below the trigger threshold', () => {
+    expect(shouldEscalateToP1('clean', threshold - 0.01)).toBe(true);
+    expect(shouldEscalateToP1('clean', threshold)).toBe(false);
+    expect(shouldEscalateToP1('clean', threshold + 0.01)).toBe(false);
   });
 });
 

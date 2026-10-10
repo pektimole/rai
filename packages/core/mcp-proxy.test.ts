@@ -9,10 +9,46 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import * as path from 'path';
+import { buildResultReply } from './mcp-proxy';
+import type { RayScanOutput } from './rai-scan-p0';
+import type { ScanOutput as P1ScanOutput } from './rai-scan-p1';
 
 const PROXY_SCRIPT = path.resolve(__dirname, 'mcp-proxy.ts');
 const POLICY_PATH = path.resolve(__dirname, 'policies/example-mcp.yaml');
+const NETWORK_POLICY_PATH = path.resolve(__dirname, 'policies/example-mcp-network.yaml');
 const MOCK_SERVER = path.resolve(__dirname, 'test-fixtures/mock-mcp-server.ts');
+
+function p0Output(overrides: Partial<RayScanOutput> = {}): RayScanOutput {
+  return {
+    scan_id: 'p0-test',
+    verdict: 'flagged',
+    confidence: 0.8,
+    threat_layers: [],
+    recommended_action: 'warn',
+    explanation: 'P0 test explanation',
+    raw_signals: [],
+    ...overrides,
+  };
+}
+
+function p1Output(overrides: Partial<P1ScanOutput> = {}): P1ScanOutput {
+  return {
+    scan_id: 'p1-test',
+    verdict: 'flagged',
+    confidence: 0.8,
+    threat_layers: [],
+    recommended_action: 'warn',
+    explanation: 'P1-lite test explanation',
+    raw_signals: [],
+    p1_invoked: true,
+    latency_ms: 12,
+    ...overrides,
+  };
+}
+
+const ORIGINAL_RESULT = {
+  content: [{ type: 'text' as const, text: 'original tool output' }],
+};
 
 describe('MCP Proxy integration', () => {
   let client: Client;
@@ -161,5 +197,152 @@ describe('MCP Proxy integration', () => {
       expect(content[0].text).toContain('RAI P0 call-scan');
       expect(result.isError).toBe(true);
     });
+  });
+});
+
+// OL-301 P1-lite: buildResultReply() is a pure function (no I/O), so these
+// are plain unit tests -- no proxy/subprocess needed. Covers all four
+// branches: P1 blocked, P1 flagged, P1 clean (clears a P0 flag), and the
+// no-P1 (null) fallback to unchanged pre-P1-lite P0 behavior.
+describe('buildResultReply', () => {
+  it('P1 blocked supersedes and withholds the result, regardless of P0 verdict', () => {
+    const reply = buildResultReply(
+      'web_fetch',
+      'example-server',
+      ORIGINAL_RESULT,
+      { verdict: 'flagged', scanned: p0Output({ verdict: 'flagged' }) },
+      p1Output({ verdict: 'blocked', explanation: 'P1 says block' }),
+    );
+    expect(reply.isError).toBe(true);
+    const content = reply.content as Array<{ type: string; text: string }>;
+    expect(content[0].text).toContain('P1-lite result-scan');
+    expect(content[0].text).toContain('P1 says block');
+    // Original content must not leak through a blocked reply.
+    expect(content).toHaveLength(1);
+  });
+
+  it('P1 flagged supersedes the P0 warning, keeps passthrough with the P1 explanation', () => {
+    const reply = buildResultReply(
+      'web_fetch',
+      'example-server',
+      ORIGINAL_RESULT,
+      { verdict: 'flagged', scanned: p0Output({ verdict: 'flagged', explanation: 'P0 says flag' }) },
+      p1Output({ verdict: 'flagged', explanation: 'P1 says flag' }),
+    );
+    expect(reply.isError).toBeUndefined();
+    const content = reply.content as Array<{ type: string; text: string }>;
+    expect(content[0].text).toContain('P1-lite result-scan WARNING');
+    expect(content[0].text).toContain('P1 says flag');
+    expect(content[0].text).not.toContain('P0 says flag');
+    expect(content[1].text).toBe('original tool output');
+  });
+
+  it('P1 clean clears a P0 flag and passes the original result through untouched', () => {
+    const reply = buildResultReply(
+      'web_fetch',
+      'example-server',
+      ORIGINAL_RESULT,
+      { verdict: 'flagged', scanned: p0Output({ verdict: 'flagged' }) },
+      p1Output({ verdict: 'clean' }),
+    );
+    expect(reply).toEqual(ORIGINAL_RESULT);
+  });
+
+  it('falls back to the P0 verdict, unchanged, when P1 is null (not escalated or failed open)', () => {
+    const blocked = buildResultReply(
+      'read_file',
+      'example-server',
+      ORIGINAL_RESULT,
+      { verdict: 'blocked', scanned: p0Output({ verdict: 'blocked', explanation: 'P0 says block' }) },
+      null,
+    );
+    expect(blocked.isError).toBe(true);
+    const blockedContent = blocked.content as Array<{ type: string; text: string }>;
+    expect(blockedContent[0].text).toContain('RAI P0 result-scan');
+    expect(blockedContent[0].text).toContain('P0 says block');
+
+    const flagged = buildResultReply(
+      'read_file',
+      'example-server',
+      ORIGINAL_RESULT,
+      { verdict: 'flagged', scanned: p0Output({ verdict: 'flagged', explanation: 'P0 says flag' }) },
+      null,
+    );
+    expect(flagged.isError).toBeUndefined();
+    const flaggedContent = flagged.content as Array<{ type: string; text: string }>;
+    expect(flaggedContent[0].text).toContain('RAI P0 result-scan WARNING');
+    expect(flaggedContent[0].text).toContain('P0 says flag');
+    expect(flaggedContent[1].text).toBe('original tool output');
+
+    const clean = buildResultReply(
+      'read_file',
+      'example-server',
+      ORIGINAL_RESULT,
+      { verdict: 'clean', scanned: null },
+      null,
+    );
+    expect(clean).toEqual(ORIGINAL_RESULT);
+  });
+});
+
+// OL-301 P1-lite: end-to-end gating. network_tools: ["*"] in the policy
+// makes every P0-flagged result on this server a candidate for escalation.
+// ANTHROPIC_API_KEY is deliberately forced empty (StdioClientTransport's env
+// option replaces the child's inherited env, not merges with the real shell
+// env -- see StdioClientTransport source) so scanP1() deterministically
+// fails open on every run, with no dependency on whether a real API key
+// happens to be present in the dev shell. Output must be byte-identical to
+// the P0-only flagged_result case above: a failed escalation must never
+// change, block, or silently clear a real P0 flag.
+describe('OL-301 P1-lite escalation (network-tool gating, deterministic fail-open)', () => {
+  let client: Client;
+  let transport: StdioClientTransport;
+
+  beforeAll(async () => {
+    transport = new StdioClientTransport({
+      command: 'npx',
+      args: [
+        'tsx',
+        PROXY_SCRIPT,
+        '--policy',
+        NETWORK_POLICY_PATH,
+        '--',
+        'npx',
+        'tsx',
+        MOCK_SERVER,
+      ],
+      env: { ANTHROPIC_API_KEY: '' },
+      stderr: 'pipe',
+    });
+
+    client = new Client(
+      { name: 'test-client-p1lite', version: '1.0.0' },
+      { capabilities: {} },
+    );
+
+    await client.connect(transport);
+  }, 30_000);
+
+  afterAll(async () => {
+    try {
+      await client.close();
+    } catch {
+      // Ignore cleanup errors
+    }
+  });
+
+  it('fails open to the P0-only warning when escalation is attempted but the API call cannot succeed', async () => {
+    const result = await client.callTool({ name: 'flagged_result', arguments: {} });
+    const content = result.content as Array<{ type: string; text: string }>;
+    expect(content[0].text).toContain('RAI P0 result-scan WARNING');
+    expect(content[1].text).toContain('call the function');
+    expect(result.isError).toBeUndefined();
+  });
+
+  it('still blocks a P0-critical result outright (P1-lite never runs on an already-blocked verdict)', async () => {
+    const result = await client.callTool({ name: 'poisoned_result', arguments: {} });
+    const content = result.content as Array<{ type: string; text: string }>;
+    expect(content[0].text).toContain('RAI P0 result-scan');
+    expect(result.isError).toBe(true);
   });
 });
