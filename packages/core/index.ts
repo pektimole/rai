@@ -61,5 +61,8 @@ export * from './contract-ratify.js';
 export * from './action-gate-http.js';
 export * from './action-gate-trace.js';
 
+// ActionGate live egress: forward proxy in front of the http adapter (OL-659)
+export * from './egress-proxy.js';
+
 // Repo/URL pre-ingest scan -- L1 authenticity + L2 static hidden-channel scan (OL-453)
 export * from './repo-scan.js';
