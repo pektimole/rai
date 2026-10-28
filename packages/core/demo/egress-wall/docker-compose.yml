@@ -1,0 +1,29 @@
+# OL-659 egress wall: the agent sits on an internal-only network (no route out);
+# the proxy is its only gateway. A process that ignores HTTP(S)_PROXY still cannot get out.
+services:
+  proxy:
+    build:
+      context: ../..
+      dockerfile: demo/egress-wall/Dockerfile.proxy
+    environment:
+      EGRESS_ALLOW: example.com
+    volumes:
+      - ./out:/var/log/rai
+    networks: [agent_net, egress_net]
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    environment:
+      HTTP_PROXY: http://proxy:3128
+      HTTPS_PROXY: http://proxy:3128
+      # curl honours only lowercase http_proxy for plain HTTP
+      http_proxy: http://proxy:3128
+      https_proxy: http://proxy:3128
+      NO_PROXY: ""
+    depends_on: [proxy]
+    networks: [agent_net]
+networks:
+  agent_net:
+    internal: true
+  egress_net: {}

@@ -1,0 +1,7 @@
+FROM node:22-alpine
+WORKDIR /app
+RUN npm init -y >/dev/null && npm i --no-audit --no-fund tsx js-yaml
+COPY egress-proxy.ts action-gate-http.ts audit-log.ts ./
+COPY policies/agent-egress-http.yaml ./policies/
+COPY demo/egress-wall/serve.ts ./
+CMD ["npx", "tsx", "serve.ts"]

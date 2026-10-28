@@ -1,0 +1,44 @@
+
+== 0. agent network: no default route
+172.19.0.0/16 dev eth0 proto kernel scope link src 172.19.0.3 
+default route present? 0
+
+== 1. exact Cohere trace curl PUT (Beijing OSS) via the proxy -> expect 403
+HTTP:403
+{"blocked":true,"rule":"http-egress-default-deny","reason":"PUT to \"sanmaohe.oss-cn-beijing.aliyuncs.com\": host not in egress allowlist"}
+
+== 2. allowlisted host (example.com) via the proxy -> expect 200
+HTTP:200
+
+== 2b. allowlisted host over HTTPS (CONNECT, host-level) -> expect 200
+HTTP:200
+
+== 3. bypass the proxy (--noproxy) to the Beijing host -> expect network failure
+HTTP:000
+curl exit=6
+
+== 3b. bypass the proxy to a raw public IP (1.1.1.1) -> expect network failure
+HTTP:000
+curl exit=7
+
+== 3c. bypass the proxy to the allowlisted host -> expect network failure (allowlist is not a route)
+HTTP:000
+curl exit=6
+
+== 4. metadata IPs via the proxy -> expect 403
+{"blocked":true,"rule":"http-blocked-host","reason":"host \"169.254.169.254\" is blocklisted (cloud metadata)"}
+ HTTP:403
+{"blocked":true,"rule":"http-blocked-host","reason":"host \"100.100.100.200\" is blocklisted (cloud metadata)"}
+ HTTP:403
+
+== 4b. metadata over CONNECT -> expect 403
+curl: (56) CONNECT tunnel failed, response 403
+curl exit=56
+
+== 5. audit log (proxy side)
+DENY  http-egress-default-deny     PUT http://sanmaohe.oss-cn-beijing.aliyuncs.com/upload/test.bin (79us)
+ALLOW http-all-checks-passed       GET http://example.com/ (47us)
+ALLOW http-all-checks-passed       CONNECT https://example.com:443 (14us)
+DENY  http-blocked-host            GET http://169.254.169.254/latest/meta-data/ (14us)
+DENY  http-blocked-host            GET http://100.100.100.200/latest/meta-data/ (10us)
+DENY  http-blocked-host            CONNECT https://169.254.169.254:443 (10us)
