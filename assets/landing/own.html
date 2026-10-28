@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:image" content="https://withrai.xyz/og.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RA(I)">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://withrai.xyz/og.png">
+<meta name="description" content="Run your own AI. RA(I) helps you set it up and shows you what goes into it, on your device.">
+<title>RA(I), Own your AI. Know what goes into it.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#080808;--text:#f0ede8;--muted:#666;--border:#1c1c1c;--accent:#00e5c8;--teal:#00e5c8;}
+html{background:var(--bg);}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;line-height:1.6;cursor:none;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;}
+#cursor{position:fixed;width:8px;height:8px;background:var(--text);border-radius:50%;pointer-events:none;z-index:10000;transform:translate(-50%,-50%);transition:width .15s,height .15s;}
+#cursor.large{width:20px;height:20px;background:transparent;border:1px solid var(--text);}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:24px 48px;transition:border-color .3s,background .3s;}
+nav.scrolled{border-bottom:1px solid var(--border);background:rgba(8,8,8,.92);backdrop-filter:blur(12px);}
+.nav-logo{font-family:'DM Mono',monospace;font-size:16px;text-decoration:none;color:var(--text);}
+.nav-logo span{color:var(--accent);}
+.nav-cta{background:var(--accent);color:#080808;border:none;padding:10px 20px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;cursor:none;text-decoration:none;transition:opacity .2s;}
+.nav-cta:hover{opacity:.85;}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:140px 80px 80px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+.hero-glow{position:absolute;bottom:-100px;left:50%;transform:translateX(-50%);width:800px;height:400px;background:radial-gradient(ellipse,rgba(0,229,200,.05) 0%,transparent 70%);pointer-events:none;}
+.eyebrow{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--accent);margin-bottom:32px;}
+.display{font-family:'Fraunces',serif;font-size:clamp(52px,8vw,108px);line-height:1.0;letter-spacing:-2px;margin-bottom:48px;max-width:800px;}
+.display em{font-style:italic;color:var(--accent);}
+.tension{font-size:16px;color:var(--muted);line-height:1.7;max-width:580px;margin-bottom:32px;}
+.tension em{color:var(--text);font-style:italic;}
+.intro-line{font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--muted);margin-bottom:40px;}
+.intro-line strong{color:var(--text);font-style:normal;font-weight:400;}
+/* STUB CONTENT */
+.proof-point{border-top:1px solid var(--border);padding:80px;border-bottom:1px solid var(--border);}
+.proof-inner{max-width:640px;}
+.proof-h{font-family:'Fraunces',serif;font-size:clamp(24px,3vw,36px);line-height:1.1;margin-bottom:24px;}
+.proof-h em{font-style:italic;color:var(--accent);}
+.proof-body{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:40px;}
+.proof-body em{color:var(--text);font-style:normal;}
+/* CTA */
+.cta-section{padding:100px 80px;border-bottom:1px solid var(--border);}
+.cta-inner{max-width:520px;}
+.cta-h{font-family:'Fraunces',serif;font-size:clamp(28px,3vw,44px);line-height:1.1;margin-bottom:24px;}
+.cta-h em{font-style:italic;color:var(--accent);}
+.cta-body{font-size:13px;color:var(--muted);margin-bottom:40px;line-height:1.6;}
+.cta-form{display:flex;gap:0;max-width:440px;margin-bottom:12px;}
+.cta-form input{flex:1;background:var(--bg);border:1px solid var(--border);border-right:none;padding:14px 16px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);outline:none;}
+.cta-form input::placeholder{color:var(--muted);}
+.cta-form input:focus{border-color:var(--muted);}
+.cta-form button{background:var(--accent);color:#080808;border:none;padding:14px 24px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:none;transition:opacity .2s;}
+.cta-form button:hover{opacity:.85;}
+.cta-confirm{font-size:11px;color:var(--teal);display:none;}
+.cta-legal{font-size:11px;color:var(--muted);}
+.cta-err{font-size:11px;color:#f2b36b;display:none;margin-top:8px;}
+.grid3,.grid4{display:grid;gap:1px;background:var(--border);margin-top:40px;}
+.grid3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.grid4{grid-template-columns:repeat(4,minmax(0,1fr));}
+.cell{background:var(--bg);padding:32px 28px;}
+.cell-k{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;justify-content:space-between;gap:8px;}
+.cell-k b{font-weight:400;color:var(--accent);}
+.cell-h{font-family:'Fraunces',serif;font-size:20px;margin-bottom:10px;}
+.cell-h.acc{color:var(--accent);}
+.cell-p{font-size:13px;color:var(--muted);line-height:1.7;}
+.wide{max-width:1100px;}
+.log{margin-top:40px;max-width:560px;border:1px solid var(--border);padding:24px;font-size:12px;line-height:1.7;}
+.log .t{color:var(--muted);}
+.log .s{color:#f2b36b;}
+footer{padding:32px 80px;display:flex;align-items:center;justify-content:space-between;}
+.footer-logo{font-family:'DM Mono',monospace;font-size:14px;color:var(--text);}
+.footer-logo span{color:var(--accent);}
+.footer-right{font-size:11px;color:var(--muted);}
+.footer-right a{color:var(--muted);text-decoration:none;margin-left:24px;}
+@media(max-width:900px){.hero{padding:120px 32px 80px;}.proof-point{padding:48px 32px;}.cta-section{padding:64px 32px;}footer{flex-direction:column;gap:16px;padding:32px;}.grid3,.grid4{grid-template-columns:minmax(0,1fr);}}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+
+<nav id="nav">
+ <a href="/" class="nav-logo"><span>(R)</span>AI</a>
+ <a href="#cta" class="nav-cta">Get the guide</a>
+</nav>
+
+<div class="hero">
+ <div class="hero-glow"></div>
+ <div class="eyebrow">Own your AI</div>
+ <div class="display">Run your own AI.<br>Know what<br><em>goes into it.</em></div>
+ <p class="tension">
+ Open models now run on a normal laptop. RA(I) shows you how to set one up, step by step,
+ and watches what your AI reads, remembers and learns.
+ <em>You see the signals. You make the call.</em>
+ </p>
+ <div class="intro-line"><strong>RA(I)</strong> · <em>we don't build your AI. We help you build it.</em></div>
+ <a href="#cta" style="display:inline-block;background:var(--accent);color:#080808;padding:14px 28px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;">Get the free guide</a>
+ <div class="log" aria-label="Example of RA(I) intake signals">
+  <div class="t">12:04 · note from recipe-site.com</div>
+  <div>No signals. Added to memory.</div><br>
+  <div class="t">12:11 · invoice_march.pdf</div>
+  <div class="s">Signal: hidden text asks your AI to forward your emails. Keep or drop?</div><br>
+  <div class="t">12:30 · weekly learning update</div>
+  <div>Version 14 ready. Version 13 kept for rollback.</div>
+ </div>
+</div>
+
+<div class="proof-point">
+ <div class="proof-inner wide">
+  <div class="eyebrow" style="color:var(--accent);">The shift</div>
+  <div class="proof-h">Most people rent their AI today.<br><em>That is about to change.</em></div>
+  <div class="grid3">
+   <div class="cell"><div class="cell-h">Renting is the default</div><p class="cell-p">A few companies run the models almost everyone uses. They set the price, the rules and what happens to what you type.</p></div>
+   <div class="cell"><div class="cell-h">Owning just got possible</div><p class="cell-p">Open models keep getting better and smaller. The tools to run them at home get simpler every month.</p></div>
+   <div class="cell"><div class="cell-h acc">Nobody watches what you own</div><p class="cell-p">Rented AI comes with a vendor safety team. Your own AI comes with nobody. That is the gap RA(I) fills.</p></div>
+  </div>
+ </div>
+</div>
+
+<div class="proof-point">
+ <div class="proof-inner wide">
+  <div class="eyebrow" style="color:var(--accent);">How it works</div>
+  <div class="proof-h">From first download<br>to an AI that is <em>yours.</em></div>
+  <div class="grid4">
+   <div class="cell"><div class="cell-k">01 <b>Free</b></div><div class="cell-h">Learn</div><p class="cell-p">Plain guides: which open model fits your laptop, what a container is, and where the real risks sit.</p></div>
+   <div class="cell"><div class="cell-k">02 <b>Free</b></div><div class="cell-h">Set up</div><p class="cell-p">A starter setup with RA(I)'s intake check switched on from day one. Your model, your machine.</p></div>
+   <div class="cell"><div class="cell-k">03 <span>Early access</span></div><div class="cell-h">Teach</div><p class="cell-p">Before anything becomes memory or training data, RA(I) shows where it came from and flags hidden instructions.</p></div>
+   <div class="cell"><div class="cell-k">04 <span>Early access</span></div><div class="cell-h">Run</div><p class="cell-p">Every learning step is versioned. If your AI starts acting off, see what changed and roll back.</p></div>
+  </div>
+ </div>
+</div>
+
+<div class="proof-point">
+ <div class="proof-inner">
+  <div class="eyebrow" style="color:var(--accent);">Why it matters</div>
+  <div class="proof-h">A bad note can be deleted.<br><em>A bad lesson stays.</em></div>
+  <p class="proof-body">
+  When your AI only reads something, a hidden instruction is a one-time problem.
+  When your AI <em>learns</em> from it, that instruction can become part of how it thinks, and you can no longer search for it.
+  <br><br>
+  The more personal your AI gets, the more it matters what gets in. That is why RA(I) sits at the door, not inside the model.
+  Signal, not verdict: we show you what we see, you decide. We know nothing about you, and the checks run where your AI runs.
+  </p>
+ </div>
+</div>
+
+<div class="cta-section" id="cta">
+ <div class="cta-inner">
+  <div class="eyebrow" style="color:var(--accent);">Start owning your AI</div>
+  <div class="cta-h">Get the<br><em>free guide.</em></div>
+  <p class="cta-body">The setup guide by email, plus a note when early access for Teach and Run opens.</p>
+  <form class="cta-form" id="ctaForm" name="own-guide" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+   <input type="hidden" name="form-name" value="own-guide">
+   <p style="display:none;"><label>Leave empty <input name="bot-field"></label></p>
+   <label for="own-email" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">Email address</label>
+   <input id="own-email" type="email" name="email" placeholder="your@email.com" required>
+   <button type="submit">Send me the guide</button>
+  </form>
+  <div class="cta-confirm" id="ctaConfirm">✓ Got it. The guide is on its way.</div>
+  <div class="cta-err" id="ctaErr">Something went wrong. Write to go@withrai.xyz and we'll send it by hand.</div>
+  <p class="cta-legal" style="margin-top:12px;">One email with the guide. No tracking.</p>
+ </div>
+</div>
+
+<footer>
+ <div class="footer-logo"><span>(R)</span>AI</div>
+ <div class="footer-right">
+ <span>Security Lab SE</span>
+ <a href="/">withrai.xyz</a>
+ <a href="mailto:go@withrai.xyz">go@withrai.xyz</a>
+ <a href="#">Privacy</a>
+ </div>
+</footer>
+
+<script>
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => { cursor.style.left = e.clientX+'px'; cursor.style.top = e.clientY+'px'; });
+document.querySelectorAll('a, button, input').forEach(el => { el.addEventListener('mouseenter',()=>cursor.classList.add('large')); el.addEventListener('mouseleave',()=>cursor.classList.remove('large')); });
+window.addEventListener('scroll', () => { document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40); });
+document.getElementById('ctaForm').addEventListener('submit', function(e) {
+ e.preventDefault();
+ const f = this;
+ fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(new FormData(f)).toString() })
+  .then(r => { if (!r.ok) throw new Error(r.status); f.style.display='none'; document.getElementById('ctaConfirm').style.display='block'; })
+  .catch(() => { document.getElementById('ctaErr').style.display='block'; });
+});
+</script>
+</body>
+</html>
