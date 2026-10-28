@@ -16,7 +16,7 @@
  *   mcp                  — tool invocation                    (action-gate-mcp.ts + mcp-proxy.ts, live)
  *   native-messaging-host — vendor IPC manifest write/modify   (action-gate-native-messaging-host.ts, live)
  *   router-audit         — local/cloud inference routing       (action-gate-router-audit.ts, live)
- *   http                 — fetch / mutation verbs             (not built)
+ *   http                 — fetch / mutation verbs             (action-gate-http.ts, OL-648; replay only, no live proxy)
  *   browser              — DOM submit / navigate              (not built)
  *
  * Usage:

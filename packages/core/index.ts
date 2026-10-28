@@ -57,5 +57,9 @@ export * from './contract-shadow.js';
 // Phase 4: activate (ratify stable rules → enforce, promote via signed CAS swap)
 export * from './contract-ratify.js';
 
+// ActionGate http adapter + agent trace replay (OL-648)
+export * from './action-gate-http.js';
+export * from './action-gate-trace.js';
+
 // Repo/URL pre-ingest scan -- L1 authenticity + L2 static hidden-channel scan (OL-453)
 export * from './repo-scan.js';

@@ -1,0 +1,16 @@
+# RAI ActionGate policy: agent egress (http adapter)
+# OL-648: default-deny outbound + cloud metadata block. Expand by appending, never by code change.
+
+version: 1
+adapter: http
+
+# Cloud metadata endpoints (Alibaba 100.100.100.200, AWS/GCP/Azure 169.254.169.254, GCP name)
+blocked_hosts:
+  - 100.100.100.200
+  - 169.254.169.254
+  - metadata.google.internal
+blocked_ip_prefixes:
+  - "169.254."
+
+# Empty allowlist = default-deny all egress. Add hosts per deployment.
+allowed_hosts: []

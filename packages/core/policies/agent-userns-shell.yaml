@@ -1,0 +1,22 @@
+# RAI ActionGate policy: agent containment (shell adapter)
+# OL-648: deny unprivileged user-namespace use (first step of a kernel privesc family).
+# Compose with claude-code-shell.yaml; this file is scoped to agent containers.
+
+version: 1
+adapter: shell
+fail_closed: false  # blocklist mode
+
+blocked_commands:
+  - unshare
+  - nsenter
+  - newuidmap
+  - newgidmap
+
+blocked_patterns:
+  # Catches the binary inside sh -c "...", subshells and quoted strings, which base-command extraction misses.
+  - "(^|[\\s;|&(\"'`])(unshare|nsenter|newuidmap|newgidmap)(\\s|$)"
+  - "CLONE_NEWUSER"
+  - "max_user_namespaces"
+  - "--userns"
+  - "setns\\s*\\("
+  - "unshare\\s*\\("
