@@ -8,3 +8,6 @@ scratch/
 # Large deck export renders (regeneratable from HTML)
 assets/deck & web design/Drafts/RA*Teaser Deck*.png
 .arch-regen.log
+
+# Netlify local state
+.netlify/

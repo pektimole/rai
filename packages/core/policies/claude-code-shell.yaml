@@ -20,5 +20,11 @@ blocked_patterns:
   - "rm -rf /"
   - "rm -rf ~"
   - "> /dev/"
+  # External code execution: screen the source first (clone to scratch, read, rai_scan), then run it by hand.
+  - "\\|\\s*(sudo\\s+)?(ba|z|da)?sh(\\s|$)"
+  - "claude\\s+plugin\\s+install\\s+(?!no5-[a-z]+@local-mods)"
+  - "claude\\s+plugin\\s+marketplace\\s+add\\s+(?!/Users/ich/\\.claude/local-mods)"
+  - "--plugin-dir"
+  - "npx\\s+(-y|--yes)\\b"
 
 # No working dir restriction for now (Claude Code operates in project dir)
