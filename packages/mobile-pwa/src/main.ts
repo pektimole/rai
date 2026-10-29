@@ -181,13 +181,18 @@ async function runPipeline(pending: PendingShare): Promise<void> {
 
 const KEEP_WATCHING_KEY = 'rai_keep_watching';
 
+// Corpus export is a dev tool: only shown with ?dev in the URL.
+if (new URLSearchParams(location.search).has('dev')) {
+  document.getElementById('corpus-controls')?.removeAttribute('hidden');
+}
+
 /** Scan a batch once, commit the report, and show it. The numbers are never recomputed. */
 async function runFirstScan(items: BatchItem[], unreadable = 0): Promise<void> {
   const target = document.getElementById('first-scan');
   if (!target) return;
   if (items.length === 0 && unreadable === 0) return;
   const report = await buildFirstScan(items, makeItemScanner(getAnthropicKey()), undefined, unreadable);
-  target.innerHTML = renderFirstScanHtml(report);
+  target.innerHTML = renderFirstScanHtml(report, { aiCheck: getAnthropicKey() !== null });
   target.hidden = false;
   document.getElementById('empty-state')?.setAttribute('hidden', '');
   document.getElementById('latest-scan')?.setAttribute('hidden', '');

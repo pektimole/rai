@@ -39,10 +39,14 @@ function headerHtml(r: FirstScanReport): string {
     </div>`;
 }
 
-function cardsHtml(r: FirstScanReport): string {
+/** aiCheck=false: no deep scan ran, so P0 cannot say anything about AI generation. Show "not checked", never 0. */
+function cardsHtml(r: FirstScanReport, aiCheck: boolean): string {
+  const ai = aiCheck
+    ? `<div class="fs-card" data-metric="ai-generation"><div class="fs-card-n">${r.aiSignals}</div><div class="fs-card-l">AI-generation signals</div></div>`
+    : `<div class="fs-card" data-metric="ai-generation" data-checked="false"><div class="fs-card-n">&mdash;</div><div class="fs-card-l">AI generation not checked. Add a BYOK key for the deep scan.</div></div>`;
   return `
     <div class="fs-cards">
-      <div class="fs-card" data-metric="ai-generation"><div class="fs-card-n">${r.aiSignals}</div><div class="fs-card-l">AI-generation signals</div></div>
+      ${ai}
       <div class="fs-card" data-metric="hidden-instructions"><div class="fs-card-n">${r.hiddenInstructions}</div><div class="fs-card-l">Hidden instructions</div></div>
     </div>`;
 }
@@ -74,10 +78,11 @@ function cleanRowHtml(n: number): string {
     <li class="fs-row fs-clean" data-clean-row>${n === 1 ? '1 item shows' : `${n} items show`} no signals</li>`;
 }
 
-export function renderFirstScanHtml(r: FirstScanReport): string {
+export function renderFirstScanHtml(r: FirstScanReport, opts: { aiCheck?: boolean } = {}): string {
+  const aiCheck = opts.aiCheck ?? true;
   return `
     ${headerHtml(r)}
-    ${cardsHtml(r)}
+    ${cardsHtml(r, aiCheck)}
     <ul class="fs-rows">${r.flagged.map(rowHtml).join('')}${cleanRowHtml(r.cleanCount)}</ul>
     <div class="fs-footer">Signals, not verdicts.</div>
     <button type="button" id="fs-keep-watching" class="fs-cta">Keep watching</button>`;

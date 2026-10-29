@@ -233,4 +233,11 @@ describe('makeItemScanner (existing P0, no key)', () => {
     expect(r).toMatchObject({ itemCount: 2, hiddenInstructions: 1, cleanCount: 1 });
     expect(r.flagged[0].layer).toBe('L0');
   });
+
+  it('shows AI generation as not checked, never 0, when no deep scan ran', async () => {
+    const html = renderFirstScanHtml(await buildFirstScan([item('a', 'plain text', null)], stubScanner, now), { aiCheck: false });
+    expect(html).toContain('data-checked="false"');
+    expect(html).toContain('not checked');
+    expect(html).not.toMatch(/fs-card-n">0<\/div><div class="fs-card-l">AI-generation/);
+  });
 });
