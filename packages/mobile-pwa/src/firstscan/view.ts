@@ -46,11 +46,15 @@ function headerHtml(r: FirstScanReport): string {
     </div>`;
 }
 
-/** aiCheck=false: no deep scan ran, so P0 cannot say anything about AI generation. Show "not checked", never 0. */
-function cardsHtml(r: FirstScanReport, aiCheck: boolean): string {
-  const ai = aiCheck
-    ? `<div class="fs-card" data-metric="ai-generation"><div class="fs-card-n">${r.aiSignals}</div><div class="fs-card-l">AI-generation signals</div></div>`
-    : `<div class="fs-card" data-metric="ai-generation" data-checked="false"><div class="fs-card-n">&mdash;</div><div class="fs-card-l">AI generation not checked. Add a BYOK key for the deep scan.</div></div>`;
+/**
+ * The AI box says what was actually checked. P0 has no AI-generation rules; only the deep scan does,
+ * and it runs on few items. So: "not checked" when nothing was checked, otherwise "checked k of n". Never a bare 0.
+ */
+function cardsHtml(r: FirstScanReport, hasKey: boolean): string {
+  const total = r.itemCount;
+  const ai = r.aiChecked === 0
+    ? `<div class="fs-card" data-metric="ai-generation" data-checked="false"><div class="fs-card-n">&mdash;</div><div class="fs-card-l">AI generation not checked.${hasKey ? ' The deep scan did not run on these items.' : ' Add a BYOK key for the deep scan.'}</div></div>`
+    : `<div class="fs-card" data-metric="ai-generation" data-checked="${r.aiChecked}"><div class="fs-card-n">${r.aiSignals}</div><div class="fs-card-l">AI-generation signals · checked ${r.aiChecked} of ${total}</div></div>`;
   return `
     <div class="fs-cards">
       ${ai}

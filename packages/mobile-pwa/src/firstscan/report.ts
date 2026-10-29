@@ -13,6 +13,8 @@ export interface ItemScan {
   confidence: number;
   signals: ThreatSignal[];
   explanation: string;
+  /** True when the deep scan (P1) ran on this item. Only P1 can see AI generation. */
+  deepScanned?: boolean;
 }
 
 export type ItemScanner = (item: BatchItem) => Promise<ItemScan>;
@@ -40,6 +42,8 @@ export interface FirstScanReport {
   hiddenInstructions: number;
   /** Items with a leaked credential (password, API key, token). Kept apart from hidden instructions. */
   exposedSecrets: number;
+  /** Items that were actually checked for AI generation (deep scan ran, or an L1 signal came back). */
+  aiChecked: number;
   /** Items with at least one signal, in batch order. */
   flagged: ReportItem[];
   /** Items with no signals, collapsed to a count. */
@@ -91,10 +95,12 @@ export async function buildFirstScan(
   let aiSignals = 0;
   let hiddenInstructions = 0;
   let exposedSecrets = 0;
+  let aiChecked = 0;
 
   for (const item of batch) {
     const result = await scan(item);
     const signals = result.signals.map((s) => ({ ...s }));
+    if (result.deepScanned || signals.some((s) => s.layer === 'L1')) aiChecked++;
     if (signals.length === 0) {
       cleanCount++;
       continue;
@@ -126,6 +132,7 @@ export async function buildFirstScan(
     aiSignals,
     hiddenInstructions,
     exposedSecrets,
+    aiChecked,
     flagged,
     cleanCount,
     unreadable,

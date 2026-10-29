@@ -23,6 +23,7 @@ export function makeItemScanner(apiKey: string | null): ItemScanner {
         confidence: merged.confidence,
         signals: merged.threat_layers,
         explanation: merged.explanation,
+        deepScanned: true,
       };
     }
     return {

@@ -102,7 +102,7 @@ describe('counts never change after display', () => {
     const r = await buildFirstScan(items, stubScanner, now);
     expect(r).toMatchObject({ itemCount: 3, aiSignals: 1, hiddenInstructions: 1, cleanCount: 1 });
     const html = renderFirstScanHtml(r);
-    expect(html).toMatch(/data-metric="ai-generation"><div class="fs-card-n">1</);
+    expect(html).toMatch(/data-metric="ai-generation"[^>]*><div class="fs-card-n">1</);
     expect(html).toMatch(/data-metric="hidden-instructions"><div class="fs-card-n">1</);
   });
 
@@ -249,5 +249,15 @@ describe('makeItemScanner (existing P0, no key)', () => {
     const html = renderFirstScanHtml(r, { aiCheck: false });
     expect(html).toContain('Exposed secret');
     expect(html).not.toContain('blocked');
+  });
+
+  it('says how many items were checked for AI generation, and never shows a bare 0', async () => {
+    const deep = async (it: { text: string }) => ({ confidence: 0.9, signals: [], explanation: '', deepScanned: it.text === 'deep' });
+    const none = await buildFirstScan([item('a', 'x', null), item('b', 'y', null)], deep, now);
+    expect(none.aiChecked).toBe(0);
+    expect(renderFirstScanHtml(none, { aiCheck: true })).toContain('did not run');
+    const some = await buildFirstScan([item('a', 'deep', null), item('b', 'y', null)], deep, now);
+    expect(some.aiChecked).toBe(1);
+    expect(renderFirstScanHtml(some, { aiCheck: true })).toContain('checked 1 of 2');
   });
 });
