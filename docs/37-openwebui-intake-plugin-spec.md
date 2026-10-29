@@ -1,6 +1,6 @@
 # 37 · Open WebUI intake-check plugin, spec v0.1 (OL-660)
 
-_Status: BUILT v0.1.0 [cd:2026-10-30], live-install test pending. Was: SPEC, not built. Author: No5 [cd:2026-10-29]. Parent: OL-649 (withrai.xyz/own funnel). This plugin is guide step 6 ("Switch on RAI's intake check"); until it ships, step 6 is a waitlist._
+_Status: SHIPPED v0.1.0 [cd:2026-10-30], live-install verified, guide step 6 live. Was: SPEC, not built. Author: No5 [cd:2026-10-29]. Parent: OL-649 (withrai.xyz/own funnel). This plugin is guide step 6 ("Switch on RAI's intake check"); until it ships, step 6 is a waitlist._
 
 ## 1. Goal
 
@@ -79,3 +79,9 @@ Deviation from section 5: no inline "Use anyway" button (Filter Functions have n
 Results: 8/8 injected fixtures flagged, 0/20 clean controls flagged, parity 28/28 on P0 labels, 20-page text scan 22 ms, no-network check pass, core tsc clean, rai-scan-p0 tests 7/7.
 
 Open before guide step 6 flips from waitlist to install: live install on a running Open WebUI 0.12.5 (uvx path from the guide), confirm the `request` hook sees the `<source>` context for an uploaded PDF and a knowledge collection, confirm the status/notification events render in the chat UI.
+
+## 11. Live install verified [cd:2026-10-30, 00:28]
+
+Fresh Open WebUI 0.12.5 via the guide's uvx command (isolated DATA_DIR), admin created, function installed from the hosted URL (byte-identical to repo), toggled active + global. Message path: `inlet` fired, log line `RA(I) signal · L-2 · Credential / data exfiltration attempt in your message ... [action=drop]`. Uploaded-file path: `.txt` upload, retrieval ran, `request` hook fired on the retrieved context. Two fixes from the live run: (1) retrieved context lands in the system message OR the latest user message depending on the RAG setting, `request` now scans both; (2) a `logging` line per signal (local server log, no network). UI: status line renders under the reply in the chat, full text incl. the re-send hint; the "Security Alert" dialog that followed was the model reacting to the withheld placeholder, not RAI. Knowledge collections use the same `apply_source_context_to_messages` path, covered by construction, not separately exercised. Test instance removed afterwards.
+
+Guide step 6 flipped from waitlist to install steps; /own Set up card and CTA copy updated. Open: email own-guide signups (Tim), optional Open WebUI community listing (section 9).
