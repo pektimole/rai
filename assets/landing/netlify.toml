@@ -43,6 +43,11 @@
   to = "/own.html"
   status = 200
 
+[[redirects]]
+  from = "/guide"
+  to = "/guide.html"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

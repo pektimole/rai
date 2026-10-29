@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:image" content="https://withrai.xyz/og.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RA(I)">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://withrai.xyz/og.png">
+<meta name="description" content="Free step-by-step guide: run your own AI on your laptop with Ollama and Open WebUI, locked to your machine, and fed safely.">
+<title>RA(I), Own your AI, safely: setup guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#080808;--text:#f0ede8;--muted:#666;--border:#1c1c1c;--accent:#00e5c8;--teal:#00e5c8;}
+html{background:var(--bg);}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;line-height:1.6;cursor:none;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;}
+#cursor{position:fixed;width:8px;height:8px;background:var(--text);border-radius:50%;pointer-events:none;z-index:10000;transform:translate(-50%,-50%);transition:width .15s,height .15s;}
+#cursor.large{width:20px;height:20px;background:transparent;border:1px solid var(--text);}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:24px 48px;transition:border-color .3s,background .3s;}
+nav.scrolled{border-bottom:1px solid var(--border);background:rgba(8,8,8,.92);backdrop-filter:blur(12px);}
+.nav-logo{font-family:'DM Mono',monospace;font-size:16px;text-decoration:none;color:var(--text);}
+.nav-logo span{color:var(--accent);}
+.nav-cta{background:var(--accent);color:#080808;border:none;padding:10px 20px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;cursor:none;text-decoration:none;transition:opacity .2s;}
+.nav-cta:hover{opacity:.85;}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:140px 80px 80px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+.hero-glow{position:absolute;bottom:-100px;left:50%;transform:translateX(-50%);width:800px;height:400px;background:radial-gradient(ellipse,rgba(0,229,200,.05) 0%,transparent 70%);pointer-events:none;}
+.eyebrow{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--accent);margin-bottom:32px;}
+.display{font-family:'Fraunces',serif;font-size:clamp(52px,8vw,108px);line-height:1.0;letter-spacing:-2px;margin-bottom:48px;max-width:800px;}
+.display em{font-style:italic;color:var(--accent);}
+.tension{font-size:16px;color:var(--muted);line-height:1.7;max-width:580px;margin-bottom:32px;}
+.tension em{color:var(--text);font-style:italic;}
+.intro-line{font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--muted);margin-bottom:40px;}
+.intro-line strong{color:var(--text);font-style:normal;font-weight:400;}
+/* STUB CONTENT */
+.proof-point{border-top:1px solid var(--border);padding:80px;border-bottom:1px solid var(--border);}
+.proof-inner{max-width:640px;}
+.proof-h{font-family:'Fraunces',serif;font-size:clamp(24px,3vw,36px);line-height:1.1;margin-bottom:24px;}
+.proof-h em{font-style:italic;color:var(--accent);}
+.proof-body{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:40px;}
+.proof-body em{color:var(--text);font-style:normal;}
+/* CTA */
+.cta-section{padding:100px 80px;border-bottom:1px solid var(--border);}
+.cta-inner{max-width:520px;}
+.cta-h{font-family:'Fraunces',serif;font-size:clamp(28px,3vw,44px);line-height:1.1;margin-bottom:24px;}
+.cta-h em{font-style:italic;color:var(--accent);}
+.cta-body{font-size:13px;color:var(--muted);margin-bottom:40px;line-height:1.6;}
+.cta-form{display:flex;gap:0;max-width:440px;margin-bottom:12px;}
+.cta-form input{flex:1;background:var(--bg);border:1px solid var(--border);border-right:none;padding:14px 16px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);outline:none;}
+.cta-form input::placeholder{color:var(--muted);}
+.cta-form input:focus{border-color:var(--muted);}
+.cta-form button{background:var(--accent);color:#080808;border:none;padding:14px 24px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:none;transition:opacity .2s;}
+.cta-form button:hover{opacity:.85;}
+.cta-confirm{font-size:11px;color:var(--teal);display:none;}
+.cta-legal{font-size:11px;color:var(--muted);}
+.g-wrap{max-width:760px;margin:0 auto;padding:140px 32px 80px;}
+.g-wrap h1{font-family:'Fraunces',serif;font-size:clamp(40px,6vw,72px);line-height:1.02;letter-spacing:-1.5px;margin-bottom:24px;}
+.g-wrap h1 em{font-style:italic;color:var(--accent);}
+.g-wrap h2{font-family:'Fraunces',serif;font-size:28px;line-height:1.15;margin:72px 0 18px;padding-top:28px;border-top:1px solid var(--border);}
+.g-wrap h3{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:28px 0 10px;font-weight:400;}
+.g-wrap p,.g-wrap li{font-size:14px;color:#bdbab4;line-height:1.75;}
+.g-wrap p{margin-bottom:14px;}
+.g-wrap strong{color:var(--text);font-weight:400;}
+.g-wrap ol,.g-wrap ul{margin:0 0 16px 22px;}
+.g-wrap li{margin-bottom:6px;}
+.g-wrap code{font-family:'DM Mono',monospace;color:var(--accent);font-size:13px;}
+.g-wrap pre{background:#0f0f0f;border:1px solid var(--border);padding:18px 20px;margin:8px 0 18px;overflow-x:auto;}
+.g-wrap pre code{color:var(--text);white-space:pre;}
+.g-wrap a{color:var(--accent);}
+.tbl{width:100%;overflow-x:auto;margin:10px 0 18px;}
+.tbl table{width:100%;border-collapse:collapse;font-size:13px;min-width:520px;}
+.tbl th,.tbl td{border:1px solid var(--border);padding:10px 12px;text-align:left;vertical-align:top;color:#bdbab4;}
+.tbl th{color:var(--text);font-weight:400;background:#0f0f0f;}
+.note{border:1px solid var(--border);border-left:2px solid var(--accent);padding:16px 20px;margin:14px 0 20px;}
+.note p{margin:0;}
+.note.win{border-left-color:#f2b36b;}
+.meta{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:40px;}
+.check li{list-style:none;margin-left:-22px;}
+.check li::before{content:'\25A1  ';color:var(--accent);}
+footer{padding:32px 80px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);}
+.footer-logo{font-family:'DM Mono',monospace;font-size:14px;color:var(--text);}
+.footer-logo span{color:var(--accent);}
+.footer-right{font-size:11px;color:var(--muted);}
+.footer-right a{color:var(--muted);text-decoration:none;margin-left:24px;}
+@media(max-width:900px){.g-wrap{padding:110px 20px 60px;}footer{flex-direction:column;gap:16px;padding:32px;}}
+</style>
+</head>
+<body>
+<div id="cursor"></div>
+<nav id="nav">
+ <a href="/" class="nav-logo"><span>(R)</span>AI</a>
+ <a href="/own#cta" class="nav-cta">Get updates</a>
+</nav>
+<main class="g-wrap">
+ <div class="eyebrow">Own your AI · free guide</div>
+ <h1>Own your AI,<br><em>safely.</em></h1>
+ <div class="meta">Version 1 · 29 Oct 2026 · about 30 minutes</div>
+
+ <h2>1. Why own your AI</h2>
+ <p>Owning your AI means the model runs on your machine, so nobody can change its price, its rules or what it does with your words. You take on one job in return: deciding what goes into it.</p>
+ <div class="tbl"><table>
+  <tr><th></th><th>Rented AI (app or API)</th><th>Your own AI</th></tr>
+  <tr><td>Who runs the model</td><td>A vendor</td><td>You, on your laptop</td></tr>
+  <tr><td>Who sees your prompts</td><td>The vendor</td><td>Nobody else</td></tr>
+  <tr><td>Who can change the rules</td><td>The vendor, any time</td><td>You</td></tr>
+  <tr><td>Cost</td><td>Subscription or per use</td><td>Free after setup</td></tr>
+  <tr><td>Who checks what goes in</td><td>The vendor's safety team</td><td>You, with RA(I)</td></tr>
+  <tr><td>Quality today</td><td>Best available</td><td>Good for everyday tasks, weaker on hard ones</td></tr>
+ </table></div>
+ <p>Honest trade: an open model on a laptop is not as strong as the best rented models yet. For writing, summaries, notes and private documents it is often enough, and it improves every few months.</p>
+
+ <h2>2. Pick a model for your machine</h2>
+ <p>Your computer's memory (RAM) decides the model size; start one size below the limit so the machine stays usable.</p>
+ <div class="tbl"><table>
+  <tr><th>Your RAM</th><th>Model size to start with</th><th>Good for</th></tr>
+  <tr><td>8 GB</td><td>3-4B parameters</td><td>Short answers, simple summaries</td></tr>
+  <tr><td>16 GB</td><td>7-8B parameters</td><td>Everyday writing, notes, document Q&amp;A</td></tr>
+  <tr><td>32 GB</td><td>12-14B parameters</td><td>Longer documents, better reasoning</td></tr>
+  <tr><td>64 GB or more</td><td>30B+ parameters</td><td>Close to entry-level rented models</td></tr>
+ </table></div>
+ <p>Default picks, checked against the Ollama library on 29 Oct 2026: 8 GB <code>granite4.2:3b</code>, 16 GB <code>gemma4:e4b</code> (6.6 GB download), 32 GB <code>gemma4:12b</code>. Model names change every few months, so check <a href="https://ollama.com/library">ollama.com/library</a> before you pull.</p>
+ <p>Where to find your RAM: on a Mac, Apple menu &gt; About This Mac; on Windows, Settings &gt; System &gt; About.</p>
+
+ <h2>3. Install: Ollama + Open WebUI</h2>
+ <p>Two programs, one path, no Docker: Ollama runs the model, Open WebUI gives you a chat window in your browser.</p>
+ <ol>
+  <li>Install Ollama from <a href="https://ollama.com">ollama.com</a> and open it once.</li>
+  <li>Download your model in a terminal: <code>ollama pull gemma4:e4b</code> (or the pick for your RAM from step 2).</li>
+  <li>Install uv, a small tool runner: on a Mac <code>brew install uv</code>; otherwise follow <a href="https://docs.astral.sh/uv/">docs.astral.sh/uv</a>.</li>
+  <li>Start Open WebUI, reachable only from your own computer:</li>
+ </ol>
+ <pre><code>uvx --python 3.11 open-webui@0.12.5 serve --host 127.0.0.1 --port 3000</code></pre>
+ <ol start="5">
+  <li>Open <code>http://localhost:3000</code> and create the first account. That account is the admin, so make it yours.</li>
+ </ol>
+ <p>The first start takes a few minutes while it downloads. Tested on 29 Oct 2026: Open WebUI 0.12.5 on a Mac (Apple Silicon) found Ollama at its default address with no extra settings.</p>
+ <div class="note win"><p><strong>Windows: not tested yet.</strong> We haven't run this path on a Windows PC ourselves. If you try it, tell us whether it worked (or where it broke) at <a href="mailto:go@withrai.xyz?subject=Guide%20v1%3A%20Windows%20test">go@withrai.xyz</a>. You'll get our thanks, a credit in the next version if you want one, and a well-earned high five. &#9995;</p></div>
+
+ <h2>4. Lock the basics</h2>
+ <p>Your AI should only answer to your own computer; four settings get you there.</p>
+ <div class="tbl"><table>
+  <tr><th>What</th><th>Do this</th><th>Why</th></tr>
+  <tr><td>Localhost only</td><td>Keep <code>--host 127.0.0.1</code> in the start command; leave Ollama's <code>OLLAMA_HOST</code> setting alone</td><td>Otherwise anyone on your Wi-Fi, or the internet, can talk to your AI</td></tr>
+  <tr><td>No open ports</td><td>Don't forward ports 3000 or 11434 on your router</td><td>Exposed AI servers are actively scanned for and misused</td></tr>
+  <tr><td>Pinned versions</td><td>Start a fixed release (<code>open-webui@0.12.5</code>), never an unpinned latest</td><td>A bad update can't slip in silently</td></tr>
+  <tr><td>Updates on purpose</td><td>Check for updates monthly, read the release notes, then change the number</td><td>You decide when new code runs</td></tr>
+ </table></div>
+ <p>Want your AI on your phone too? See step 7, never open ports for it.</p>
+
+ <h2>5. Feed it safely</h2>
+ <p>The biggest risk to your own AI is not a hacker but a document: text that looks harmless to you can carry instructions your AI will follow.</p>
+ <h3>How hidden instructions get in</h3>
+ <ul>
+  <li>PDFs and Word files with white-on-white or tiny text</li>
+  <li>Web pages your AI reads, with text hidden from view</li>
+  <li>Emails and shared notes you paste in</li>
+  <li>Plugins, tools and "skills" you install from strangers</li>
+ </ul>
+ <h3>What never goes into memory or a knowledge base</h3>
+ <ul>
+  <li>Passwords, API keys, card or ID numbers</li>
+  <li>Documents you haven't read yourself</li>
+  <li>Anything that tells the AI how to behave, unless you wrote it</li>
+ </ul>
+ <h3>Simple habits</h3>
+ <ul>
+  <li>Keep chats with untrusted documents separate from your main memory</li>
+  <li>Read a file before you let your AI learn from it</li>
+  <li>If your AI suddenly behaves differently, check what you added last</li>
+ </ul>
+ <p>Why this matters more over time: a bad note can be deleted, but once your AI learns from something, the instruction can become part of how it thinks.</p>
+
+ <h2>6. Switch on RA(I)'s intake check</h2>
+ <p><strong>Not available yet:</strong> the RA(I) plugin for Open WebUI is in development, and you'll get one email when it's ready.</p>
+ <p>What it will do once installed:</p>
+ <ul>
+  <li>Check documents, web pages and notes before they reach your AI's chat or memory</li>
+  <li>Show you a signal when something carries hidden instructions, with Keep or Drop</li>
+  <li>Run on your computer; nothing is sent to RA(I)</li>
+ </ul>
+ <p>Until then, the habits in step 5 are your intake check. <a href="/own#cta">Get a note when it ships</a>.</p>
+
+ <h2>7. Use it on your phone and other devices</h2>
+ <p>One computer at home runs your AI; your phone, tablet and second laptop connect to it privately, so all devices share the same AI and the same memory.</p>
+ <div class="tbl"><table>
+  <tr><th>Setup</th><th>How</th><th>Good for</th></tr>
+  <tr><td>Home machine + private network</td><td>Join every device to a private network tool (for example Tailscale), share Open WebUI only inside that network, open it from your phone's browser</td><td>One AI, same memory everywhere, nothing exposed to the internet</td></tr>
+  <tr><td>On the phone itself</td><td>A small model in an on-device app</td><td>Offline use; weaker model, separate memory</td></tr>
+  <tr><td>Both</td><td>Phone app offline, home AI when connected</td><td>Travel</td></tr>
+ </table></div>
+ <h3>How to do it with Tailscale</h3>
+ <ol>
+  <li>Install Tailscale on the home computer and on your phone; sign in with the same account on both.</li>
+  <li>The first time, Tailscale asks you to switch on "Serve" for your network: one click on the link it shows. Serve keeps it private to your own devices; the public option, Funnel, stays off.</li>
+  <li>On the home computer, with Open WebUI running: <code>tailscale serve --bg 3000</code>. It prints your private address, like <code>https://&lt;computer-name&gt;.&lt;your-network&gt;.ts.net</code>.</li>
+  <li>On the phone, with Tailscale on, open that address.</li>
+ </ol>
+ <p><strong>Check it is private:</strong> turn Tailscale off on the phone and reload; the page must not load. Tested on 29 Oct 2026 with a Mac and an Android phone.</p>
+ <h3>Rules that keep it safe</h3>
+ <ul>
+  <li>Never open router ports to reach your AI from outside; the private network replaces that</li>
+  <li>Each device signs in with its own Open WebUI account, so you can remove a lost phone</li>
+  <li>The home machine must be on and awake for other devices to reach it</li>
+ </ul>
+
+ <h2>8. Checklist</h2>
+ <ul class="check">
+  <li>I know my RAM and picked a model one size below the limit</li>
+  <li>Ollama is installed and my model is downloaded</li>
+  <li>Open WebUI runs at http://localhost:3000 and I own the admin account</li>
+  <li>The start command uses <code>127.0.0.1</code> and a pinned version</li>
+  <li>Ollama is not set to <code>0.0.0.0</code>, and no router ports are open</li>
+  <li>I read files before my AI learns from them</li>
+  <li>No passwords, keys or ID numbers in memory</li>
+  <li>Other devices reach my AI through a private network, not open ports</li>
+  <li>I'm on the list for RA(I)'s intake check</li>
+ </ul>
+ <div class="note"><p>Found a step that didn't work, or a better way? Write to <a href="mailto:go@withrai.xyz?subject=Guide%20v1%20feedback">go@withrai.xyz</a>. This guide gets better with every report.</p></div>
+</main>
+<footer>
+ <div class="footer-logo"><span>(R)</span>AI</div>
+ <div class="footer-right">
+ <span>Security Lab SE</span>
+ <a href="/">withrai.xyz</a>
+ <a href="/own">Own your AI</a>
+ <a href="mailto:go@withrai.xyz">go@withrai.xyz</a>
+ </div>
+</footer>
+<script>
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => { cursor.style.left = e.clientX+'px'; cursor.style.top = e.clientY+'px'; });
+document.querySelectorAll('a, button, input').forEach(el => { el.addEventListener('mouseenter',()=>cursor.classList.add('large')); el.addEventListener('mouseleave',()=>cursor.classList.remove('large')); });
+window.addEventListener('scroll', () => { document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40); });
+</script>
+</body>
+</html>
