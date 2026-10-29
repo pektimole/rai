@@ -8,7 +8,14 @@
 
 import type { ThreatLayer } from '../scanner/types';
 import { escapeHtml } from '../ui/render';
-import type { FirstScanReport, ReportItem } from './report';
+import { isSecret, type FirstScanReport, type ReportItem } from './report';
+
+const SECRET_NAME = 'Exposed secret';
+
+/** Scanner explanations come from the single-scan flow and end in "Content blocked.". Nothing is blocked here: signals, not verdicts. */
+function whyText(s: string): string {
+  return s.replace(/\s*(?:Content blocked|Review before sending)\.\s*/g, ' ').replace(/^(?:Infrastructure-level threat|Injection pattern) detected:\s*/, 'Pattern: ').trim();
+}
 
 const LAYER_NAMES: Record<ThreatLayer, string> = {
   'L-2': 'Data or system access request',
@@ -48,6 +55,7 @@ function cardsHtml(r: FirstScanReport, aiCheck: boolean): string {
     <div class="fs-cards">
       ${ai}
       <div class="fs-card" data-metric="hidden-instructions"><div class="fs-card-n">${r.hiddenInstructions}</div><div class="fs-card-l">Hidden instructions</div></div>
+      ${r.exposedSecrets > 0 ? `<div class="fs-card" data-metric="exposed-secrets"><div class="fs-card-n">${r.exposedSecrets}</div><div class="fs-card-l">Exposed secrets</div></div>` : ''}
     </div>`;
 }
 
@@ -57,17 +65,17 @@ function rowHtml(item: ReportItem): string {
   const signals = item.signals
     .map((s) => {
       const matched = s.matched_pattern ? ` <span class="fs-match">“${escapeHtml(s.matched_pattern)}”</span>` : '';
-      return `<li>${escapeHtml(LAYER_NAMES[s.layer])}: ${escapeHtml(s.signal)}${matched}</li>`;
+      return `<li>${escapeHtml(isSecret(s) ? SECRET_NAME : LAYER_NAMES[s.layer])}: ${escapeHtml(s.signal)}${matched}</li>`;
     })
     .join('');
   return `
     <li class="fs-row" data-item="${escapeHtml(item.id)}">
       <div class="fs-what">${escapeHtml(item.what)}</div>
       <div class="fs-meta">${escapeHtml(meta)}</div>
-      <div class="fs-tags"><span class="fs-layer">${escapeHtml(LAYER_NAMES[item.layer])}</span><span class="fs-conf">confidence ${Math.round(item.confidence * 100)}%</span></div>
+      <div class="fs-tags"><span class="fs-layer">${escapeHtml(item.signals.every(isSecret) ? SECRET_NAME : LAYER_NAMES[item.layer])}</span><span class="fs-conf">confidence ${Math.round(item.confidence * 100)}%</span></div>
       <details class="fs-why"><summary>Why</summary>
         <ul>${signals}</ul>
-        ${item.why ? `<p>${escapeHtml(item.why)}</p>` : ''}
+        ${whyText(item.why) ? `<p>${escapeHtml(whyText(item.why))}</p>` : ''}
       </details>
     </li>`;
 }

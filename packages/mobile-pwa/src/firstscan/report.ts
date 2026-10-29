@@ -38,6 +38,8 @@ export interface FirstScanReport {
   aiSignals: number;
   /** Items with at least one L0 (hidden instruction) signal. */
   hiddenInstructions: number;
+  /** Items with a leaked credential (password, API key, token). Kept apart from hidden instructions. */
+  exposedSecrets: number;
   /** Items with at least one signal, in batch order. */
   flagged: ReportItem[];
   /** Items with no signals, collapsed to a count. */
@@ -47,6 +49,11 @@ export interface FirstScanReport {
 }
 
 const SNIPPET_LEN = 160;
+
+/** A leaked credential (password, API key, token). P0 files these under L0, but they are not instructions. */
+export function isSecret(s: ThreatSignal): boolean {
+  return /exposure$/i.test(s.label);
+}
 
 /** The layer a row is filed under: hidden instructions first, then AI generation, then the rest. */
 function primaryLayer(signals: ThreatSignal[]): ThreatLayer {
@@ -83,6 +90,7 @@ export async function buildFirstScan(
   let cleanCount = 0;
   let aiSignals = 0;
   let hiddenInstructions = 0;
+  let exposedSecrets = 0;
 
   for (const item of batch) {
     const result = await scan(item);
@@ -92,7 +100,8 @@ export async function buildFirstScan(
       continue;
     }
     if (signals.some((s) => s.layer === 'L1')) aiSignals++;
-    if (signals.some((s) => s.layer === 'L0')) hiddenInstructions++;
+    if (signals.some((s) => s.layer === 'L0' && !isSecret(s))) hiddenInstructions++;
+    if (signals.some(isSecret)) exposedSecrets++;
     flagged.push({
       id: item.id,
       what: snippet(item.text),
@@ -116,6 +125,7 @@ export async function buildFirstScan(
     scannedAt: now().toISOString(),
     aiSignals,
     hiddenInstructions,
+    exposedSecrets,
     flagged,
     cleanCount,
     unreadable,
