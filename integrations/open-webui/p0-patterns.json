@@ -1,0 +1,274 @@
+[
+  {
+    "source": "\\/Users\\/[a-zA-Z]+\\/|\\/mnt\\/|\\/home\\/[a-zA-Z]+\\/nanoclaw",
+    "flags": "i",
+    "label": "Mount path reference",
+    "layer": "L-2",
+    "severity": "critical",
+    "signal": "Host filesystem path detected in payload"
+  },
+  {
+    "source": "REGISTRY\\.md|00-WAKE\\.md|decision-log|open-loops",
+    "flags": "i",
+    "label": "Context file reference",
+    "layer": "L-2",
+    "severity": "critical",
+    "signal": "No5 context file name detected in payload"
+  },
+  {
+    "source": "(?:send|forward|email|post|upload|exfil)[^\\n]{0,40}(?:to|at)\\s+[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-z]{2,}",
+    "flags": "i",
+    "label": "Credential / data exfiltration attempt",
+    "layer": "L-2",
+    "severity": "critical",
+    "signal": "Instruction to send data to external address"
+  },
+  {
+    "source": "(?:modify|edit|update|delete|overwrite|write to|append to)\\s+(?:the\\s+)?(?:context|registry|wake|decision.log|open.loops|CLAUDE\\.md)",
+    "flags": "i",
+    "label": "Context file manipulation",
+    "layer": "L-2",
+    "severity": "critical",
+    "signal": "Instruction to modify No5 context files"
+  },
+  {
+    "source": "use\\s+(?:the\\s+)?(?:mcp\\s+)?tool|call\\s+(?:the\\s+)?function|execute\\s+(?:the\\s+)?(?:tool|command|function)",
+    "flags": "i",
+    "label": "MCP tool call injection",
+    "layer": "L-2",
+    "severity": "high",
+    "signal": "Instruction to invoke tool/function detected in payload"
+  },
+  {
+    "source": "you\\s+are\\s+now\\s+(?!no5|an?\\s+AI|an?\\s+assistant)[a-zA-Z]",
+    "flags": "i",
+    "label": "Persona replacement",
+    "layer": "L-1",
+    "severity": "critical",
+    "signal": "Attempt to replace agent persona"
+  },
+  {
+    "source": "forget\\s+(?:that\\s+)?you\\s+are|your\\s+new\\s+(?:identity|persona|role|name)\\s+is",
+    "flags": "i",
+    "label": "Persona replacement",
+    "layer": "L-1",
+    "severity": "critical",
+    "signal": "Attempt to overwrite agent identity"
+  },
+  {
+    "source": "(?:your\\s+)?(?:new|updated)\\s+(?:system\\s+)?(?:instructions?|prompt|rules?|directives?)\\s+(?:are|is):",
+    "flags": "i",
+    "label": "System prompt injection",
+    "layer": "L-1",
+    "severity": "critical",
+    "signal": "Attempt to inject new system-level instructions"
+  },
+  {
+    "source": "ignore\\s+(?:your\\s+)?(?:previous\\s+)?(?:training|guidelines|rules|instructions|constraints)",
+    "flags": "i",
+    "label": "Training override attempt",
+    "layer": "L-1",
+    "severity": "high",
+    "signal": "Instruction to override model training or guidelines"
+  },
+  {
+    "source": "from\\s+now\\s+on[,\\s]+(?:always|never)\\s+|always\\s+respond\\s+by\\s+|never\\s+(?:mention|refer|say|tell)",
+    "flags": "i",
+    "label": "Behavioral drift injection",
+    "layer": "L-1",
+    "severity": "high",
+    "signal": "Attempt to modify persistent agent behavior"
+  },
+  {
+    "source": "ignore\\s+(?:all\\s+)?(?:previous|prior|earlier|above)\\s+instructions?",
+    "flags": "i",
+    "label": "Direct prompt injection",
+    "layer": "L0",
+    "severity": "critical",
+    "signal": "\"Ignore previous instructions\" pattern"
+  },
+  {
+    "source": "disregard\\s+(?:all\\s+)?(?:previous|prior|your)\\s+|override\\s+(?:your\\s+)?(?:instructions?|programming|rules)",
+    "flags": "i",
+    "label": "Direct prompt injection",
+    "layer": "L0",
+    "severity": "critical",
+    "signal": "Disregard/override instruction pattern"
+  },
+  {
+    "source": "\\bDAN\\b|developer\\s+mode|jailbreak|unrestricted\\s+mode|pretend\\s+you\\s+have\\s+no\\s+rules|no\\s+restrictions\\s+mode",
+    "flags": "i",
+    "label": "Jailbreak attempt",
+    "layer": "L0",
+    "severity": "critical",
+    "signal": "Known jailbreak pattern detected"
+  },
+  {
+    "source": "act\\s+as\\s+(?:if\\s+you\\s+(?:are|were)\\s+)?(?:an?\\s+)?(?:unrestricted|unfiltered|uncensored|evil|malicious)",
+    "flags": "i",
+    "label": "Jailbreak attempt",
+    "layer": "L0",
+    "severity": "critical",
+    "signal": "Request to act as unrestricted/unfiltered model"
+  },
+  {
+    "source": "<<\\s*system[_\\s-]?override\\s*>>|\\[\\[\\s*system[_\\s-]?override\\s*\\]\\]|\\[\\s*system[_\\s-]?override\\s*\\]",
+    "flags": "i",
+    "label": "Direct prompt injection",
+    "layer": "L0",
+    "severity": "critical",
+    "signal": "System-override token detected (<<SYSTEM_OVERRIDE>>-style bracket)"
+  },
+  {
+    "source": "(?:previous|prior|earlier|original)\\s+instructions?\\s+(?:are|is|have\\s+been|were)\\s+(?:deprecated|superseded|invalid|cancelled|revoked|outdated|obsolete|replaced)",
+    "flags": "i",
+    "label": "Direct prompt injection",
+    "layer": "L0",
+    "severity": "critical",
+    "signal": "Prior-instructions-deprecated injection pattern"
+  },
+  {
+    "source": "(?:do\\s+not|don'?t|never)\\s+(?:include|mention|reveal|log|record|disclose|show)[^.]{0,40}?(?:audit\\s*log|in\\s+(?:your\\s+)?(?:response|reply|output)|notice)",
+    "flags": "i",
+    "label": "Audit-log evasion",
+    "layer": "L0",
+    "severity": "critical",
+    "signal": "Instruction to suppress this notice from response/log"
+  },
+  {
+    "source": "(?:schema|protocol|system|policy|security|api)\\s+(?:migration|update|upgrade|patch|refresh|reset)\\b[^.]{0,80}?(?:deprecat|overrid|ignor|supersed|invalid|new\\s+instruction)",
+    "flags": "i",
+    "label": "Direct prompt injection",
+    "layer": "L0",
+    "severity": "critical",
+    "signal": "Pretextual update (schema/protocol/policy) used as override justification"
+  },
+  {
+    "source": "(?:url[-\\s]?encode|encode\\s+(?:the\\s+)?(?:result|output|data|response|answer|query))\\s+(?:as\\s+(?:an?\\s+)?url|in\\s+(?:an?\\s+)?url|into\\s+(?:an?\\s+)?url)",
+    "flags": "i",
+    "label": "Data exfiltration via URL",
+    "layer": "L0",
+    "severity": "critical",
+    "signal": "Instruction to exfiltrate data via URL-encoded payload"
+  },
+  {
+    "source": "ignore\\s+(?:all\\s+)?(?:scan|firewall|rai|security|inspection)\\s+(?:instructions?|rules?|procedures?|settings?|checks?)",
+    "flags": "i",
+    "label": "Scan-bypass injection",
+    "layer": "L-1",
+    "severity": "critical",
+    "signal": "Instruction to ignore scan/firewall rules embedded in payload"
+  },
+  {
+    "source": "(?:pre-?verified|already\\s+verified|security\\s+team\\s+(?:approved|certified|verified|pre-?cleared)|output\\s+(?:only\\s+)?clean|return\\s+(?:verdict\\s+)?(?::|=)?\\s*clean)",
+    "flags": "i",
+    "label": "Scan-bypass injection",
+    "layer": "L-1",
+    "severity": "critical",
+    "signal": "Claim of pre-verification or instruction to return CLEAN verdict"
+  },
+  {
+    "source": "(?:important\\s+security\\s+update|maintenance\\s+window|policy\\s+override\\s+active|system\\s+administrator)[^.]{0,80}(?:ignore|bypass|override|skip|disable)",
+    "flags": "i",
+    "label": "Authority-framing injection",
+    "layer": "L-1",
+    "severity": "critical",
+    "signal": "Authority-framing language used to justify bypassing scan instructions"
+  },
+  {
+    "source": "ignoriere\\s+(?:alle?\\s+)?(?:vorherigen?|früheren?|bisherigen?)?\\s*(?:anweisungen?|regeln?|instruktionen?|einschränkungen?)|vergiss\\s+(?:alle?\\s+)?(?:regeln?|anweisungen?|instruktionen?)",
+    "flags": "i",
+    "label": "Multilingual prompt injection (DE)",
+    "layer": "L-1",
+    "severity": "critical",
+    "signal": "German-language instruction override pattern detected"
+  },
+  {
+    "source": "du\\s+bist\\s+jetzt\\s+(?:ein|eine|im|in)\\s+(?:neuen?|anderen?|freien?|uneingeschränkten?)|deine\\s+neue\\s+(?:identität|rolle|persona|aufgabe)\\s+ist",
+    "flags": "i",
+    "label": "Multilingual persona replacement (DE)",
+    "layer": "L-1",
+    "severity": "critical",
+    "signal": "German-language persona replacement pattern detected"
+  },
+  {
+    "source": "\\[INST\\]|\\[\\/INST\\]|<\\|im_start\\|>|<\\|im_end\\|>|<<SYS>>|<\\/SYS>>|\\[SYSTEM\\]|\\[USER\\]|\\[ASSISTANT\\]",
+    "flags": "",
+    "label": "Model token injection",
+    "layer": "L0",
+    "severity": "critical",
+    "signal": "LLM prompt template token detected in payload (Llama/Mistral/ChatML format)"
+  },
+  {
+    "source": "<!--[\\s\\S]{0,200}(?:ignore|override|bypass|inject|system|instruction)[\\s\\S]{0,200}-->",
+    "flags": "i",
+    "label": "HTML comment instruction hiding",
+    "layer": "L0",
+    "severity": "high",
+    "signal": "Instructions hidden inside HTML comment block"
+  },
+  {
+    "source": "(?:curl|wget|nc|netcat|python\\s+-c|bash\\s+-c)[^\\n]{0,60}(?:https?:\\/\\/|evil|exfil|attacker|C2)",
+    "flags": "i",
+    "label": "Shell exfiltration command",
+    "layer": "L-2",
+    "severity": "critical",
+    "signal": "Shell command targeting external URL detected (potential data exfil)"
+  },
+  {
+    "source": "@~\\/\\.ssh\\/|@~\\/\\.aws\\/|@~\\/\\.env\\b|@\\/etc\\/passwd|@\\/etc\\/shadow",
+    "flags": "",
+    "label": "Credential file exfiltration",
+    "layer": "L-2",
+    "severity": "critical",
+    "signal": "Reference to sensitive credential file in exfil-style path"
+  },
+  {
+    "source": "\\bsk-ant-[a-zA-Z0-9\\-_]{20,}",
+    "flags": "",
+    "label": "Anthropic API key exposure",
+    "layer": "L0",
+    "severity": "critical",
+    "signal": "Anthropic API key pattern detected in payload"
+  },
+  {
+    "source": "\\bsk-proj-[a-zA-Z0-9_-]{20,}",
+    "flags": "",
+    "label": "OpenAI project key exposure",
+    "layer": "L0",
+    "severity": "high",
+    "signal": "OpenAI sk-proj-* project API key pattern detected"
+  },
+  {
+    "source": "\\bsk-[a-zA-Z0-9]{20,}",
+    "flags": "",
+    "label": "OpenAI API key exposure",
+    "layer": "L0",
+    "severity": "high",
+    "signal": "OpenAI-style API key pattern detected"
+  },
+  {
+    "source": "\\bghp_[a-zA-Z0-9]{36,}\\b|\\bgh[ou]_[a-zA-Z0-9]{36,}\\b",
+    "flags": "",
+    "label": "GitHub token exposure",
+    "layer": "L0",
+    "severity": "high",
+    "signal": "GitHub personal access token pattern detected"
+  },
+  {
+    "source": "Bearer\\s+[a-zA-Z0-9\\-._~+/]+=*",
+    "flags": "",
+    "label": "Bearer token exposure",
+    "layer": "L0",
+    "severity": "high",
+    "signal": "Bearer token detected in payload"
+  },
+  {
+    "source": "(?:password|passwd|pwd)\\s*[:=]\\s*\\S{6,}",
+    "flags": "i",
+    "label": "Password exposure",
+    "layer": "L0",
+    "severity": "high",
+    "signal": "Inline password assignment pattern detected"
+  }
+]

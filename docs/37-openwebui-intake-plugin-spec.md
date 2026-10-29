@@ -1,6 +1,6 @@
 # 37 · Open WebUI intake-check plugin, spec v0.1 (OL-660)
 
-_Status: SPEC, not built. Author: No5 [cd:2026-10-29]. Parent: OL-649 (withrai.xyz/own funnel). This plugin is guide step 6 ("Switch on RAI's intake check"); until it ships, step 6 is a waitlist._
+_Status: BUILT v0.1.0 [cd:2026-10-30], live-install test pending. Was: SPEC, not built. Author: No5 [cd:2026-10-29]. Parent: OL-649 (withrai.xyz/own funnel). This plugin is guide step 6 ("Switch on RAI's intake check"); until it ships, step 6 is a waitlist._
 
 ## 1. Goal
 
@@ -67,3 +67,15 @@ P0/L2 are pattern and heuristic checks: a signal layer, evadable by a determined
 - License for the `.py` (MIT for adoption vs source-available).
 
 Cross-ref: OL-649, OL-660, OL-453 (L2 hidden-channel heuristics), OL-301 (result-path inspection, same posture), 19-rai-context.md self-hosters wedge [mob:2026-04-21] + Constitution Addendum [cd:2026-10-29].
+
+## 10. Build note v0.1.0 [cd:2026-10-30]
+
+Built per section 4 Option A. Files: `integrations/open-webui/rai_intake_check.py` (the Function), `p0-patterns.json` + `scripts/export-p0-patterns.ts` + `scripts/build-open-webui-function.py` (generated pattern block, no-network grep), `fixtures.json` + `test_intake_check.py` (8 injected / 20 clean / hooks / latency / parity), `scripts/scan-fixtures.ts` (TS side of parity). Hosted copy for one-URL install: `assets/landing/intake-check/rai_intake_check.py`.
+
+Resolved on build, the section 3 VERIFY item: Open WebUI 0.12.5 runs `inlet` filters BEFORE `chat_completion_files_handler` (retrieval), so inlet cannot see RAG chunks. It also exposes a `request` filter hook that runs AFTER retrieval and before the model call; the retrieved chunks and document context sit in the system message at that point. v1 uses `inlet` (user message + any inline file text) plus `request` (system message), plus `outlet` (L-2 only, reply untouched). Pipelines server not needed.
+
+Deviation from section 5: no inline "Use anyway" button (Filter Functions have no per-message UI). Replaced by the user valve `action` = warn (default, nothing changes) | strip | drop; strip/drop notices say what was withheld and how to re-send. Signal text goes out as a status line plus a notification event.
+
+Results: 8/8 injected fixtures flagged, 0/20 clean controls flagged, parity 28/28 on P0 labels, 20-page text scan 22 ms, no-network check pass, core tsc clean, rai-scan-p0 tests 7/7.
+
+Open before guide step 6 flips from waitlist to install: live install on a running Open WebUI 0.12.5 (uvx path from the guide), confirm the `request` hook sees the `<source>` context for an uploaded PDF and a knowledge collection, confirm the status/notification events render in the chat UI.

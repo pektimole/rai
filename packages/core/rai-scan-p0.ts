@@ -125,6 +125,12 @@ export function getDynamicPatterns(): P0Pattern[] {
   return dynamicPatterns;
 }
 
+/** Read-only view of the static P0 floor (OL-660: exported so the Open WebUI
+ *  Python port can be generated from the same library, never hand-copied). */
+export function getStaticPatterns(): readonly P0Pattern[] {
+  return PATTERNS;
+}
+
 const PATTERNS: Pattern[] = [
   // --- L-2: Infrastructure / supply chain ---
   {

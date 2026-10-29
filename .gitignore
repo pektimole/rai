@@ -11,3 +11,4 @@ assets/deck & web design/Drafts/RA*Teaser Deck*.png
 
 # Netlify local state
 .netlify/
+__pycache__/
