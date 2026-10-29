@@ -149,10 +149,13 @@ footer{padding:32px 80px;display:flex;align-items:center;justify-content:space-b
  <div class="eyebrow" style="color:var(--accent);">Enterprise pilot</div>
  <div class="cta-h">The gate your<br>AI stack<br><em>needs.</em></div>
  <p class="cta-body">ActionGate deploys across your agent stack. Write gate, process lineage, scope attestation, confused deputy protection. Enterprise trial: go@withrai.xyz. Response within 24h.</p>
- <form class="cta-form" id="ctaForm">
- <input type="email" placeholder="work@company.com" required>
+ <form class="cta-form" id="ctaForm" name="cta-enterprise" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+ <input type="hidden" name="form-name" value="cta-enterprise">
+ <p style="display:none;"><label>Leave empty <input name="bot-field"></label></p>
+ <input type="email" name="email" placeholder="work@company.com" required>
  <button type="submit">Request pilot</button>
  </form>
+  <div id="formErr" style="display:none;font-size:11px;color:#f2b36b;margin-top:8px;">Something went wrong. Please try again, or write to go@withrai.xyz.</div>
  <div class="cta-confirm" id="ctaConfirm">✓ Request received. We'll be in touch within 24h.</div>
  <p class="cta-legal" style="margin-top:12px;">Enterprise deployment. Custom config. On-prem available.</p>
  </div>
@@ -173,7 +176,7 @@ const cursor = document.getElementById('cursor');
 document.addEventListener('mousemove', e => { cursor.style.left = e.clientX+'px'; cursor.style.top = e.clientY+'px'; });
 document.querySelectorAll('a, button, input').forEach(el => { el.addEventListener('mouseenter',()=>cursor.classList.add('large')); el.addEventListener('mouseleave',()=>cursor.classList.remove('large')); });
 window.addEventListener('scroll', () => { document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40); });
-document.getElementById('ctaForm').addEventListener('submit', function(e) { e.preventDefault(); this.style.display='none'; document.getElementById('ctaConfirm').style.display='block'; });
+document.getElementById('ctaForm').addEventListener('submit', function(e){ e.preventDefault(); const f=this; fetch('/', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(new FormData(f)).toString()}).then(r=>{ if(!r.ok) throw new Error(r.status); f.style.display='none'; document.getElementById('ctaConfirm').style.display='block'; }).catch(()=>{ document.getElementById('formErr').style.display='block'; }); });
 </script>
 </body>
 </html>
