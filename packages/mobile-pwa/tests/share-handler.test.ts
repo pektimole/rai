@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractShareFromFormData, harvestSourceUrl } from '../src/share/extract';
+import { extractAllSharesFromFormData, extractShareFromFormData, harvestSourceUrl } from '../src/share/extract';
 
 const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
 
@@ -105,5 +105,35 @@ describe('extractShareFromFormData', () => {
     expect(result!.title).toBe('A LinkedIn Post');
     expect(result!.text).toBe('Some preview text');
     expect(result!.source_url).toBeUndefined();
+  });
+});
+
+describe('extractAllSharesFromFormData (OL-661 batch)', () => {
+  it('returns one PendingShare per image with the file date as itemDate', async () => {
+    const fd = new FormData();
+    fd.append('screenshot', new File([PNG_BYTES], 'a.png', { type: 'image/png', lastModified: Date.parse('2026-09-01T10:00:00Z') }));
+    fd.append('screenshot', new File([PNG_BYTES], 'b.png', { type: 'image/png', lastModified: Date.parse('2026-10-02T10:00:00Z') }));
+    const result = await extractAllSharesFromFormData(fd);
+    expect(result).toHaveLength(2);
+    expect(result.map((r) => r.itemDate)).toEqual([Date.parse('2026-09-01T10:00:00Z'), Date.parse('2026-10-02T10:00:00Z')]);
+    expect(new Set(result.map((r) => r.id)).size).toBe(2);
+  });
+
+  it('attaches title and url to the first item only', async () => {
+    const fd = new FormData();
+    fd.append('screenshot', imageFile('a.png'));
+    fd.append('screenshot', imageFile('b.png'));
+    fd.set('title', 'A post');
+    fd.set('url', 'https://example.com/p');
+    const [first, second] = await extractAllSharesFromFormData(fd);
+    expect(first).toMatchObject({ title: 'A post', source_url: 'https://example.com/p' });
+    expect(second.title).toBeUndefined();
+    expect(second.source_url).toBeUndefined();
+  });
+
+  it('returns an empty list when there is no image', async () => {
+    const fd = new FormData();
+    fd.set('text', 'just text');
+    expect(await extractAllSharesFromFormData(fd)).toEqual([]);
   });
 });

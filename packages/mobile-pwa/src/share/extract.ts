@@ -14,6 +14,8 @@ export interface PendingShare {
   title?: string;
   text?: string;
   source_url?: string;
+  /** Item metadata date (the image file's lastModified, ms). Not the time the share arrived. */
+  itemDate?: number;
   receivedAt: number;
 }
 
@@ -52,6 +54,14 @@ function pickImageFromForm(form: FormData): File | null {
   return null;
 }
 
+function allImagesFromForm(form: FormData): File[] {
+  const out: File[] = [];
+  for (const [, value] of form.entries()) {
+    if (value instanceof File && value.type.startsWith('image/')) out.push(value);
+  }
+  return out;
+}
+
 function readString(form: FormData, key: string): string | undefined {
   const value = form.get(key);
   if (typeof value !== 'string') return undefined;
@@ -76,6 +86,31 @@ export async function extractShareFromFormData(form: FormData): Promise<PendingS
     title,
     text,
     source_url,
+    itemDate: image.lastModified || undefined,
     receivedAt: Date.now(),
   };
+}
+
+/**
+ * Every image in the multipart payload as its own PendingShare (OL-661 batch).
+ * Text, title and url describe the share as a whole and attach to the first item only.
+ */
+export async function extractAllSharesFromFormData(form: FormData): Promise<PendingShare[]> {
+  const images = allImagesFromForm(form);
+  if (images.length === 0) return [];
+  const title = readString(form, 'title');
+  const text = readString(form, 'text');
+  const source_url = harvestSourceUrl(readString(form, 'url'), text);
+  const receivedAt = Date.now();
+  return images.map((image, i) => ({
+    id: generateShareId(),
+    image,
+    imageName: image.name || undefined,
+    imageType: image.type || 'application/octet-stream',
+    title: i === 0 ? title : undefined,
+    text: i === 0 ? text : undefined,
+    source_url: i === 0 ? source_url : undefined,
+    itemDate: image.lastModified || undefined,
+    receivedAt,
+  }));
 }

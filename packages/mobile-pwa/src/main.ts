@@ -33,6 +33,10 @@ import type { PendingShare } from './share/extract';
 import type { ScanResult } from './scanner/types';
 import type { P1Result } from './scanner/rai-scan-p1';
 import { renderApp, type ViewState } from './ui/render';
+import { parsePastedBatch, itemFromImage, type BatchItem } from './firstscan/batch';
+import { buildFirstScan } from './firstscan/report';
+import { makeItemScanner } from './firstscan/scan';
+import { renderFirstScanHtml } from './firstscan/view';
 
 const SW_CHANNEL = 'rai-mobile';
 const STATUS_TOKENS = new Set(['pending', 'empty', 'error']);
@@ -175,6 +179,93 @@ async function runPipeline(pending: PendingShare): Promise<void> {
   await setLatestScan(scanRow);
 }
 
+const KEEP_WATCHING_KEY = 'rai_keep_watching';
+
+/** Scan a batch once, commit the report, and show it. The numbers are never recomputed. */
+async function runFirstScan(items: BatchItem[], unreadable = 0): Promise<void> {
+  const target = document.getElementById('first-scan');
+  if (!target) return;
+  if (items.length === 0 && unreadable === 0) return;
+  const report = await buildFirstScan(items, makeItemScanner(getAnthropicKey()), undefined, unreadable);
+  target.innerHTML = renderFirstScanHtml(report);
+  target.hidden = false;
+  document.getElementById('empty-state')?.setAttribute('hidden', '');
+  document.getElementById('latest-scan')?.setAttribute('hidden', '');
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function batchFromImages(images: Array<{ id: string; image: Blob; lastModified?: number; source?: string }>): Promise<{ items: BatchItem[]; unreadable: number }> {
+  const items: BatchItem[] = [];
+  let unreadable = 0;
+  for (const img of images) {
+    const ocr = await recognizeText(img.image);
+    if (ocr.text.length === 0) {
+      unreadable++;
+      continue;
+    }
+    items.push(itemFromImage({ id: img.id, text: ocr.text, source: img.source, fileLastModified: img.lastModified }));
+  }
+  return { items, unreadable };
+}
+
+async function runFirstScanFromShares(ids: string[]): Promise<void> {
+  const pending: PendingShare[] = [];
+  for (const id of ids) {
+    const share = await takePendingShare(id);
+    if (share) pending.push(share);
+  }
+  const { items, unreadable } = await batchFromImages(
+    pending.map((p) => ({ id: p.id, image: p.image, lastModified: p.itemDate, source: p.source_url })),
+  );
+  await runFirstScan(items, unreadable);
+}
+
+async function handleFirstScanPaste(): Promise<void> {
+  const area = document.getElementById('fs-paste') as HTMLTextAreaElement | null;
+  const button = document.getElementById('fs-scan-btn') as HTMLButtonElement | null;
+  if (!area || !button) return;
+  const items = parsePastedBatch(area.value);
+  if (items.length === 0) return;
+  button.disabled = true;
+  button.textContent = 'Scanning…';
+  try {
+    await runFirstScan(items);
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Scan this batch';
+  }
+}
+
+async function handleFilesPick(files: File[]): Promise<void> {
+  const button = document.getElementById('pick-file-btn') as HTMLButtonElement | null;
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Scanning…';
+  }
+  try {
+    const { items, unreadable } = await batchFromImages(
+      files.map((f) => ({ id: crypto.randomUUID(), image: f, lastModified: f.lastModified })),
+    );
+    await runFirstScan(items, unreadable);
+  } catch (err) {
+    console.error('[rai-mobile] first-scan failed', err);
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = 'Pick a screenshot to scan';
+    }
+  }
+}
+
+function handleKeepWatching(button: HTMLElement): void {
+  try {
+    localStorage.setItem(KEEP_WATCHING_KEY, '1');
+  } catch {
+    /* storage unavailable: the confirmation below is still accurate for this session */
+  }
+  button.outerHTML = '<div class="fs-footer">Anything you share to RA(I) is scanned on this device.</div>';
+}
+
 async function pickupPendingShare(): Promise<void> {
   const params = new URLSearchParams(window.location.search);
   const shareParam = params.get('share');
@@ -182,6 +273,16 @@ async function pickupPendingShare(): Promise<void> {
 
   if (STATUS_TOKENS.has(shareParam)) {
     console.log(`[rai-mobile] share status: ${shareParam}`);
+    return;
+  }
+
+  const shareIds = shareParam.split(',').filter((id) => id !== '');
+  if (shareIds.length > 1) {
+    try {
+      await runFirstScanFromShares(shareIds);
+    } catch (err) {
+      console.error('[rai-mobile] first-scan from share failed', err);
+    }
     return;
   }
 
@@ -231,6 +332,16 @@ function attachUiHandlers(): void {
       return;
     }
 
+    if (target.id === 'fs-scan-btn') {
+      void handleFirstScanPaste();
+      return;
+    }
+
+    if (target.id === 'fs-keep-watching') {
+      handleKeepWatching(target);
+      return;
+    }
+
     if (target.id === 'pick-file-btn') {
       const input = document.getElementById('pick-file-input') as HTMLInputElement | null;
       input?.click();
@@ -240,9 +351,11 @@ function attachUiHandlers(): void {
 
   const fileInput = document.getElementById('pick-file-input') as HTMLInputElement | null;
   fileInput?.addEventListener('change', () => {
-    const file = fileInput.files?.[0];
-    if (!file) return;
-    void handleFilePick(file);
+    const files = Array.from(fileInput.files ?? []);
+    if (files.length === 0) return;
+    // One file keeps the single-scan flow; several become a first-scan batch.
+    if (files.length === 1) void handleFilePick(files[0]);
+    else void handleFilesPick(files);
     fileInput.value = '';
   });
 }

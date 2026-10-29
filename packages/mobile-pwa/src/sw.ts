@@ -4,7 +4,7 @@
  *
  * Step 3 wires the /share POST handler:
  *   - intercepts the multipart payload from the OS share-sheet
- *   - extracts the first image and opportunistic source_url / title / text
+ *   - extracts every image (batch) and opportunistic source_url / title / text
  *   - stages it in IndexedDB under a fresh share_id
  *   - redirects to /?share=<id> so the SPA shell can pick it up
  *
@@ -16,7 +16,7 @@ import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
-import { extractShareFromFormData } from './share/extract';
+import { extractAllSharesFromFormData } from './share/extract';
 import { stagePendingShare } from './share/staging';
 
 declare const self: ServiceWorkerGlobalScope;
@@ -53,12 +53,13 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
 async function handleShare(request: Request): Promise<Response> {
   try {
     const form = await request.formData();
-    const pending = await extractShareFromFormData(form);
-    if (!pending) {
+    const pending = await extractAllSharesFromFormData(form);
+    if (pending.length === 0) {
       return Response.redirect('/?share=empty', 303);
     }
-    await stagePendingShare(pending);
-    return Response.redirect(`/?share=${encodeURIComponent(pending.id)}`, 303);
+    for (const share of pending) await stagePendingShare(share);
+    // One id = single scan; several ids (comma-separated) = first-scan batch.
+    return Response.redirect(`/?share=${pending.map((p) => encodeURIComponent(p.id)).join(',')}`, 303);
   } catch (err) {
     console.error('[rai-mobile] /share handler failed', err);
     return Response.redirect('/?share=error', 303);

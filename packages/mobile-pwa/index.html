@@ -288,6 +288,29 @@
  margin-top: 8px;
  }
 
+ .first-scan { border: 1px solid #f0f0f0; border-radius: 10px; padding: 14px; background: #fafafa; }
+ .fs-title { font-size: 16px; font-weight: 600; }
+ .fs-range { font-size: 12px; color: #666; margin-top: 2px; }
+ .fs-cards { display: flex; gap: 10px; margin: 14px 0; }
+ .fs-card { flex: 1; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px; background: #fff; }
+ .fs-card-n { font-size: 28px; font-weight: 700; line-height: 1.1; }
+ .fs-card-l { font-size: 12px; color: #666; margin-top: 4px; }
+ .fs-rows { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+ .fs-row { border: 1px solid #e5e5e5; border-radius: 8px; padding: 10px 12px; background: #fff; font-size: 14px; }
+ .fs-what { word-break: break-word; }
+ .fs-meta { font-size: 12px; color: #777; margin-top: 4px; }
+ .fs-tags { display: flex; gap: 8px; font-size: 12px; margin-top: 6px; color: #444; }
+ .fs-conf { color: #777; }
+ .fs-why { margin-top: 6px; font-size: 13px; }
+ .fs-why summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; color: #444; }
+ .fs-why ul { padding-left: 18px; margin: 4px 0; }
+ .fs-match { font-style: italic; }
+ .fs-clean { color: #666; background: transparent; border-style: dashed; }
+ .fs-footer { font-size: 12px; color: #777; text-align: center; padding: 12px 0 4px; }
+ .fs-cta { font: inherit; font-size: 14px; font-weight: 600; width: 100%; min-height: 44px; border: none; border-radius: 8px; background: #1a1a1a; color: #fff; cursor: pointer; }
+ .fs-paste-box { display: flex; flex-direction: column; gap: 8px; border: 1px solid #f0f0f0; border-radius: 10px; padding: 14px; }
+ .fs-paste-box textarea { font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; resize: vertical; width: 100%; }
+
  [hidden] { display: none !important; }
 
  @media (prefers-color-scheme: dark) {
@@ -308,6 +331,13 @@
  .export-btn,
  .pick-file-btn { background: #14171b; border-color: #2a2e34; color: #ddd; }
  .footer-line { border-top-color: #222; color: #777; }
+ .first-scan { background: #14171b; border-color: #2a2e34; }
+ .fs-card, .fs-row { background: #0b0d10; border-color: #2a2e34; }
+ .fs-range, .fs-card-l, .fs-meta, .fs-conf, .fs-footer, .fs-clean { color: #999; }
+ .fs-tags, .fs-why summary { color: #ccc; }
+ .fs-cta { background: #e7e7e7; color: #0b0d10; }
+ .fs-paste-box { border-color: #2a2e34; }
+ .fs-paste-box textarea { background: #0b0d10; border-color: #2a2e34; color: #ddd; }
  }
  </style>
  </head>
@@ -327,8 +357,15 @@
  <section id="latest-scan" class="latest-scan" hidden></section>
  <section class="manual-pick">
  <button id="pick-file-btn" type="button" class="pick-file-btn">Pick a screenshot to scan</button>
- <input id="pick-file-input" type="file" accept="image/*" hidden />
- <div class="hint">Works on Mac and iOS too — no share-sheet needed.</div>
+ <input id="pick-file-input" type="file" accept="image/*" multiple hidden />
+ <div class="hint">Works on Mac and iOS too — no share-sheet needed. Pick several to scan them as a batch.</div>
+ </section>
+ <section id="first-scan" class="first-scan" hidden></section>
+ <section class="fs-paste-box">
+ <label class="byok-label" for="fs-paste">Scan a batch of messages</label>
+ <div class="byok-sub">Paste several items. Separate them with a line of <code>---</code>. Optional lines at the top of an item: <code>Date: 2026-10-20</code> and <code>From: LinkedIn</code>. Items without a date are shown as "received date unknown".</div>
+ <textarea id="fs-paste" rows="6" spellcheck="false" placeholder="Date: 2026-10-20&#10;From: LinkedIn&#10;Message text...&#10;---&#10;Next message..."></textarea>
+ <button id="fs-scan-btn" type="button" class="pick-file-btn">Scan this batch</button>
  </section>
  <section id="byok" class="byok"></section>
  <section class="corpus-controls">
