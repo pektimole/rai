@@ -41,4 +41,4 @@ The test runs 8 injected fixtures (must all flag), 20 clean controls (must not f
 
 ## Status
 
-v0.1.0. Unit-tested against the Open WebUI 0.12.5 hook signatures; live install on a running instance still to be confirmed before guide step 6 points here.
+v0.1.1. Live-verified on Open WebUI 0.12.5 (Mac). Guide step 6 at withrai.xyz/guide points here.

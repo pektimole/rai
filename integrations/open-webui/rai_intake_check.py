@@ -3,7 +3,7 @@ title: RA(I) Intake Check
 author: RA(I) / Security Lab SE
 author_url: https://withrai.xyz
 funding_url: https://withrai.xyz/own
-version: 0.1.0
+version: 0.1.1
 license: MIT
 required_open_webui_version: 0.12.0
 description: Runs entirely on your machine. Sends nothing to RA(I). Checks content entering your chat (your messages, uploaded documents, retrieved knowledge) for hidden instructions and exposed secrets, and shows a signal you act on. Signal, not verdict.
@@ -20,6 +20,11 @@ description: Runs entirely on your machine. Sends nothing to RA(I). Checks conte
 # Data principle (Constitution Rule 4): no network. No imports of requests,
 # httpx, urllib, socket, aiohttp. Nothing leaves this process. The optional
 # local log is a counter file on your disk, off by default.
+#
+# Placeholders left in the context under action=drop are deliberately bland and
+# carry no threat labels: a model that reads "security alert" in its input may
+# invent a verdict dialog of its own, which the user could mistake for RA(I)'s.
+# The labels live only in the status line the human sees.
 #
 # Hooks (Open WebUI 0.12.x):
 #   inlet(body)   : before retrieval. Scans the latest user message and any
@@ -396,7 +401,7 @@ class Filter:
                 r = await self._handle("your message", text, sigs, action, __user__, __event_emitter__)
                 notes.append(r["note"])
                 if r["dropped"]:
-                    _set_text(msg, "[RA(I) intake check withheld this message: " + ", ".join(s["label"] for s in sigs) + "]")
+                    _set_text(msg, "[The user chose to withhold this message. Reply briefly that the message was held back by their own intake check; the user already sees the details.]")
                 elif r["text"] != text:
                     _set_text(msg, r["text"])
 
@@ -409,7 +414,7 @@ class Filter:
             r = await self._handle(f'"{f["name"]}"', f["text"], sigs, action, __user__, __event_emitter__)
             notes.append(r["note"])
             if r["dropped"]:
-                f["ref"]["content"] = "[withheld by RA(I) intake check]"
+                f["ref"]["content"] = "[Document withheld by the user. Do not speculate about its contents.]"
                 files = body.get("files")
                 if isinstance(files, list) and f["entry"] in files:
                     files.remove(f["entry"])
@@ -441,7 +446,7 @@ class Filter:
                 continue
             r = await self._handle("retrieved context", text, sigs, action, __user__, __event_emitter__)
             if r["dropped"]:
-                _set_text(m, "[RA(I) intake check withheld the retrieved context for this turn: " + ", ".join(s["label"] for s in sigs) + "]")
+                _set_text(m, "[Retrieved context withheld by the user for this turn. Answer without it and say so in one sentence.]")
             elif r["text"] != text:
                 _set_text(m, r["text"])
         return body
