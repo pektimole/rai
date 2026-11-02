@@ -113,17 +113,43 @@ ActionGate is one core engine, many surface adapters. Each adapter binds the eng
 | Adapter | Host | Action types | Status |
 |---|---|---|---|
 | `fs-git` | NanoClaw write-back | git add/commit/push, file write | **Live** (proven, 5-layer), `packages/core/action-gate.ts`, `89cba87` 2026-04-09 |
-| `shell` | Claude Code, Cursor, Aider | exec, spawn | **Live**, `packages/core/action-gate-shell.ts`, `38f45d7` 2026-04-09 |
-| `mcp` | Any MCP server | tool invocation | **Live**, `packages/core/action-gate-mcp.ts` + `mcp-proxy.ts` (transparent proxy), `bf4da33` 2026-04-09 |
+| `shell` | Claude Code (PreToolUse hook shipped). Cursor / Aider: engine usable, no host integration shipped | shell command string (incl. chained commands and subshells) + working directory | **Live**, `packages/core/action-gate-shell.ts` + `hooks/rai-shell-gate.ts`, `38f45d7` 2026-04-09 |
+| `mcp` | MCP servers reachable over stdio (proxy spawns the downstream server as a child process) | `tools/call` (tool name + arguments) | **Live**, `packages/core/action-gate-mcp.ts` + `mcp-proxy.ts` (transparent stdio proxy), `bf4da33` 2026-04-09 |
 | `http` | Browser extension agentic mode, API clients | fetch, mutation verbs | Spec (not built) |
 | `browser-dom` | RAI extension (OL-074) | form submit, click, navigate | Future (not built) |
 | `native-messaging-host` | OS (browser NativeMessagingHosts dirs) | manifest write/modify/remove (vendor covert capability expansion) | **Live**, Phase A+B (`72bfb28` 2026-05-02: runner + tests + notify hook + launchd; Linux/Windows pending) |
 | `router-audit` | Hybrid-inference router (AI PC OS / on-device classifier) | task routed local↔cloud, sensitivity classification, consent state at the routing boundary | **Live** (OL-370), `packages/core/action-gate-router-audit.ts`, `32d44de` 2026-06-21 |
 | `process-spawn` | OS process tree (browser/shell processes an agent runs in) | lineage check: human-spawned vs. agent-spawned session, Confused Deputy detection | Spec (not built), OL-265, see Pre-Flight Gate section below |
 
+### As shipped: `shell` and `mcp` adapters
+
+Both adapters are pure, deterministic functions (no LLM call) that return only `allow` or `deny` plus the rule that fired. `sanitize` exists only in the `fs-git` adapter.
+
+**`shell`** (`evaluateShell`, first deny wins):
+
+1. Working directory must start with one of `allowed_working_dir_prefixes` (skipped when the list is empty), else `working-dir-not-allowed`.
+2. Full command string is matched against `blocked_patterns` (regex), else `blocked-pattern`.
+3. The command is split on `&&`, `||`, `;`, `|`, `$(...)` and backticks; each part is reduced to its base command (env assignments, `sudo`, `nice`, `nohup`, `env`, `time`, `timeout` and path prefixes stripped).
+4. Any base command in `blocked_commands` gives `blocked-command`.
+5. With `fail_closed: true` every base command must be in `allowed_commands`, else `command-not-in-allowlist`.
+6. Otherwise `all-checks-passed`.
+
+The Claude Code hook (`packages/core/hooks/rai-shell-gate.ts`) reads the PreToolUse JSON from stdin, re-reads the policy file on every invocation (`RAI_SHELL_POLICY` env var, default `policies/claude-code-shell.yaml`), writes an audit-log entry (`adapter: shell`, no `scan_id`), and answers with a JSON `permissionDecision` of `allow` or `deny` on stdout (exit 0). It fails open (`allow`) when the policy file cannot be loaded or the hook itself errors. The bundled `claude-code-shell.yaml` runs in blocklist mode (`fail_closed: false`).
+
+**`mcp`** (`evaluateMcp`, first deny wins):
+
+1. Tool name in `blocked_tools` gives `tool-blocked`.
+2. Regex patterns in `blocked_arg_patterns` (per tool name, plus `"*"` for all tools) matched against the JSON-stringified arguments give `blocked-arg-pattern`.
+3. With `fail_closed: true` the tool must be in `allowed_tools`, else `tool-not-in-allowlist`.
+4. Otherwise `all-checks-passed`.
+
+The proxy (`packages/core/mcp-proxy.ts`, `--policy <file> -- <downstream command>`) loads the policy once at startup, lists the downstream tools once, and answers `initialize`, `tools/list`, `tools/call` and `ping` itself; other methods return JSON-RPC `-32601`. A denied call is returned as a tool result with `isError: true`. After an allow, the proxy additionally runs a P0 scan on the call arguments and on the returned result (`result_scan`, on by default), and can escalate result scans to P1 for tools listed in `network_tools`. This scanning is a signal layer on content, separate from the allow/deny decision. The proxy logs to stderr only; it does not write audit-log entries. The bundled `example-mcp.yaml` runs in blocklist mode (`fail_closed: false`).
+
+The same `evaluateMcp` engine is also exposed as the `rai_actiongate_check` tool of the `packages/mcp-connector` HTTP server, where only `action_kind: mcp-tool-call` is evaluated and every other action kind is denied.
+
 ### Policy file format
 
-Plain YAML, version-pinned, hot-reloadable. Same shape across adapters.
+Plain YAML, version-pinned (`version: 1`, loaders reject anything else). The `fs-git` shape is shown below; `shell` and `mcp` use a flat shape instead (`version`, `adapter`, `fail_closed` and the adapter's allow/block lists at top level, plus required `server_name` for `mcp`), see `packages/core/policies/claude-code-shell.yaml` and `example-mcp.yaml`. The shell hook re-reads its policy on every call; the MCP proxy reads its policy only at startup.
 
 ```yaml
 version: 1
@@ -262,7 +288,7 @@ Steps 1-3 + 6 shipped 2026-04-09 (one day, as estimated). Step 4 (NanoClaw rebin
 
 | Host | Hook | Notes |
 |---|---|---|
-| Claude Code | `PreToolUse` hook in `~/.claude/settings.json` | Already supports synchronous deny via exit code. Direct fit. |
+| Claude Code | `PreToolUse` hook in `~/.claude/settings.json` | Shipped (`hooks/rai-shell-gate.ts`): synchronous deny via JSON `permissionDecision` on stdout (exit 0), fails open on policy-load or hook errors. Direct fit. |
 | Cursor / Aider | Shell wrapper around exec | Less clean, requires PATH shim |
 | MCP servers | Proxy MCP server that gates downstream calls | Most work, highest leverage |
 | Browser extension | Background script intercept on agentic mode | Pairs with OL-074 |
