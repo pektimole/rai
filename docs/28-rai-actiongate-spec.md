@@ -1,6 +1,6 @@
 # RAI ActionGate: Agent Action Firewall
 _Created: 2026-04-08_
-_Status: **Core engine + `fs-git`, `shell`, `mcp`, `native-messaging-host`, `router-audit` adapters, audit log: all Live.** `http` + `browser-dom` adapters not built. Doc synced 2026-08-04 (was stale since 2026-04-08 draft; code shipped Apr-Jul 2026, doc never caught up)._
+_Status: **Core engine + `fs-git`, `shell`, `mcp`, `native-messaging-host`, `router-audit` adapters, audit log: all Live.** `http` adapter built (policy engine + forward egress proxy, see adapter table). `browser-dom` adapter not built. Doc synced 2026-08-04 (was stale since 2026-04-08 draft; code shipped Apr-Jul 2026, doc never caught up); adapter table re-checked against `packages/core/` 2026-11-02 (OL-593)._
 _Trigger: NanoClaw write-gate pattern (OL-022) reviewed in RAI session 2026-04-08_
 _Dependency: P0 live, P1 live, NanoClaw 5-layer Write Gate live (proven in production)_
 
@@ -115,7 +115,7 @@ ActionGate is one core engine, many surface adapters. Each adapter binds the eng
 | `fs-git` | NanoClaw write-back | git add/commit/push, file write | **Live** (proven, 5-layer), `packages/core/action-gate.ts`, `89cba87` 2026-04-09 |
 | `shell` | Claude Code, Cursor, Aider | exec, spawn | **Live**, `packages/core/action-gate-shell.ts`, `38f45d7` 2026-04-09 |
 | `mcp` | Any MCP server | tool invocation | **Live**, `packages/core/action-gate-mcp.ts` + `mcp-proxy.ts` (transparent proxy), `bf4da33` 2026-04-09 |
-| `http` | Browser extension agentic mode, API clients | fetch, mutation verbs | Spec (not built) |
+| `http` | Agent egress (forward proxy), trace replay | outbound request: host / IP-range / method allowlist, cloud-metadata block | **Built**, `packages/core/action-gate-http.ts` (default-deny policy engine, OL-648) + `packages/core/egress-proxy.ts` (live Node forward proxy, OL-659; HTTPS decided at CONNECT host level only, no TLS interception), policy `packages/core/policies/agent-egress-http.yaml`, demo `packages/core/demo/egress-wall/`. Browser-extension agentic-mode binding not built. |
 | `browser-dom` | RAI extension (OL-074) | form submit, click, navigate | Future (not built) |
 | `native-messaging-host` | OS (browser NativeMessagingHosts dirs) | manifest write/modify/remove (vendor covert capability expansion) | **Live**, Phase A+B (`72bfb28` 2026-05-02: runner + tests + notify hook + launchd; Linux/Windows pending) |
 | `router-audit` | Hybrid-inference router (AI PC OS / on-device classifier) | task routed local↔cloud, sensitivity classification, consent state at the routing boundary | **Live** (OL-370), `packages/core/action-gate-router-audit.ts`, `32d44de` 2026-06-21 |
@@ -283,7 +283,7 @@ Steps 1-3 + 6 shipped 2026-04-09 (one day, as estimated). Step 4 (NanoClaw rebin
 | 7 | Audit log with scan_id correlation | 2h | Step 3 | ✅ Done, `c921f91` 2026-04-10 (`packages/core/audit-log.ts`) |
 | 8 | Documentation + landing page section | 2h | Steps 1-7 | 🔶 Spec doc synced 2026-08-04 (this pass). Landing page section not verified. |
 
-Plus adapters built beyond this plan's original scope: `native-messaging-host` (OL-140, `72bfb28` 2026-05-02), tamper-proofing (OL-396, `133ea25` 2026-06-21), `router-audit` (OL-370, `32d44de` 2026-06-21): see their own sections below, already accurate.
+Plus adapters built beyond this plan's original scope: `native-messaging-host` (OL-140, `72bfb28` 2026-05-02), tamper-proofing (OL-396, `133ea25` 2026-06-21), `router-audit` (OL-370, `32d44de` 2026-06-21): see their own sections below, already accurate. Also `http` (OL-648 policy engine + OL-659 egress proxy, `packages/core/action-gate-http.ts` + `egress-proxy.ts`), see the adapter table above.
 
 Steps 1-3, 5-7 shipped 2026-04-09/10, close to the ~3-day estimate. Step 4 is the one open item, and it's a decision fork (does NanoClaw's separate repo still get rebound to this module, 4 months after ActionGate diverged into its own product surface), not a build task: flagged to Tim via `queue.md`.
 
