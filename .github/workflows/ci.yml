@@ -26,12 +26,8 @@ jobs:
       - name: Install
         run: npm ci
 
-      # @rai/core imports @rai/p2-agent, but `npm run build --workspaces` builds in
-      # the order listed in package.json (core before p2-agent), so a clean
-      # checkout fails. Build p2-agent first until the workspace order is fixed.
-      - name: Build p2-agent (dependency of core)
-        run: npm run build -w packages/p2-agent
-
+      # Workspace order in package.json is dependency order (p2-agent before core),
+      # so a single `npm run build` works on a clean checkout.
       - name: Build
         run: npm run build
 

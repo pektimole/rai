@@ -29,7 +29,7 @@ Monorepo with three packages:
 | L1 | Misinformation | P1 |
 | L2 | Cascade risk | P2 |
 | L3 | Systemic harm | P2 |
-| L4 | Agent action / unauthorized side-effect | ActionGate (spec) |
+| L4 | Agent action / unauthorized side-effect | ActionGate (live: shell, mcp, http adapters) |
 
 ## Key decisions
 
