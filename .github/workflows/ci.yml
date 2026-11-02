@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # @rai/core imports @rai/p2-agent, but `npm run build --workspaces` builds in
+      # the order listed in package.json (core before p2-agent), so a clean
+      # checkout fails. Build p2-agent first until the workspace order is fixed.
+      - name: Build p2-agent (dependency of core)
+        run: npm run build -w packages/p2-agent
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
