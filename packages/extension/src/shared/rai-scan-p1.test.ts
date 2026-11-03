@@ -3,7 +3,7 @@
  *
  * Mirrors packages/core/rai-scan-p1.test.ts. The two prompts are intentionally
  * kept in lockstep -- if one drifts, both consumers (NanoClaw + browser) get
- * inconsistent verdicts. These tests lock in the OL-124 pattern classes on
+ * inconsistent verdicts. These tests lock in the pattern classes on
  * the extension side so the next CWS upload can't quietly skip them.
  */
 
@@ -24,7 +24,7 @@ const NAMED_PATTERN_CLASSES = [
   'overconfidence-absolutes',
 ];
 
-describe('Extension P1 system prompt — OL-124 pattern classes', () => {
+describe('Extension P1 system prompt — pattern classes', () => {
   it.each(NAMED_PATTERN_CLASSES)(
     'declares "%s" by exact name',
     (className) => {

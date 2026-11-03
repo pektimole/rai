@@ -45,7 +45,7 @@ export interface McpPolicy {
   /** Argument patterns that trigger denial. Key = tool name (or "*"), value = regex on JSON-stringified args. */
   blockedArgPatterns: Map<string, RegExp[]>;
   /**
-   * OL-301: result-path P0 inspection. Every tool RESULT (and, secondarily,
+   * Result-path P0 inspection. Every tool RESULT (and, secondarily,
    * the outbound call args) is scanned by rayScan before it reaches the
    * client. Defaults to enabled -- this is a SIGNAL layer, not enforcement;
    * see mcp-proxy.ts's scanResult()/scanCallArgs() for the honest-layer note.
@@ -139,7 +139,7 @@ export interface McpPolicyYaml {
   blocked_tools?: string[];
   /** Map of tool name (or "*") to list of regex patterns on stringified args. */
   blocked_arg_patterns?: Record<string, string[]>;
-  /** OL-301: result-path P0 scan toggle. See McpPolicy.resultScan. */
+  /** Result-path P0 scan toggle. See McpPolicy.resultScan. */
   result_scan?: { enabled?: boolean };
   /** P1-lite tiering. See McpPolicy.networkTools. */
   network_tools?: string[];

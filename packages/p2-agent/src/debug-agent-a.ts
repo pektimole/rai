@@ -1,6 +1,6 @@
 /**
  * Direct debug: run Agent A in isolation with error surfacing.
- * Usage: env $(grep -E "^ANTHROPIC" /Users/ich/.no5.env | xargs) npx tsx packages/p2-agent/src/debug-agent-a.ts
+ * Usage: env $(grep -E "^ANTHROPIC" ~/.rai-env | xargs) npx tsx packages/p2-agent/src/debug-agent-a.ts
  */
 
 import { getProvider } from './providers/index.js';

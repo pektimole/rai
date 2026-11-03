@@ -1,5 +1,5 @@
 /**
- * contract-recorder.test.ts — observe phase (OL-461)
+ * contract-recorder.test.ts — observe phase
  *
  * Proves the flight recorder is an append-only, tamper-evident, per-session
  * hash chain that the compile phase can trust: intact chains verify, edited

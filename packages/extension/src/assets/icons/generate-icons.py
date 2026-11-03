@@ -1,4 +1,4 @@
-import struct, zlib, math
+import os, struct, zlib, math
 
 def create_png(size):
     """Generate a shield icon with RA(I) branding - dark red shield with eye motif"""
@@ -85,6 +85,6 @@ def create_png(size):
     return sig + ihdr + idat + iend
 
 for size in [16, 32, 48, 128]:
-    with open(f'/Users/ich/rai-extension/src/assets/icons/icon-{size}.png', 'wb') as f:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f'icon-{size}.png'), 'wb') as f:
         f.write(create_png(size))
     print(f'Generated icon-{size}.png')

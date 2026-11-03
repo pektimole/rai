@@ -6,7 +6,7 @@
  * each event into a NativeMessagingHostAction, runs it through the NMH
  * ActionGate policy, and appends the verdict to ~/.rai/audit/rai-actiongate.jsonl.
  *
- * This is Phase A of OL-140 Option 2 -- the thin bridge that lifts the
+ * This is Phase A Option 2 -- the thin bridge that lifts the
  * VCCE watcher output into ActionGate's canonical audit stream.
  *
  * Usage:
@@ -101,7 +101,7 @@ const audit = new AuditLog(AUDIT_DIR);
  * Payload shape:
  *   { adapter, decision, rule, reason, vendor, browser, path, scan_id, ts }
  *
- * Stub script lives at ~/no5-scripts/rai-notify.sh -- replace body to wire
+ * Stub script lives at ~/scripts/rai-notify.sh -- replace body to wire
  * WhatsApp, Telegram, Slack, NanoClaw webhook, or macOS notification.
  */
 function notify(

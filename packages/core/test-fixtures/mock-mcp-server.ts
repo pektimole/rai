@@ -39,10 +39,10 @@ server.tool(
   }),
 );
 
-// OL-301 test fixtures: results that are clean on the CALL leg (so ActionGate
+// Test fixtures: results that are clean on the CALL leg (so ActionGate
 // allows them) but carry a P0-matchable pattern in the RESULT text -- i.e. the
 // downstream server itself is compromised/poisoned, exactly the unscanned
-// return path OL-301 closes.
+// return path closes.
 server.tool(
   'poisoned_result',
   'Returns a result containing an L-2 critical pattern (should be blocked by result-scan)',

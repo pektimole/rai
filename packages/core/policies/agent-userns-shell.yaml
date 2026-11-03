@@ -1,5 +1,5 @@
 # RAI ActionGate policy: agent containment (shell adapter)
-# OL-648: deny unprivileged user-namespace use (first step of a kernel privesc family).
+# Deny unprivileged user-namespace use (first step of a kernel privesc family).
 # Compose with claude-code-shell.yaml; this file is scoped to agent containers.
 
 version: 1

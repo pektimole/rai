@@ -1,5 +1,5 @@
 # RAI ActionGate policy: example-mcp.yaml + network_tools declared, for
-# OL-301 P1-lite escalation tests (mcp-proxy.test.ts). Otherwise identical
+# P1-lite escalation tests (mcp-proxy.test.ts). Otherwise identical
 # to example-mcp.yaml -- do not diverge the two beyond the network_tools
 # addition, or the P1-lite tests stop isolating what they claim to test.
 
@@ -23,7 +23,7 @@ blocked_arg_patterns:
     - "\\.ssh/"
     - "\\.aws/"
 
-# OL-301 P1-lite tiering: mark every tool on this server network-enabled so
+# P1-lite tiering: mark every tool on this server network-enabled so
 # the P0-flagged/low-confidence-clean results in the test suite reliably hit
 # the escalation gate.
 network_tools:

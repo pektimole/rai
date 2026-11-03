@@ -1,4 +1,4 @@
-// OL-660 parity helper: run the TS P0 floor over the Open WebUI fixtures and
+// Parity helper: run the TS P0 floor over the Open WebUI fixtures and
 // print {name: [labels]} so the Python side can diff against it.
 import { readFileSync } from 'node:fs';
 import { rayScan } from '../packages/core/rai-scan-p0.js';

@@ -3,7 +3,7 @@
 _Created: 2026-08-25_
 _Status: Spec draft, not built. Build trigger: exit conversations going live (Equity Story v1 Act 4 sequencing), not immediate._
 _Audience: future strategic-acquirer diligence team; internal build reference._
-_Cross-ref: OL-531 (this spec), OL-370 (aggregation-point economics), 19-rai-context.md Equity Story v1 card + /challenge addendum obj #3 (2026-08-18), Constitution Rule 4 ("RAI knows nothing about the user"), 32-rai-clinical-audit-spec.md (receipt/signing pattern reused by reference, not duplicated)._
+_Cross-ref: aggregation-point economics, 19-rai-context.md Equity Story v1 card + /challenge addendum obj #3 (2026-08-18), Constitution Rule 4 ("RAI knows nothing about the user"), 32-rai-clinical-audit-spec.md (receipt/signing pattern reused by reference, not duplicated)._
 
 ---
 
@@ -16,7 +16,7 @@ Equity Story v1 Act 4 prices the exit on **verified-user count x ledger-depth di
 2. Ledger-depth distribution (a histogram, not per-user rows).
 3. Neutrality / no-profiling invariant (a property of the data schema and pipeline, not a statistic).
 
-**Not in scope / explicitly distinct:** this is not the OL-271/438/L1c declared-vs-actual scope-attestation family. Those prove intent-matches-execution on a single completed action (did the agent do only what it said it would do). This spec proves a property of an aggregate dataset under a standing no-visibility constraint (can a claim about the whole be true-and-provable when nobody, including RAI, is allowed to read the parts). Different primitive, different threat model, do not conflate in future edits to either family.
+**Not in scope / explicitly distinct:** this is not the declared-vs-actual scope-attestation family. Those prove intent-matches-execution on a single completed action (did the agent do only what it said it would do). This spec proves a property of an aggregate dataset under a standing no-visibility constraint (can a claim about the whole be true-and-provable when nobody, including RAI, is allowed to read the parts). Different primitive, different threat model, do not conflate in future edits to either family.
 
 ---
 
@@ -79,4 +79,4 @@ Reuses the 32- receipt/signing pattern by reference (Ed25519 over JCS-canonicali
 
 ## Status
 
-Spec, not built. No code, no circuit, no receipt schema implementation exists yet. This file is the scoping artifact requested by OL-531; it commits to a recommended phasing and a draft schema, not a shipped primitive.
+Spec, not built. No code, no circuit, no receipt schema implementation exists yet. This file is the scoping artifact requested; it commits to a recommended phasing and a draft schema, not a shipped primitive.

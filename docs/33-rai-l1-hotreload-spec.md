@@ -1,13 +1,13 @@
 # RAI L1 Hot-Reload: Rule Injection & Policy-Authoring Spec
 _Created: 2026-05-28_
-_Status: Spec draft (OL-300 deliverable)_
-_Trigger: OL-300 (hot-reload rule injection, Dark Reading 2026-05-21: policy must ship on the same clock as dev AI ships code)_
-_Source of policy-authoring primitive: pipelock-import (github.com/luckyPipewrench/pipelock learn-and-lock v2.4, Apache 2.0), OL-327. Architecture pattern, not a code copy._
-_Cross-ref: OL-300, OL-239 (RAI Network Architecture), 28-rai-actiongate-spec.md (L4 enforcement), 32-rai-clinical-audit-spec.md (receipts share the contract-hash primitive)_
+_Status: Spec draft (deliverable)_
+_Trigger: hot-reload rule injection, Dark Reading 2026-05-21: policy must ship on the same clock as dev AI ships code_
+_Source of policy-authoring primitive: pipelock-import (github.com/luckyPipewrench/pipelock learn-and-lock v2.4, Apache 2.0). Architecture pattern, not a code copy._
+_Cross-ref: RAI Network Architecture, 28-rai-actiongate-spec.md (L4 enforcement), 32-rai-clinical-audit-spec.md (receipts share the contract-hash primitive)_
 
 ---
 
-## Problem (OL-300)
+## Problem
 
 The L1 regex layer has no hot-reload path. A new threat pattern requires a release cycle. Security policy must go from "idea" to "live enforcement" on the same clock that dev AI ships code. Acceptance: a new L1 rule active in <60s from authoring, zero downtime, with versioning + rollback.
 
@@ -43,7 +43,7 @@ Supporting operator verbs: `review`, `diff` (compare two shadow runs), `split` (
 - **Signed active manifest.** Storage is content-addressed: immutable per-manifest blobs, write-once contract bodies, signed monotonic `active.json`. No symlinks, no plain pointers. Every swap is signed; every accepted manifest is immutable.
 - **Two-phase promote (atomic).** Emit signed `promote_intent` → swap via compare-and-swap on `prior_manifest_hash` with a monotonic generation counter → validate → emit signed `promote_committed`. Failure at any step keeps the previous manifest active.
 - **fsnotify reload.** Runtime watches the manifest store, 100ms debounce, 2s max-debounce cap. **Fail-closed on initial load** (an unreadable manifest blocks rather than silently falling back to no-policy). A crash between intent and commit is recovered by walking the accepted-history chain on next reload, so the runtime never strands on a stale manifest. → This is the <60s, zero-downtime acceptance criterion, satisfied by construction.
-- **Tombstones.** A signed withdrawal marker makes a contract hash operationally dead: rejected at promotion time, rejected during accepted-load chain walk, and every re-promote attempt emits a high-severity audit event. A tombstoned rule cannot be re-introduced by editing config, replaying a signed envelope, or poisoning `prior_manifest_hash`. → This is OL-300's rollback requirement, hardened.
+- **Tombstones.** A signed withdrawal marker makes a contract hash operationally dead: rejected at promotion time, rejected during accepted-load chain walk, and every re-promote attempt emits a high-severity audit event. A tombstoned rule cannot be re-introduced by editing config, replaying a signed envelope, or poisoning `prior_manifest_hash`. → This is the hot-reload rollback requirement, hardened.
 - **Scanner floor wins.** A contract `allow` can never override a scanner `block`. Policy narrows within the security floor; it can never widen past it.
 
 ### Adapting to RAI L1
@@ -99,10 +99,10 @@ Same schema on every surface; only framing differs. HTTP transports use response
 
 ---
 
-## Implementation notes for OL-300
+## Implementation notes
 
 1. **Hot-reload mechanism** = signed active-manifest swap + fsnotify watcher (fail-closed initial load, debounced, chain-walk recovery). This is the literal <60s/zero-downtime/rollback acceptance criterion.
-2. **Rule-injection API** (`POST /rules` per OL-300) writes a candidate to the contract store and triggers a promote, rather than mutating live regex in place. Promotion is the only path to enforcement; it is signed and versioned.
+2. **Rule-injection API** (`POST /rules`) writes a candidate to the contract store and triggers a promote, rather than mutating live regex in place. Promotion is the only path to enforcement; it is signed and versioned.
 3. **Versioning + rollback** = monotonic generation counter + immutable manifest blobs + tombstones. Rollback is `rollback --to <manifest-hash>` against accepted history.
 4. **Block output** = the `RAI-Block-Reason` header set above, vocabulary locked at v1.
 5. **Receipts** = every contract decision (allow or block) emits an evidence receipt bound to the active manifest hash + contract hash + rule ID + generation + verdict (see 32-rai-clinical-audit-spec.md, the same contract-hash primitive serves both live enforcement and audit).

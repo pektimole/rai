@@ -38,7 +38,6 @@ interface EngineModule {
   package: string;
   files: string[];
   what: string;
-  ol_refs: string[];
 }
 interface Surface {
   id: string;
@@ -46,7 +45,6 @@ interface Surface {
   status: string;
   package: string;
   what: string;
-  ol_refs?: string[];
 }
 interface Architecture {
   version: string;
@@ -130,22 +128,20 @@ function coverageMatrix(arch: Architecture): string {
 
 function engineTable(arch: Architecture): string {
   const rows: string[] = [];
-  rows.push('| ID | Name | Status | Package | OLs | What |');
-  rows.push('|---|---|---|---|---|---|');
+  rows.push('| ID | Name | Status | Package | What |');
+  rows.push('|---|---|---|---|---|');
   for (const e of arch.engine_modules) {
-    const ols = e.ol_refs.length ? e.ol_refs.join(', ') : '—';
-    rows.push(`| ${e.id} | ${e.name} | ${statusBadge(e.status)} | \`${e.package}\` | ${ols} | ${e.what} |`);
+    rows.push(`| ${e.id} | ${e.name} | ${statusBadge(e.status)} | \`${e.package}\` | ${e.what} |`);
   }
   return rows.join('\n');
 }
 
 function surfaceTable(arch: Architecture): string {
   const rows: string[] = [];
-  rows.push('| ID | Surface | Status | Package | OLs | What |');
-  rows.push('|---|---|---|---|---|---|');
+  rows.push('| ID | Surface | Status | Package | What |');
+  rows.push('|---|---|---|---|---|');
   for (const s of arch.surfaces) {
-    const ols = s.ol_refs?.length ? s.ol_refs.join(', ') : '—';
-    rows.push(`| ${s.id} | ${s.name} | ${statusBadge(s.status)} | \`${s.package}\` | ${ols} | ${s.what} |`);
+    rows.push(`| ${s.id} | ${s.name} | ${statusBadge(s.status)} | \`${s.package}\` | ${s.what} |`);
   }
   return rows.join('\n');
 }

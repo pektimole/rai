@@ -108,7 +108,7 @@ describe('extractShareFromFormData', () => {
   });
 });
 
-describe('extractAllSharesFromFormData (OL-661 batch)', () => {
+describe('extractAllSharesFromFormData (batch)', () => {
   it('returns one PendingShare per image with the file date as itemDate', async () => {
     const fd = new FormData();
     fd.append('screenshot', new File([PNG_BYTES], 'a.png', { type: 'image/png', lastModified: Date.parse('2026-09-01T10:00:00Z') }));

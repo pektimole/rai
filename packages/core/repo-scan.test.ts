@@ -1,5 +1,5 @@
 /**
- * repo-scan.test.ts -- Regression tests for the OL-453 L1+L2 repo scanner.
+ * repo-scan.test.ts -- Regression tests for the L1+L2 repo scanner.
  *
  * All GitHub calls are mocked via the `fetchImpl` test seam -- no live
  * network calls. Fixtures are synthetic (not real facts about the
@@ -290,7 +290,7 @@ describe('L4 verdict badge + validity window', () => {
     const fetchImpl = mockFetch({});
     const result = await scanRepo('https://github.com/benign-owner/benign-repo', { fetchImpl } as RepoScanOptions);
     expect(result.badge).toContain('L3 code/supply-chain (not run)');
-    expect(result.badge).toContain('image-OCR (out of scope, OL-431)');
+    expect(result.badge).toContain('image-OCR (out of scope)');
   });
 
   it('emits a scan timestamp and an artifact digest (validity window, addendum 2026-08-09)', async () => {

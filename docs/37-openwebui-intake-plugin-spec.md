@@ -1,6 +1,6 @@
-# 37 · Open WebUI intake-check plugin, spec v0.1 (OL-660)
+# 37 · Open WebUI intake-check plugin, spec v0.1
 
-_Status: SHIPPED v0.1.0 [cd:2026-10-30], live-install verified, guide step 6 live. Was: SPEC, not built. Author: No5 [cd:2026-10-29]. Parent: OL-649 (withrai.xyz/own funnel). This plugin is guide step 6 ("Switch on RAI's intake check"); until it ships, step 6 is a waitlist._
+_Status: SHIPPED v0.1.0 [cd:2026-10-30], live-install verified, guide step 6 live. Was: SPEC, not built. Author: AI-assisted draft [cd:2026-10-29]. Parent: withrai.xyz/own funnel. This plugin is guide step 6 ("Switch on RAI's intake check"); until it ships, step 6 is a waitlist._
 
 ## 1. Goal
 
@@ -66,7 +66,7 @@ P0/L2 are pattern and heuristic checks: a signal layer, evadable by a determined
 - Naming inside Open WebUI ("RA(I) Intake Check").
 - License for the `.py` (MIT for adoption vs source-available).
 
-Cross-ref: OL-649, OL-660, OL-453 (L2 hidden-channel heuristics), OL-301 (result-path inspection, same posture), 19-rai-context.md self-hosters wedge [mob:2026-04-21] + Constitution Addendum [cd:2026-10-29].
+Cross-ref: L2 hidden-channel heuristics, result-path inspection (same posture), 19-rai-context.md self-hosters wedge [mob:2026-04-21] + Constitution Addendum [cd:2026-10-29].
 
 ## 10. Build note v0.1.0 [cd:2026-10-30]
 

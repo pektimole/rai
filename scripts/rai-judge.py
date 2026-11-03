@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 rai-judge.py — RAI Value-Prop Judge
-OL-338 | 2026-06-21
+2026-06-21
 
 Final gate between KEEP (approved) candidates and the threat library.
 Scores each approved signal on three axes, then decides promote/hold/discard.
@@ -34,11 +34,11 @@ Usage:
 import os, sys, json, re, time, sqlite3, datetime, argparse
 import urllib.request
 
-BASE_DIR      = "/home/tim/nanoclaw"
-NO5_DIR       = "/home/tim/no5-context"
+BASE_DIR      = os.environ.get("RAI_BASE_DIR", os.path.expanduser("~/nanoclaw"))
+CONTEXT_DIR   = os.environ.get("RAI_CONTEXT_DIR", os.path.expanduser("~/context-repo"))
 DB_PATH       = f"{BASE_DIR}/data/rai-poc2.db"
 LOG_PATH      = f"{BASE_DIR}/logs/rai-judge.log"
-TL_JSONL_PATH = f"{NO5_DIR}/logs/rai-threat-library.jsonl"
+TL_JSONL_PATH = f"{CONTEXT_DIR}/logs/rai-threat-library.jsonl"
 
 HAIKU_MODEL   = "claude-haiku-4-5-20251001"
 SONNET_MODEL  = "claude-sonnet-4-6"

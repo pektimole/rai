@@ -338,7 +338,7 @@ const transport = new StdioServerTransport();
 await server.connect(transport);
 
 // ---------------------------------------------------------------------------
-// context_update — Secure write-back to No5 context layer via host IPC
+// context_update — Secure write-back to the agent context layer via host IPC
 // ---------------------------------------------------------------------------
 
 const CONTEXT_WRITABLE_FILES = new Set([
@@ -371,7 +371,7 @@ const CONTEXT_BLOCKED_FILES = new Set([
 
 server.tool(
   'context_update',
-  `Write an update to a No5 context layer file. The update is committed and pushed to GitHub by the host process.
+  `Write an update to an agent context layer file. The update is committed and pushed to GitHub by the host process.
 
 SECURITY: This tool writes through a gated IPC boundary. The host validates the file path against an allowlist before writing. Critical files (WAKE.md, REGISTRY.md) are blocked.
 
@@ -379,9 +379,9 @@ USE THIS WHEN: Tim asks you to update open loops, log a decision, or modify any 
 
 IMPORTANT: You must provide the FULL file content, not a diff. Read the current file first if you need to make a partial change.`,
   {
-    file: z.string().describe('Filename in no5-context (e.g., "02-open-loops.md"). No path prefix.'),
+    file: z.string().describe('Filename in the context repo (e.g., "02-open-loops.md"). No path prefix.'),
     content: z.string().describe('Full file content to write. Must be complete — this replaces the entire file.'),
-    commit_message: z.string().describe('Git commit message (e.g., "update OL-022: mark as done")'),
+    commit_message: z.string().describe('Git commit message (e.g., "update open-loops: mark item as done")'),
   },
   async (args) => {
     // Client-side validation (defense in depth — host re-validates)

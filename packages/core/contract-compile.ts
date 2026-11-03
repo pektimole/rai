@@ -1,5 +1,5 @@
 /**
- * contract-compile.ts — Learn-and-lock phase 2: compile (OL-461)
+ * contract-compile.ts — Learn-and-lock phase 2: compile
  *
  * Reads verified flight-recorder sessions (the observe phase) and infers a
  * per-agent behavioral contract: the typed allowlist of destinations and tool

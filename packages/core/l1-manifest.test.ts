@@ -1,5 +1,5 @@
 /**
- * l1-manifest.test.ts — signing, verification, canonicalization, compile (OL-300)
+ * l1-manifest.test.ts — signing, verification, canonicalization, compile
  */
 
 import { describe, it, expect } from 'vitest';

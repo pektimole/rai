@@ -1,5 +1,5 @@
 /**
- * block-reason.test.ts — RAI-Block-Reason header set v1 (OL-300, 33- Part B)
+ * block-reason.test.ts — RAI-Block-Reason header set v1 (33- Part B)
  *
  * Covers: builder validation, privacy rules (no secret content / IDs in output),
  * WebSocket 123-byte cap with field drop order, MCP-stdio encoding, scanner

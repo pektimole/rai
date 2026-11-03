@@ -6,7 +6,7 @@
  * shell and http adapters, and raises the reasoning/action mismatch signal
  * (a turn declares it will call no tools, then calls one).
  *
- * Spec: docs/28-rai-actiongate-spec.md. Origin: OL-648.
+ * Spec: docs/28-rai-actiongate-spec.md. Origin: Qwen3.8 trace replay (docs/36).
  */
 
 import { evaluateShell, type ShellPolicy, type ShellAction } from './action-gate-shell';

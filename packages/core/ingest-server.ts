@@ -134,7 +134,7 @@ export function createIngestServer(
       return;
     }
 
-    // -- L1 hot-reload rule injection (OL-300) --------------------------------
+    // -- L1 hot-reload rule injection --------------------------------
     if (req.url === '/rules' || req.url === '/rules/rollback') {
       if (!l1) {
         res.writeHead(503);

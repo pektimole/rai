@@ -1,5 +1,5 @@
 /**
- * contract-shadow.test.ts — shadow replay (OL-461, phase 3)
+ * contract-shadow.test.ts — shadow replay (phase 3)
  *
  * Proves the dry-run allowlist semantics of a candidate contract: the two-level
  * jurisdiction (default_deny vs enforce_default), the named port/path reasons,

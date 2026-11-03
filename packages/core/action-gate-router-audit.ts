@@ -4,7 +4,7 @@
  * Audits the hybrid-inference routing decision: when an on-device classifier
  * decides, task-by-task and invisibly, what stays local vs. goes to the cloud.
  *
- * Spec: docs/28-rai-actiongate-spec.md § Surface Adapter: router-audit (OL-370)
+ * Spec: docs/28-rai-actiongate-spec.md § Surface Adapter: router-audit
  * Anchor case: Computex 2026-06 convergence — NVIDIA/Apple/Microsoft/Perplexity.
  *
  * v0 design contract:

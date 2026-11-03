@@ -1,4 +1,4 @@
-"""OL-660 tests. Run from repo root with the Open WebUI venv python (needs pydantic):
+"""Intake-check tests. Run from repo root with the Open WebUI venv python (needs pydantic):
     python3 integrations/open-webui/test_intake_check.py
 Checks: (1) every injected fixture is flagged, (2) zero flags on clean controls,
 (3) inlet/request/outlet hooks with warn/strip/drop, (4) no-network imports,

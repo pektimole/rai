@@ -1,7 +1,7 @@
 /**
  * phantom.ts — RAI Phantom: adaptive threat model refinement
  *
- * 6-step self-evolution pipeline (same pattern as OL-104 ambient feed):
+ * 6-step self-evolution pipeline (same pattern as ambient feed):
  *   1. Observe  — read scan log + correction log
  *   2. Critique — identify patterns in corrections (which weights are wrong?)
  *   3. Generate — propose weight adjustments
@@ -13,7 +13,7 @@
  *   - User override: user dismisses a verdict or escalates a clean scan
  *   - Cross-tier: P1 contradicts P0, or P2 contradicts P1
  *
- * Retrain triggers (same as OL-104):
+ * Retrain triggers (same as the ambient feed):
  *   - >= 10 corrections since last retrain, OR
  *   - >= 7 days since last retrain
  *   - Manual: explicit CLI invocation

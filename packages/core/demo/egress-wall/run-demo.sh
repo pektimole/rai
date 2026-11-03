@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# OL-659 live demo. Runs inside the agent container; output captured to demo-output.txt.
+# Egress-wall live demo. Runs inside the agent container; output captured to demo-output.txt.
 set -u
 cd "$(dirname "$0")"
 # Colima without Docker Desktop: ~/.docker/config.json may name a missing credential helper.

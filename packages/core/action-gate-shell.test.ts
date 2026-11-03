@@ -18,7 +18,7 @@ function policy(overrides: Partial<ShellPolicy> = {}): ShellPolicy {
     allowedCommands: new Set(['git', 'npm', 'node', 'npx', 'tsc', 'cat', 'ls', 'echo', 'head', 'tail', 'grep', 'wc']),
     blockedCommands: new Set(['rm', 'shutdown', 'reboot', 'mkfs', 'dd']),
     blockedPatterns: [/--force/, /--no-verify/, /rm\s+-rf/, />\s*\/dev/],
-    allowedWorkingDirPrefixes: ['/Users/tim/', '/home/tim/'],
+    allowedWorkingDirPrefixes: ['/Users/user/', '/home/user/'],
     ...overrides,
   };
 }
@@ -27,7 +27,7 @@ function action(overrides: Partial<ShellAction> = {}): ShellAction {
   return {
     kind: 'shell-exec',
     command: 'git status',
-    workingDir: '/Users/tim/project',
+    workingDir: '/Users/user/project',
     ...overrides,
   };
 }
@@ -211,13 +211,13 @@ describe('loadShellPolicy', () => {
       allowed_commands: ['git', 'npm'],
       blocked_commands: ['rm'],
       blocked_patterns: ['--force'],
-      allowed_working_dir_prefixes: ['/home/tim/'],
+      allowed_working_dir_prefixes: ['/home/user/'],
     });
     expect(p.failClosed).toBe(true);
     expect(p.allowedCommands).toEqual(new Set(['git', 'npm']));
     expect(p.blockedCommands).toEqual(new Set(['rm']));
     expect(p.blockedPatterns).toHaveLength(1);
-    expect(p.allowedWorkingDirPrefixes).toEqual(['/home/tim/']);
+    expect(p.allowedWorkingDirPrefixes).toEqual(['/home/user/']);
   });
 
   it('defaults fail_closed to true', () => {

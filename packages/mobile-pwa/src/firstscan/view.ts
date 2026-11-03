@@ -1,5 +1,5 @@
 /**
- * First-scan screen markup (OL-661). Pure: report in, HTML string out, so the
+ * First-scan screen markup. Pure: report in, HTML string out, so the
  * same report always renders the same numbers and tests need no DOM.
  *
  * Copy rules: signals not verdicts, received dates always shown, no masked

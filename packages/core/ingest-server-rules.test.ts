@@ -1,5 +1,5 @@
 /**
- * ingest-server-rules.test.ts — HTTP surface for L1 rule injection (OL-300):
+ * ingest-server-rules.test.ts — HTTP surface for L1 rule injection:
  * POST /rules, GET /rules, POST /rules/rollback, auth, and the 503 when no
  * L1 controller is wired.
  */

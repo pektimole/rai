@@ -1,5 +1,5 @@
 /**
- * egress-proxy.test.ts — OL-659: live forward proxy in front of the http adapter
+ * egress-proxy.test.ts — live forward proxy in front of the http adapter
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';

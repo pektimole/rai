@@ -29,9 +29,9 @@ Not a firewall in the traditional inward-defensive sense. A persistent, passive 
 
 The consumer product is the outward direction (L5). The technical moat is the inward infrastructure underneath (L-2 through L4).
 
-Primary deployment: NanoClaw (No5 ambient layer on VPS).
+Primary deployment: NanoClaw (self-hosted ambient agent layer on a VPS).
 Live surfaces: Browser extension (Chrome, 3 platforms) + Telegram bot + WhatsApp + Claude Code ActionGate.
-Next surface: PWA (mobile share target + clipboard scan, Claude Code sprint, OL-RAI-PWA-001).
+Next surface: PWA (mobile share target + clipboard scan, Claude Code sprint).
 Future: standalone API, enterprise SaaS, regulated sector contracts.
 
 _Category updated 2026-05-04. Previous framing ("AI interaction firewall") was technically correct but positioned RAI as inward-only. Consumer product frame requires the outward direction to be primary._
@@ -118,7 +118,7 @@ _This is the authoritative schema. All code, specs, and outputs must use this nu
 
 | Layer | Label | Description | Coverage |
 |---|---|---|---|
-| L-2 | Infrastructure / supply chain | Compromised tool, MCP server, or upstream context file. Instruction to modify no5-context files, credential exfil, mount path reference. | P0 + P1 |
+| L-2 | Infrastructure / supply chain | Compromised tool, MCP server, or upstream context file. Instruction to modify agent context files, credential exfil, mount path reference. | P0 + P1 |
 | L-1 | Model poisoning / drift | Engineered content designed to shift agent behavior over time. Persona replacement, role override, gradual context corruption. | P0 + P1 |
 | L0 | Prompt injection | Direct instruction override in message content. "Ignore previous instructions", jailbreak patterns, system prompt leakage attempts. Also covers unintentional exposure: PII, credential strings, API keys forwarded without sanitization. | P0 + P1 |
 | L1 | AI-provenance / non-human-generated | Content carrying non-human authorship signals (AI-generated text, synthetic patterns). Provenance is the discriminator. Downstream risk paths: (a) misinformation propagation (false/low-confidence facts at scale), (b) AI-system-processing artifacts when other AI agents consume this content, (c) source/training-data pollution of information ecosystems. Author is treated as conduit, not threat. | P1 (Claude-powered) |
@@ -130,7 +130,7 @@ _This is the authoritative schema. All code, specs, and outputs must use this nu
 
 The canonical schema above (L-2..L4) describes **AI-stack-directed threats** -- protecting the AI system and its pipeline from attack. It has **no coverage for human-directed AI-enabled deception**: manipulation of a human by an AI (or by a human wielding AI).
 
-**Empirically confirmed 2026-05-30:** RAI victim signal crawler (OL-338) produced 9 pattern classes from 18 real social-media victim accounts. 6/9 returned `unmapped-consumer-harm` when checked against this taxonomy. Representative unmapped patterns:
+**Empirically confirmed 2026-05-30:** RAI victim signal crawler produced 9 pattern classes from 18 real social-media victim accounts. 6/9 returned `unmapped-consumer-harm` when checked against this taxonomy. Representative unmapped patterns:
 - AI self-gaslighting about its own capabilities and facts (VS3)
 - AI behavioral nudge via manipulative language patterns (VS1)
 - Algorithmic dark-pattern engagement trapping (VS1)
@@ -151,7 +151,7 @@ The canonical schema above (L-2..L4) describes **AI-stack-directed threats** -- 
 
 VS codes describe the **victim's experience**. rai_layer (L-2..L4) describes RAI's **structural coverage tier**. Both axes are needed for consumer-harm patterns. Unmapped consumer-harm patterns carry `rai_layer = unmapped-consumer-harm` until a new coverage layer is specified post-v1.
 
-**Roadmap implication:** The consumer-harm axis is the Telegram/GenZ beachhead's primary product claim. RAI v1 ships the AI-stack protection layer (L-2..L4). A future v2 consumer-harm layer would close this gap structurally. The victim-signal crawler (OL-338) is the ongoing research arm that feeds the pattern library for both.
+**Roadmap implication:** The consumer-harm axis is the Telegram/GenZ beachhead's primary product claim. RAI v1 ships the AI-stack protection layer (L-2..L4). A future v2 consumer-harm layer would close this gap structurally. The victim-signal crawler is the ongoing research arm that feeds the pattern library for both.
 
 ### Provenance Frame (2026-05-03)
 
@@ -340,7 +340,7 @@ The Write Gate is a standalone RAI module candidate for P1+ commercialization.
 - P1 API key: Anthropic SDK got no key because env.ts intentionally does not populate process.env. Fixed: readEnvFile + explicit apiKey param.
 - Bot notification loop: blocked notification text triggered P0 scan on re-receipt. Fixed: is_bot_message early-return before scan pipeline.
 - Command unicode: WhatsApp invisible characters (zero-width spaces) broke exact string matching. Fixed: unicode strip regex on all command input.
-- warningBlock gap (OL-047): P0 flagged messages reached agent without warning overlay. Fixed: warningBlock prepended to msg.content before storeMessage().
+- warningBlock gap: P0 flagged messages reached agent without warning overlay. Fixed: warningBlock prepended to msg.content before storeMessage().
 - /rai-scan dual message: P0 and P1 sent separate messages seconds apart. Fixed: consolidated scan waits for both, sends one merged verdict.
 
 ---
@@ -361,8 +361,8 @@ The Write Gate is a standalone RAI module candidate for P1+ commercialization.
 ## P0 Pattern Library (seed list for rai-scan.ts)
 
 ### L-2 (Infrastructure)
-- Mount path references: `/Users/`, `/mnt/`, `/no5-context/`
-- Context file references: `REGISTRY.md`, `CLAUDE.md`, `00-WAKE.md`, `no5-context`
+- Mount path references: `/Users/<name>/`, `/mnt/`, `/home/<name>/nanoclaw`
+- Context file references: `REGISTRY.md`, `00-WAKE.md`, `decision-log`, `open-loops`
 - Credential exfil patterns: `send to`, `forward to`, `email to` + external address
 - Context file manipulation: `modify`, `edit`, `update`, `delete` + context file names
 - MCP tool call injection: `use tool`, `call function`, `execute`
@@ -380,7 +380,7 @@ The Write Gate is a standalone RAI module candidate for P1+ commercialization.
 
 ### Credential / Secret Patterns (tag: pipelock-import)
 
-_Imported 2026-05-28 from github.com/luckyPipewrench/pipelock (Apache 2.0), OL-327. Battle-tested against real agent traffic. The "48 built-in patterns" = immutable core DLP floor (cannot be disabled) + injection floor + redaction token classes. Tagged `pipelock-import` for traceability. NOT a code copy, pattern import only. README claim: "API keys, tokens, credentials, cryptocurrency keys, environment variable secrets, and financial identifiers with checksum validation."_
+_Imported 2026-05-28 from github.com/luckyPipewrench/pipelock (Apache 2.0). Battle-tested against real agent traffic. The "48 built-in patterns" = immutable core DLP floor (cannot be disabled) + injection floor + redaction token classes. Tagged `pipelock-import` for traceability. NOT a code copy, pattern import only. README claim: "API keys, tokens, credentials, cryptocurrency keys, environment variable secrets, and financial identifiers with checksum validation."_
 
 **Pre-match normalization (mandatory, else patterns are trivially bypassed):** NFKC normalize, strip zero-width chars, recursively decode base64 / hex / base32 / URL-encoding (max depth 3), collapse dot-separated and whitespace-separated segments, then match. Core patterns are prepended and immutable, an operator config cannot turn them off.
 
@@ -452,7 +452,7 @@ RAI Sentinel is a proactive presence layer distinct from the reactive scan layer
 Sentinel is not a firewall. It is an ambient observer that overlays warnings when it detects risk trajectories: gradual persona drift, social engineering spanning multiple sessions, scheduled task behavior being nudged incrementally, or compound patterns that look clean in isolation but form a threat arc across time.
 
 ### Trigger conditions (target behavior)
-- Persona drift: `@no5` responses shifting away from loaded context over a session
+- Persona drift: agent responses shifting away from loaded context over a session
 - Compound nudge: 3+ messages across a session attempting to modify agent behavior incrementally
 - Cross-session pattern: same sender constructing a context manipulation over multiple days
 - Scheduled task drift: task output diverging from its original spec without explicit instruction from Tim
@@ -550,9 +550,9 @@ No block applied. Elevated caution advised.
 **Detection layer:** OS / filesystem (manifest path watching), not prompt or output. Output-monitoring and prompt-guards are blind to this class.
 
 **RAI product implication:**
-- Pitch Deck v2 (OL-068+) Hero Slide candidate: "Why Now -- The Trust Boundary Just Moved". Anthropic = best-in-class safety-research vendor expanding capability covertly with vendor-published 11-24% prompt-injection success. If the reference vendor does this, what does the worst case look like?
+- Pitch Deck v2 Hero Slide candidate: "Why Now -- The Trust Boundary Just Moved". Anthropic = best-in-class safety-research vendor expanding capability covertly with vendor-published 11-24% prompt-injection success. If the reference vendor does this, what does the worst case look like?
 - ActionGate scope expansion candidate: Native Messaging Host manifest watcher as new surface adapter alongside fs-git, shell, mcp-proxy, http, browser-dom
-- OL-022/023 enrichment: VCCE added as 4th documented failure-mode class alongside agent insider risk, false reporting, model drift
+- enrichment: VCCE added as 4th documented failure-mode class alongside agent insider risk, false reporting, model drift
 
 **Activation-vs-output-layer principle reinforced:** This case is the cleanest example to date of why policy enforcement must sit below the model output layer. Output-monitoring would never catch a manifest write that happens at install time, before any conversation begins.
 
@@ -617,7 +617,7 @@ Combined surface is materially broader than a sidebar chat UX needs. These are a
 
 **Pitch Deck v2 follow-up:** strongest version of the VCCE story includes the asymmetry -- user can audit one of three pre-authorised entry points, cannot audit the other two. Lands as a sub-beat under Pitch Deck Beat 3 ("Existing controls miss it"), not the Hero Slide. Hero Slide stays the activation-vs-output-layer argument at the OS manifest layer.
 
-**ActionGate spec input (for OL-140):**
+**ActionGate spec input:**
 - Surface adapter target paths (macOS): `~/Library/Application Support/{Chromium,Microsoft Edge,Vivaldi,com.operasoftware.Opera}/NativeMessagingHosts/` and `~/Library/Application Support/{Arc/User Data,BraveSoftware/Brave-Browser,Google/Chrome}/NativeMessagingHosts/`
 - Watch trigger: any write/modify to `*.json` in those paths
 - Audit fields: vendor (from `name`), binary path (from `path`), allowed_origins (full list), file mod time, file SHA256
@@ -646,7 +646,7 @@ Combined surface is materially broader than a sidebar chat UX needs. These are a
 - L0 (prompt injection): CVE-2026-25253 = malicious link → credential theft → agent takeover
 - L-1 (model poisoning): skills designed to modify agent behavior over time
 
-**NemoClaw/OpenShield implication:** OpenShield policy enforcement is no longer a theoretical hedge -- it is a documented response to a live, confirmed threat pattern. NemoClaw evaluation should be accelerated. See OL-026.
+**NemoClaw/OpenShield implication:** OpenShield policy enforcement is no longer a theoretical hedge -- it is a documented response to a live, confirmed threat pattern. NemoClaw evaluation should be accelerated.
 
 **RAI product implication:** This is the anchor case for all consumer-facing RAI messaging. "340 of the 10,000 skills on that marketplace were malicious" is the opening line for Case 1 on the Lovable page.
 
@@ -656,7 +656,7 @@ Combined surface is materially broader than a sidebar chat UX needs. These are a
 
 ## VCCE Watcher v0 (launchd) -- shipped 2026-04-22
 
-_OL-140 Option 1. Lightweight personal watcher for Tim's Mac. Pre-cursor to ActionGate Surface Adapter "native-messaging-host-watcher" (Option 2)._
+_Option 1. Lightweight personal watcher for Tim's Mac. Pre-cursor to ActionGate Surface Adapter "native-messaging-host-watcher" (Option 2)._
 
 ### Scope
 
@@ -666,7 +666,7 @@ Watches the 7 macOS Chromium-family `NativeMessagingHosts/` directories for mani
 
 | File | Purpose |
 |---|---|
-| `~/no5-scripts/rai-vcce-watch.sh` | Watcher script (bash + fswatch + jq) |
+| `~/scripts/rai-vcce-watch.sh` | Watcher script (bash + fswatch + jq) |
 | `~/Library/LaunchAgents/com.rai.vcce-watch.plist` | launchd agent, `RunAtLoad + KeepAlive`, ThrottleInterval 10s |
 | `~/.rai/vcce-watch.jsonl` | Event log (baseline + modified + created + removed) |
 | `~/.rai/vcce-watch.run.log` | Operational log (baseline start/end, fswatch start, path count) |
@@ -710,11 +710,11 @@ Generalises to Linux/Windows adapters: same rule, since the assumption "vendor i
 ### Known gaps (intentional, Option 2 territory)
 
 - No diffing of `allowed_origins` between baseline and modified (structure in place via `vcce-baseline/` copies, logic not wired).
-- No notification channel (NanoClaw WhatsApp push deferred to separate build block, pattern OL-021).
-- No Linux/Windows coverage (spec only, OL-140 Option 2).
+- No notification channel (NanoClaw WhatsApp push deferred to separate build block).
+- No Linux/Windows coverage (spec only, Option 2).
 - No policy layer. Pure observer.
 - No vendor allowlist check. "Any AI vendor bridge write is interesting" is the entire current policy.
-- **No liveness signal.** launchd `KeepAlive` restarts the watcher on crash silently. If the watcher silently fails for 30 days, no event lands and Tim assumes "nothing happened" rather than "watcher dead." Spec for Phase B: emit a `{"event": "heartbeat", "ts": ...}` line into `~/.rai/vcce-watch.jsonl` every N minutes (analogue to OL-021 Mac heartbeat pattern). Daily check (NanoClaw daily-sync or local launchd) reads the last line, alerts if `now - last_heartbeat_ts > 1h`. Without this, the watcher is observable only when it produces an event, which conflates "silent because nothing happened" with "silent because dead."
+- **No liveness signal.** launchd `KeepAlive` restarts the watcher on crash silently. If the watcher silently fails for 30 days, no event lands and Tim assumes "nothing happened" rather than "watcher dead." Spec for Phase B: emit a `{"event": "heartbeat", "ts": ...}` line into `~/.rai/vcce-watch.jsonl` every N minutes (analogue to Mac heartbeat pattern). Daily check (NanoClaw daily-sync or local launchd) reads the last line, alerts if `now - last_heartbeat_ts > 1h`. Without this, the watcher is observable only when it produces an event, which conflates "silent because nothing happened" with "silent because dead."
 
 ### Operational commands
 
@@ -732,25 +732,25 @@ jq -c . ~/.rai/vcce-watch.jsonl | tail
 
 ---
 
-## Open Loops (RAI-specific)
+## Status tracker (RAI-specific, historical)
 
-| ID | Item | Status |
-|---|---|---|
-| OL-016 | rai-scan.ts P0 wired into NanoClaw | CLOSED |
-| OL-017 | Layer schema inconsistency | CLOSED |
-| OL-022 | @no5 context write-back with Write Gate | CLOSED 2026-03-21 |
-| OL-023 | Admin override for RAI (!ray-override:) | Ready to implement (P1 shipped) |
-| OL-024 | NanoClaw security audit | CLOSED 2026-03-21 |
-| OL-047 | RAI warning block wired into agent context (prepend to msg.content on flag) | CLOSED 2026-04-01 |
-| OL-070 | RAI P1 end-to-end WhatsApp test -- 9/9 tests pass | CLOSED 2026-04-01 |
-| OL-071 | PM2 restart loop on VPS -- investigate | Medium |
-| RAI-rename | Rename 19-rai-context.md → 19-rai-context.md + REGISTRY update | Desktop /close |
-| OL-074 | Browser Extension MVP (Free + BYOK). Spec: 25-rai-extension-spec.md | High — next build |
-| OL-075 | Landing page: 3-tier pricing (Free/Pro/Premium), email capture, smoke test | High — Lovable session |
-| RAI-lovable | Lovable page redesign with real-world threat cases | Merged into OL-075 |
+| Item | Status |
+|---|---|
+| rai-scan.ts P0 wired into NanoClaw | CLOSED |
+| Layer schema inconsistency | CLOSED |
+| Agent context write-back with Write Gate | CLOSED 2026-03-21 |
+| Admin override for RAI (!ray-override:) | Ready to implement (P1 shipped) |
+| NanoClaw security audit | CLOSED 2026-03-21 |
+| RAI warning block wired into agent context (prepend to msg.content on flag) | CLOSED 2026-04-01 |
+| RAI P1 end-to-end WhatsApp test -- 9/9 tests pass | CLOSED 2026-04-01 |
+| PM2 restart loop on VPS -- investigate | Medium |
+| Rename 19-rai-context.md → 19-rai-context.md + REGISTRY update | Desktop /close |
+| Browser Extension MVP (Free + BYOK). Spec: 25-rai-extension-spec.md | High — next build |
+| Landing page: 3-tier pricing (Free/Pro/Premium), email capture, smoke test | High — Lovable session |
+| Lovable page redesign with real-world threat cases | Merged into the landing page item |
 
 ## NanoClaw Current State (2026-04-01)
-- VPS: Hetzner Helsinki, 204.168.133.21
+- VPS: Hetzner (Helsinki)
 - Process manager: systemd (user service), loginctl linger enabled
 - Port 3001: bound to 172.17.0.1 (docker0 bridge, not 0.0.0.0)
 - .env: chmod 600
@@ -760,7 +760,6 @@ jq -c . ~/.rai/vcce-watch.jsonl | tail
 - warningBlock: prepended to agent context on P0 flag
 - /rai-scan: consolidated P0+P1, single message output
 - Write Gate: context_update IPC live, 5-layer defense, git commit + push
-- NanoClaw OL write target: 02b-nanoclaw-open-loops.md (NC- prefix)
 
 ---
 
@@ -775,14 +774,14 @@ _Source: ~/eval/claw-code -- ultraworkers/claw-code Rust workspace. Lokal geclon
 | `permission_enforcer.rs` | Write Gate | Tool-level Permission Gating (read-only, destructive command warning, mode/path/sed validation). Komplement zu RAI 5-Layer Write Gate. Bash-Validation-Patterns direkt uebertragbar. |
 | `trust_resolver.rs` | P2 Source Credibility | TrustPolicy (AutoTrust / RequireApproval / Deny) + TrustConfig (allowlist/deny). Architekturvorlage fuer P2 Source Credibility Index. |
 | `lane_events.rs` | Sentinel Event-Architektur | Event-first Architektur: maschinenlesbare, normalisierte Events statt Log-Text-Parsing. Exakt Sentinels Betriebsmodell ("event-first, not log-first"). |
-| `recovery_recipes.rs` | OL-071 VPS | Klassifizierte Recovery-Muster fuer Infra- vs. Code-Fehler. Direkt anwendbar auf VPS PM2/systemd-Crash-Loop-Diagnose. |
+| `recovery_recipes.rs` | VPS | Klassifizierte Recovery-Muster fuer Infra- vs. Code-Fehler. Direkt anwendbar auf VPS PM2/systemd-Crash-Loop-Diagnose. |
 
 
 ---
 
 ## TraceSafe vs ActionGate Overlap Analysis (2026-04-09)
 
-_Spike doc: evaluating ActionGate (OL-088) implementation dependencies against TraceSafe guardrail framework_
+_Spike doc: evaluating ActionGate implementation dependencies against TraceSafe guardrail framework_
 
 ### Context
 
@@ -869,7 +868,7 @@ ActionGate could benefit from:
 
 ### Strategic Decision
 
-**Telegram is RAI's consumer beachhead channel.** Decided in No5 Desktop session 2026-04-15.
+**Telegram is RAI's consumer beachhead channel.** Decided in a working session 2026-04-15.
 
 Rationale:
 - Infrastructure delta minimal: NanoClaw Telegram channel + scan engine already exist. Only multi-tenant user isolation is new build.
@@ -879,9 +878,9 @@ Rationale:
 - Real forwarded content from real users feeds Phantom self-evolution flywheel. High-density, coherent dataset vs fragmented multi-surface approach.
 - Investor signal: users + scans + threats blocked from one channel, zero paid acquisition = clean distribution proof point.
 
-**GTM implication:** Primary CTA on landing page (OL-075) shifts from Chrome extension to Telegram bot. Chrome extension stays live and CWS appeal (OL-074) gets resolved, but no further platform expansion investment until Telegram beachhead proven.
+**GTM implication:** Primary CTA on landing page shifts from Chrome extension to Telegram bot. Chrome extension stays live and CWS appeal gets resolved, but no further platform expansion investment until Telegram beachhead proven.
 
-### Build Scope (OL-117)
+### Build Scope
 
 | Item | Notes |
 |---|---|
@@ -912,7 +911,7 @@ Privacy-aware, non-technical Telegram user consuming forwarded content: news, he
 |---|---|---|
 | Browser web AI (Claude, ChatGPT, Gemini) | Chrome extension | Live (3 platforms, CWS appeal pending) |
 | Browser any page (`<all_urls>`) | Extension generic scanner | Planned — medium effort, CWS risk |
-| Telegram (messaging) | Multi-tenant bot (OL-117) | Next build — beachhead |
+| Telegram (messaging) | Multi-tenant bot | Next build — beachhead |
 | WhatsApp (messaging) | NanoClaw (single user only today) | Multi-tenant version: later |
 | Desktop native apps | OS accessibility layer or menubar app | Menubar app = weekend build. OS accessibility = heavy, v2.0 |
 | Mobile iOS/Android | Share extension or native app | v1.1 not v1.0 |
@@ -954,11 +953,11 @@ Implication: hobbyist self-hosters as credible early-adopter segment for RAI bro
 
 Open WebUI deployments = identified RAI distribution surface. Self-hosted AI users have already chosen the sovereignty path. RAI as an Open WebUI pipeline plugin scanning prompts before they hit any cloud fallback fits the mindset natively. Pipelines layer is the integration point.
 
-Next: validate plugin architecture compatibility with RAI's three-layer scanner (P0 regex + P1 Claude + P2 multi-agent consensus) when RAI commercialization spec stabilizes. Cross-ref: OL-137 (AERA Open WebUI substrate eval) as shared surface learning.
+Next: validate plugin architecture compatibility with RAI's three-layer scanner (P0 regex + P1 Claude + P2 multi-agent consensus) when RAI commercialization spec stabilizes. Cross-ref: AERA Open WebUI substrate eval as shared surface learning.
 
 ---
 
-## Pitch Deck v2 Drafts (OL-068+)
+## Pitch Deck v2 Drafts
 
 _Started 2026-04-22. Working space for RAI Pitch Deck v2 narrative + slide drafts. Move to dedicated WS-rai-pitch-deck.md once it grows past 5 slides._
 
@@ -997,8 +996,8 @@ _Started 2026-04-22. Working space for RAI Pitch Deck v2 narrative + slide draft
 2. **Beat 2 -- It's structural:** OpenClaw collapse (340 malicious skills, CVE-2026-25253), Meta agent deletion incident, PyPI/LiteLLM supply chain. **IPI in the wild (Google + Forcepoint, 2026-04-24):** +32% malicious IPI Nov–Feb 2026 (Google CommonCrawl data). Real payloads found: PayPal transaction payload + Stripe donation redirect embedded in live pages. Shared injection templates across multiple domains = organized tooling infrastructure, not isolated experiments. Five failure-mode types documented: supply-chain compromise, rogue agent behavior, VCCE, memory lock-in, **IPI as content-ingestion vector**. Pattern, not one-off.
 3. **Beat 3 -- Existing controls miss it:** Output filters, prompt guards, model evals all operate above the layer where these threats execute. Activation-vs-output principle (cite Anthropic emotion paper). **IPI reinforces this:** injected instructions hidden in CSS (1px text, transparent color, `display:none`) and HTML comments are invisible to output-layer monitoring. The payload executes at the content-ingestion layer, not the model output layer. If the agent never surfaces the instruction to the user, no output guard ever sees it.
 4. **Beat 4 -- The right layer to fix it:** RAI sits at OS / IPC / browser-DOM / shell / fs / mcp surfaces. ActionGate spec already covers 5 of these (28-rai-actiongate-spec.md). New surface adapter candidate: Native Messaging Host manifest watcher.
-4b. **Beat 4b -- Memory Sovereignty als dritte Trust-Boundary-Bewegung:** Chase (LangChain, 2026-04-11, 'Your harness, your memory') zeigt die dritte strukturelle Bewegung in 2026: Vendor-API absorbiert nicht nur Capability (VCCE / OL-140) und Daten (klassische Leakage / RAI L0/L-2), sondern auch Memory selbst. Anthropic Managed Agents, OpenAI Responses API, Codex encrypted Compaction = explizit Lock-in. Drei dokumentierte Boundary-Bewegungen 2026, ein Defense-Layer (RAI). Die drei Risk-Achsen, die RAI adressiert: (1) Capability Expansion (VCCE), (2) Data Leakage (klassisch), (3) Memory Lock-in (Chase-Frame). Pitch-Implikation: 'Memory Sovereignty' als sellable Risk-Vokabel adjacent zu Data Leakage. RAI nicht nur Inhalts-Firewall, sondern Sovereignty-Layer.
-5. **Beat 5 -- Distribution proof + ask:** Telegram beachhead (OL-117), Chrome extension live, real users, real scans, real threats blocked. Investor ask.
+4b. **Beat 4b -- Memory Sovereignty als dritte Trust-Boundary-Bewegung:** Chase (LangChain, 2026-04-11, 'Your harness, your memory') zeigt die dritte strukturelle Bewegung in 2026: Vendor-API absorbiert nicht nur Capability (VCCE) und Daten (klassische Leakage / RAI L0/L-2), sondern auch Memory selbst. Anthropic Managed Agents, OpenAI Responses API, Codex encrypted Compaction = explizit Lock-in. Drei dokumentierte Boundary-Bewegungen 2026, ein Defense-Layer (RAI). Die drei Risk-Achsen, die RAI adressiert: 1 Capability Expansion (VCCE), 2 Data Leakage (klassisch), 3 Memory Lock-in (Chase-Frame). Pitch-Implikation: 'Memory Sovereignty' als sellable Risk-Vokabel adjacent zu Data Leakage. RAI nicht nur Inhalts-Firewall, sondern Sovereignty-Layer.
+5. **Beat 5 -- Distribution proof + ask:** Telegram beachhead, Chrome extension live, real users, real scans, real threats blocked. Investor ask.
 
 ### Open slide questions
 - Slide 1 vs cold-open: lead with Anthropic case as Slide 1, or open with broader threat-model frame and put Anthropic case as Slide 3 ("and even the best vendor...")?
@@ -1043,11 +1042,11 @@ Epistemic pollution at scale. AI-generated content circulates as authentic human
 
 ### Three Scalable Offerings
 
-| Offering | Target | Model | OLs |
-|---|---|---|---|
-| Offering 1: RAI Scan API | Platforms hosting user-generated AI content | Per-scan B2B REST API, volume tiers | OL-121 |
-| Offering 2: RAI Research Engine | Researchers, journalists, brand safety teams | Batch scan + aggregate stats, subscription | OL-119, OL-120, OL-123 |
-| Offering 3: RAI Personal Guard | Individual consumers | Freemium, Telegram beachhead + extension | OL-117, OL-122 |
+| Offering | Target | Model |
+|---|---|---|
+| Offering 1: RAI Scan API | Platforms hosting user-generated AI content | Per-scan B2B REST API, volume tiers |
+| Offering 2: RAI Research Engine | Researchers, journalists, brand safety teams | Batch scan + aggregate stats, subscription |
+| Offering 3: RAI Personal Guard | Individual consumers | Freemium, Telegram beachhead + extension |
 
 ### The Flywheel
 
@@ -1055,19 +1054,19 @@ Offering 3 generates real-world scan data. That data validates Offering 2 (resea
 
 ### Build Sequence for LinkedIn AI Slop Use Case
 
-1. OL-124: AI-provenance fingerprint class (low effort, feeds all offerings)
-2. OL-119: Batch scan pipeline (one Claude Code session)
-3. OL-120: LinkedIn AI slop study (50-100 posts, publish findings)
-4. OL-121 + OL-122: API and LinkedIn adapter in parallel
-5. OL-123: Research Hub (needs OL-120 content first)
+1. AI-provenance fingerprint class (low effort, feeds all offerings)
+2. Batch scan pipeline (one Claude Code session)
+3. LinkedIn AI slop study (50-100 posts, publish findings)
+4. API and LinkedIn adapter in parallel
+5. Research Hub (needs content first)
 
 ### Key LinkedIn Contacts (RAI outreach)
 
-| Person | Context | OL |
+| Person | Context | Follow-up |
 |---|---|---|
-| Kai Uhlig (1st degree) | Posted live L2 injection attack as test. Founder/BA/LP/Operating Partner. RAI verdict on post: 94/100 DANGER, 3 critical findings. | OL-125 |
-| Daniel W. Dippold (EWOR) | "AI-toxification" post validating L0/L1 consumer positioning | OL-120 (comment after batch scan ships) |
-| Christina Nimal MD MSc | Clinical AI Safety thread, RAI Clinical audience | OL-RAY-002 |
+| Kai Uhlig (1st degree) | Posted live L2 injection attack as test. Founder/BA/LP/Operating Partner. RAI verdict on post: 94/100 DANGER, 3 critical findings. | Tracked internally |
+| Daniel W. Dippold (EWOR) | "AI-toxification" post validating L0/L1 consumer positioning | (comment after batch scan ships) |
+| Christina Nimal MD MSc | Clinical AI Safety thread, RAI Clinical audience | Tracked internally |
 
 ### Kai Uhlig Comment (Ready to Post)
 
@@ -1086,7 +1085,7 @@ Three-mode adversarial review. Runs in sequence:
 
 Output: structured, not narrative. No hedging. Ends with verdict: HOLD / PROCEED WITH CAUTION / PROCEED.
 
-Status: logged to Wake Version History DB (Notion). Requires manual update to 00-WAKE.md and Claude Desktop Settings (one line change, shell MCP was down during session).
+Status: logged internally. Requires a manual update to the agent bootstrap file and Claude Desktop Settings (one line change, shell MCP was down during session).
 
 
 
@@ -1100,19 +1099,19 @@ Canonical channel hierarchy as of 2026-05-01:
 
 | Priority | Channel | Role |
 |---|---|---|
-| 1 | **Telegram bot** (multi-tenant, OL-117) | Consumer beachhead. Primary distribution. Zero gatekeeper dependency. Natural forwarding = natural threat surface. |
+| 1 | **Telegram bot** (multi-tenant) | Consumer beachhead. Primary distribution. Zero gatekeeper dependency. Natural forwarding = natural threat surface. |
 | 2 | **Chrome extension** | Consumer add-on to the beachhead. Not the lead. Live on CWS, appeal resolved, maintained. |
-| 3 | **RAI Scan API** (OL-159) | B2B. Platforms deploying user-generated AI content. Feeds from beachhead proof. |
-| 4 | **Enterprise: Context Layer Protection** (OL-172/173) | Internal AI system write-gate. Dogfooded on No5 context layer first. Enterprise motion, not consumer. |
-| 5 | **GoMedicus/AERA medical pipelines** | Local LLM writing to patient context files = same architecture as No5 write gate. Regulatory angle (DSGVO). |
+| 3 | **RAI Scan API** | B2B. Platforms deploying user-generated AI content. Feeds from beachhead proof. |
+| 4 | **Enterprise: Context Layer Protection** | Internal AI system write-gate. Dogfooded on the founder's own agent context layer first. Enterprise motion, not consumer. |
+| 5 | **GoMedicus/AERA medical pipelines** | Local LLM writing to patient context files = same architecture as the NanoClaw write gate. Regulatory angle (DSGVO). |
 
 The two market motions are structurally distinct:
 - **Consumer motion** (Telegram + extension): scan untrusted inbound content before it reaches the agent
 - **Enterprise motion** (context layer write gate): protect trusted persistent state from adversarial writes
 
-OL-172 (context layer write gate) does not dilute Telegram beachhead positioning. Different buyers, different pain, same underlying architecture.
+(context layer write gate) does not dilute Telegram beachhead positioning. Different buyers, different pain, same underlying architecture.
 
-**OL-172 LIVE [cc:2026-05-02]:** No5 context layer write gate shipped on NanoClaw VPS. Audit log (`logs/mcp-write-audit.jsonl`): every MCP write attempt logged with ts, file, surface, verdict, content sha256. Credential Guard: `~/.no5-env`, `*.plist`, `*credentials*`, `*id_rsa*` permanently blocked. Content Scanner: 5 patterns (Anthropic key, AWS key, generic API token, SSH private key, generic credential context). Architecture Judge integration: SSH-fetches audit log nightly, Telegram alert on any Credential Guard reject or scanner hit. This is the first live operational deployment of the RAI ActionGate architecture outside the browser extension. Pitch evidence: "We run this on our own AI OS. The attack patterns we discover internally feed directly into the RAI threat model."
+**LIVE [cc:2026-05-02]:** Agent context layer write gate shipped on the NanoClaw VPS. Audit log (`logs/mcp-write-audit.jsonl`): every MCP write attempt logged with ts, file, surface, verdict, content sha256. Credential Guard: `~/.<agent>-env`, `*.plist`, `*credentials*`, `*id_rsa*` permanently blocked. Content Scanner: 5 patterns (Anthropic key, AWS key, generic API token, SSH private key, generic credential context). Architecture Judge integration: SSH-fetches audit log nightly, Telegram alert on any Credential Guard reject or scanner hit. This is the first live operational deployment of the RAI ActionGate architecture outside the browser extension. Pitch evidence: "We run this on our own AI OS. The attack patterns we discover internally feed directly into the RAI threat model."
 
 ---
 
@@ -1140,7 +1139,7 @@ Pitch Deck Beat 2 erhaelt eine neue Evidence-Zeile:
 
 **3. Enterprise-GTM-Signal fuer AroundCapital**
 
-Accenture, BCG, Deloitte, Infosys und PwC bauen Claude-integrierte Loesungen fuer Vulnerability Management, Secure Code Review und Incident Response. Das ist der Enterprise-Deployment-Pfad. RAI als Layer in diesen Stacks (context layer write gate, OL-172/173) ist ein realistisches GTM-Szenario. AroundCapital-relevante Positionierung: wer in diesen Consulting-Stacks sitzt, braucht die Interaction Firewall als Compliance-Layer.
+Accenture, BCG, Deloitte, Infosys und PwC bauen Claude-integrierte Loesungen fuer Vulnerability Management, Secure Code Review und Incident Response. Das ist der Enterprise-Deployment-Pfad. RAI als Layer in diesen Stacks (context layer write gate) ist ein realistisches GTM-Szenario. AroundCapital-relevante Positionierung: wer in diesen Consulting-Stacks sitzt, braucht die Interaction Firewall als Compliance-Layer.
 
 ### Pitch Deck v2 Ergaenzung (Beat 2)
 
@@ -1184,24 +1183,24 @@ Structural gap confirmed: 78% of organizations run AI agents with real productio
 
 ### Beat 2 Evidence Card: Agent Orchestration Failure Taxonomy (2026-05-11)
 
-Source: arXiv batch 2026-05-11 (6 RAI-tagged NOW items). Full spike: `no5-context/spikes/2026-05-10-rai-beat2-evidence.md`
+Source: arXiv batch 2026-05-11 (6 RAI-tagged NOW items). Full spike: internal research notes (not in this repo).
 
 Three structural failure modes empirically validated across independent research groups:
 
 **1. Formal Verification Gap (TraceFix)**
 TLA+ reveals deadlock/livelock in multi-agent handoff protocols that pass all empirical benchmarks. Coordination failures are structurally latent, not test-detectable.
 > Pitch quote: "Empirical safety evals miss 60%+ of coordination failures. Formal verification is the only audit surface for multi-agent supply chains."
-Maps to: OL-239 ActionGate mandatory TLA+ spec layer, OL-068 (closed-source protocols = no audit surface)
+Maps to: ActionGate mandatory TLA+ spec layer, closed-source protocols = no audit surface
 
 **2. Steering Attack Surface (ToolCalling)**
 Tool-calling behavior is directly steerable via linear probes in embedding space. Audit logs are unfalsifiable without steering transparency.
 > Pitch quote: "Tool-calling steering is linear in embedding space. Without steering transparency, your audit logs are unfalsifiable."
-Maps to: OL-240 L-2 supply chain auditing, OL-245 Mirage VFS cross-mount exfil (steered sequences bypass namespace isolation)
+Maps to: L-2 supply chain auditing, Mirage VFS cross-mount exfil (steered sequences bypass namespace isolation)
 
 **3. Cooperative Intent Degradation (MemoryCurse) -- NEW THREAT CLASS**
 Expanded context/retrieval-augmented recall monotonically degrades multi-agent cooperation metrics. Effect is structural (not adversarial), not fixed by RLHF or fine-tuning.
 > Pitch quote: "More memory kills cooperation. Every RAG system you add to agents pulls them further from shared objectives."
-Maps to: OL-239 ActionGate intent-alignment gates, OL-240 contract language needs cooperation invariant verification
+Maps to: ActionGate intent-alignment gates, contract language needs cooperation invariant verification
 
 **Pitch Deck v2 Beat 2 positioning:** "Agent orchestration failures are structural, vendor-agnostic, and now empirically measured. Three independent research groups, same conclusion: current architectures have no layer that catches coordination, steering, or cooperation failures. RAI is that layer."
 
@@ -1266,7 +1265,7 @@ Detection accuracy target: 80% for consumer (sufficient for trust signal), 95%+ 
 
 Sequence is non-negotiable: consumer beachhead proves demand. Regulated sector is the moat once volume is established.
 
-### GTM surface question (open, OL-RAI-GTM-002)
+### GTM surface question
 
 The protection needs to feel ambient and passive. Three options under evaluation:
 
@@ -1278,7 +1277,7 @@ The protection needs to feel ambient and passive. Three options under evaluation
 
 Mobile app as primary consumer surface (clipboard monitoring, passive scan before reply) is the strongest "ambient trust layer" expression. Telegram bot stays as the zero-friction first step. Extension as middle layer.
 
-No surface decision taken until OL-RAI-GTM-002 session.
+No surface decision taken until the dedicated GTM session.
 
 ### Category clarification (printed 2026-05-04)
 
@@ -1296,7 +1295,7 @@ The consumer product is the L5 direction. The technical moat is the L-2 through 
 
 ### Decision: PWA as primary new consumer surface
 
-OL-RAI-GTM-002 CLOSED.
+GTM surface question CLOSED.
 
 **Rationale:** L5 promise is ambient and passive. Telegram bot is pull-only (user invokes). Extension is desktop-only, misses mobile DM surface where L5 threat actually lives. PWA delivers share target + clipboard scan on mobile, no Play Store review, buildable in one weekend sprint via Claude Code + Lovable scaffold.
 
@@ -1318,7 +1317,7 @@ LP is stealth, no live users. No reason to update it before the product surface 
 | 2 | Telegram bot onboarding updated to mention PWA install | Same sprint |
 | 3 | LP updated: L5 card, new positioning, PWA install CTA | After PWA is live |
 
-OL-RAI-LP-003 status: blocked on PWA. Do not touch LP before PWA is live.
+Landing page status: blocked on PWA. Do not touch LP before PWA is live.
 
 **Build capacity:** Solo evenings + weekends. Claude Code heavy (up to 200 USD/month). Dev support available if conviction reaches that threshold. PWA sprint is within solo capacity.
 
@@ -1327,7 +1326,7 @@ OL-RAI-LP-003 status: blocked on PWA. Do not touch LP before PWA is live.
 
 ## [POS][MKT][ARCH] MCP STDIO Architectural RCE: Beat 2 Evidence Card (2026-05-04)
 
-**Source:** OX Security (Moshe Siman Tov Bustan, Mustafa Naamnih, Nir Zadok, Roni Bar), VentureBeat, The Register, Infosecurity Magazine. OL-191.
+**Source:** OX Security (Moshe Siman Tov Bustan, Mustafa Naamnih, Nir Zadok, Roni Bar), VentureBeat, The Register, Infosecurity Magazine.
 
 ### What happened
 
@@ -1353,18 +1352,18 @@ Anthropic response: "expected behavior," declined to modify protocol architectur
 | Layer | Signal |
 |---|---|
 | L-2 (Supply Chain) | STDIO default propagated through all official SDKs. Developer inherits exposure unknowingly by building on MCP. |
-| L0 (Prompt Injection) | CVE-2026-30615: malicious HTML modifies local MCP config file (zero-click, Windsurf). CVE-2026-33068 from OL-178: settings.json bypassPermissions before trust dialog. |
-| L4 (ActionGate) | Allowlist-bypass via npx -c argument injection = same class as subcommand-limit-bypass (OL-178 finding #3). Allowlists give false confidence. Sandbox isolation is the correct mitigation. |
+| L0 (Prompt Injection) | CVE-2026-30615: malicious HTML modifies local MCP config file (zero-click, Windsurf). CVE-2026-33068: settings.json bypassPermissions before trust dialog. |
+| L4 (ActionGate) | Allowlist-bypass via npx -c argument injection = same class as subcommand-limit-bypass (finding #3). Allowlists give false confidence. Sandbox isolation is the correct mitigation. |
 
-Cross-reference: OL-178 (Six Claude Code CVEs, IAM blind spot), OL-140 (VCCE native messaging host), OpenClaw collapse (Beat 2 anchor).
+Cross-reference: Six Claude Code CVEs (IAM blind spot), VCCE (native messaging host), OpenClaw collapse (Beat 2 anchor).
 
 ### Anthropic Pattern: Third Instance
 
 Three documented cases of Anthropic acknowledging capability expansion or security gap as "expected":
 
-1. **VCCE (OL-140, 2026-04-18):** Native Messaging Manifest installed into 7 browsers without consent. "Expected."
+1. **VCCE (2026-04-18):** Native Messaging Manifest installed into 7 browsers without consent. "Expected."
 2. **Claude Security Launch + Mythos exploit capability (2026-04-30):** Vendor-published 11-24% prompt injection success rates. Own security tool exists because own model can find and exploit vulnerabilities in minutes.
-3. **MCP STDIO RCE (OL-191, 2026-04-15):** Architectural command execution in industry-standard protocol. "Expected behavior."
+3. **MCP STDIO RCE (2026-04-15):** Architectural command execution in industry-standard protocol. "Expected behavior."
 
 Pattern across all three: capability or security surface exists below the model output layer. Output-level monitoring, prompt guards, and model evals are blind to all three. RAI ActionGate is the only layer that operates at this level.
 
@@ -1379,13 +1378,13 @@ Insert between OpenClaw collapse and IPI (+32%) cards:
 > Patch today, configure a new MCP STDIO server tomorrow: same exposure, inherited fresh.
 > 10+ Critical CVEs. Single root cause.
 
-### No5 Stack Self-Audit (Action Item)
+### Internal Stack Self-Audit (Action Item)
 
 Active STDIO-transport MCP instances in Tim's stack:
 - `~/.config/claude-code/mcp.json`: Claude Code MCP configurations
-- no5-context VPS MCP (cloudflare tunnel): already sandboxed via Docker on Hetzner, IPC boundary in place
+- Context-layer VPS MCP (cloudflare tunnel): already sandboxed via Docker on Hetzner, IPC boundary in place
 
-Immediate action for Desktop session: audit `~/.config/claude-code/mcp.json` for STDIO transport entries. For each entry: confirm sandbox isolation (no full disk access, no shell execution without ActionGate coverage). Cross-reference with OL-172 (context layer write gate audit trail already live).
+Immediate action for Desktop session: audit `~/.config/claude-code/mcp.json` for STDIO transport entries. For each entry: confirm sandbox isolation (no full disk access, no shell execution without ActionGate coverage). Cross-reference with context layer write gate audit trail already live.
 
 ### ActionGate Spec Additions (for next rai/docs/28-rai-actiongate-spec.md update)
 
@@ -1430,7 +1429,7 @@ Ruben's Antwort "treat like a password" — Manuel's Replik: "Sadly, it's imposs
 **Consumer Framing:**
 "I can be you" als Substack-Artikel = RAI's L5 Threat Model in Produktion, skaliert auf 150k+ User. "Know what's real" addressiert genau was Daria und Manuel benennen.
 
-**Cross-ref:** L5 Section (2026-05-04), Beat 2 Evidence Stack (OpenClaw / IPI / MCP STDIO / Claude Security), OL-117 (Telegram beachhead), Pitch Deck v2 narrative arc.
+**Cross-ref:** L5 Section (2026-05-04), Beat 2 Evidence Stack (OpenClaw / IPI / MCP STDIO / Claude Security), Telegram beachhead, Pitch Deck v2 narrative arc.
 
 
 ## [POS][MKT] Consumer Persona Cloning als L5 Attack Surface [mob:2026-05-05]
@@ -1461,17 +1460,17 @@ Pitch Deck v2 Beat 2 Erweiterung:
 150k+ Leser werden aktiv gelehrt Persona-Files zu erstellen. "I can be you" = L5-Bedrohung
 und Consumer-Positioning-Pitch gleichzeitig. "Know what's real" addressiert exakt das.
 
-**No5 / Context Layer:** DROP. Ruben baut consumer-grade was wir enterprise-grade haben.
+**Context Layer:** DROP. Ruben baut consumer-grade was wir enterprise-grade haben.
 Kein Handlungsbedarf. Architectural downgrade.
 
-**Cross-ref:** L5 Section (2026-05-04), Pitch Deck Beat 2, OL-191 (MCP STDIO RCE).
+**Cross-ref:** L5 Section (2026-05-04), Pitch Deck Beat 2, MCP STDIO RCE.
 
 
 ---
 
 ## Threat Evidence Log [mob:2026-05-04]
 
-_Live instances observed in the wild. Canonical examples of why RAI exists. Each maps to a detection class. Tim's ambient feed, manually curated pre-scanner. Full version in Notion RAI HQ (page 35757538-249e-81ab-8a58-f94c425c58c0)._
+_Live instances observed in the wild. Canonical examples of why RAI exists. Each maps to a detection class. Tim's ambient feed, manually curated pre-scanner. Full version kept in the internal workspace._
 
 ---
 
@@ -1530,8 +1529,8 @@ Apple deploying a system-level paste intercept means the threat class (social en
 Apple's scope is deliberately narrow: Terminal paste, syntactic pattern match, single OS surface. The entire AI interaction layer is unaddressed:
 - AI-to-AI manipulation: model output trust, misinformation amplification (L1 -- BS Council)
 - Cross-context injection: hidden instructions in documents opened by an agent (L0 -- not a paste, no Terminal involved)
-- Ambient context injection: sensor data feeding agent context without user knowledge (OL-315 -- never touches clipboard)
-- MCP traffic: tool call parameter injection in agent pipelines (OL-301 -- no paste event)
+- Ambient context injection: sensor data feeding agent context without user knowledge (never touches clipboard)
+- MCP traffic: tool call parameter injection in agent pipelines (no paste event)
 - LLM overconfidence: factually wrong confident answers forwarded by the user (L1)
 - Agent action overreach: unauthorized file writes, process spawns (L4 ActionGate)
 
@@ -1554,7 +1553,7 @@ None of these go through Terminal paste. Apple's protection doesn't touch them.
 
 This is the first time a major OS vendor has shipped a named protection for an AI-adjacent social engineering vector. It validates the category. The correct RAI response is not "Apple is a competitor" but "Apple confirms the threat exists at OS level. We operate one layer down, where the OS can't see."
 
-**Cross-ref:** OL-281 (BS Council -- AI-to-AI trust), OL-315 (Silent Context Injection -- ambient sensor vectors), OL-301 (MCP traffic coverage gap), Beat 2 evidence stack, Beat 5 counter-evidence slot, 19-rai-context.md threat layer schema.
+**Cross-ref:** BS Council (AI-to-AI trust), Silent Context Injection (ambient sensor vectors), MCP traffic coverage gap, Beat 2 evidence stack, Beat 5 counter-evidence slot, 19-rai-context.md threat layer schema.
 
 ---
 

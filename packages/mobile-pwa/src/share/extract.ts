@@ -92,7 +92,7 @@ export async function extractShareFromFormData(form: FormData): Promise<PendingS
 }
 
 /**
- * Every image in the multipart payload as its own PendingShare (OL-661 batch).
+ * Every image in the multipart payload as its own PendingShare (batch).
  * Text, title and url describe the share as a whole and attach to the first item only.
  */
 export async function extractAllSharesFromFormData(form: FormData): Promise<PendingShare[]> {

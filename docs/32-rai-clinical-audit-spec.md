@@ -3,7 +3,7 @@ _Created: 2026-05-28_
 _Status: Spec draft_
 _Audience: Christina Nimal, Joy Akisanya (clinical decision provenance)_
 _Source: pipelock-import (github.com/luckyPipewrench/pipelock, Apache 2.0). Schema + signing recipe adapted from Pipelock EvidenceReceipt v2 / in-toto agent-action-receipt v0.1. NOT a code copy._
-_Cross-ref: OL-327 (extraction), 28-rai-actiongate-spec.md (L4 action layer that emits receipts), OL-300 (L1 hot-reload, contract-hash binding)_
+_Cross-ref: 28-rai-actiongate-spec.md (L4 action layer that emits receipts), 33-rai-l1-hotreload-spec.md (L1 hot-reload, contract-hash binding)_
 
 ---
 
@@ -241,7 +241,7 @@ A clinical agent attempts to write to an out-of-scope record; RAI blocks it.
 
 `findings[].severity`: `critical`, `high`, `medium`, `low`, `info`.
 
-`verdict_reason` draws from the canonical block-reason vocabulary shared with ActionGate / OL-300 (see 28-rai-actiongate-spec.md and the OL-300 block-reason header section). Clinical-relevant codes: `dlp_match`, `contract_default_deny`, `contract_enforce_default`, `tool_policy_deny`, `authority_mismatch`, `redaction_failure`.
+`verdict_reason` draws from the canonical block-reason vocabulary shared with ActionGate / (see 28-rai-actiongate-spec.md and the block-reason header section). Clinical-relevant codes: `dlp_match`, `contract_default_deny`, `contract_enforce_default`, `tool_policy_deny`, `authority_mismatch`, `redaction_failure`.
 
 ---
 
@@ -251,4 +251,4 @@ A clinical agent attempts to write to an out-of-scope record; RAI blocks it.
 - Key roster distribution: how the clinician (or anyone they share the trail with) obtains the public-key fingerprint to verify against, published fingerprint list vs signed roster document.
 - PHI boundary review with Christina before any field that could carry a record reference goes live in `target`.
 - Retention: hash-chained receipts are append-only; where do they live (Notion DB at P3 per 19-rai-context Q2, or a dedicated immutable store)?
-- Cross-ref OL-300: the `policy.digest.sha256` here is the same contract-hash primitive the L1 hot-reload path will emit. One canonical hash, two consumers (live enforcement + clinical audit).
+- Cross-ref (L1 hot-reload, spec 33): the `policy.digest.sha256` here is the same contract-hash primitive the L1 hot-reload path will emit. One canonical hash, two consumers (live enforcement + clinical audit).

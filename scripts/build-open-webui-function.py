@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OL-660: regenerate the embedded P0 pattern block in
+"""Regenerate the embedded P0 pattern block in
 integrations/open-webui/rai_intake_check.py from packages/core/rai-scan-p0.ts.
 
   npx tsx scripts/export-p0-patterns.ts > integrations/open-webui/p0-patterns.json

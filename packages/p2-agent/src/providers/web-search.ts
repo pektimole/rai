@@ -6,7 +6,7 @@
  *
  * Env: BRAVE_SEARCH_API_KEY required.
  *
- * OL-395: Each result is scanned for prompt injection before being injected into
+ * Each result is scanned for prompt injection before being injected into
  * agent context. Blocked results are dropped; flagged results are annotated.
  * Uses an inline lightweight filter (L-1 + L0 critical patterns) to avoid
  * circular dependency with @rai/core.
@@ -57,7 +57,7 @@ export async function fetchWebSearchSnippets(query: string, topK = 5): Promise<W
     supports: 'context' as const,
   }));
 
-  // OL-395: P0 injection scan on each result before injecting into agent context.
+  // P0 injection scan on each result before injecting into agent context.
   // Dropped results are NOT passed to the model — search-result poisoning vector closed.
   let filtered_count = 0;
   const safe: Array<{ citation: Citation; flagged: boolean }> = [];
@@ -82,7 +82,7 @@ export async function fetchWebSearchSnippets(query: string, topK = 5): Promise<W
 }
 
 // ---------------------------------------------------------------------------
-// Inline injection filter (OL-395)
+// Inline injection filter
 //
 // Lightweight standalone scanner for the critical L-1 and L0 patterns.
 // Does NOT import from @rai/core (that would create a circular dependency:

@@ -31,7 +31,7 @@ export interface ScanInput {
       | "browser"
       | "clipboard"
       | "artifact"
-      // OL-301 P1-lite: MCP tool result traffic escalated from mcp-proxy.ts.
+      // P1-lite: MCP tool result traffic escalated from mcp-proxy.ts.
       | "mcp";
     pipeline_stage: "ingest" | "process" | "output" | "display";
     sender: string | null;

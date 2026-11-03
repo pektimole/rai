@@ -13,7 +13,7 @@
     "label": "Context file reference",
     "layer": "L-2",
     "severity": "critical",
-    "signal": "No5 context file name detected in payload"
+    "signal": "Agent context file name detected in payload"
   },
   {
     "source": "(?:send|forward|email|post|upload|exfil)[^\\n]{0,40}(?:to|at)\\s+[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-z]{2,}",
@@ -29,7 +29,7 @@
     "label": "Context file manipulation",
     "layer": "L-2",
     "severity": "critical",
-    "signal": "Instruction to modify No5 context files"
+    "signal": "Instruction to modify agent context files"
   },
   {
     "source": "use\\s+(?:the\\s+)?(?:mcp\\s+)?tool|call\\s+(?:the\\s+)?function|execute\\s+(?:the\\s+)?(?:tool|command|function)",

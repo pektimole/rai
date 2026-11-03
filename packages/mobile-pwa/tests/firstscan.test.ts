@@ -1,5 +1,5 @@
 /**
- * OL-661 first-scan screen: guardrails pinned as tests.
+ * first-scan screen: guardrails pinned as tests.
  *   - received-date comes from item metadata, never scan time
  *   - counts are computed once and never change after display
  *   - clean items collapse into one row

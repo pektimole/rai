@@ -1,5 +1,5 @@
 /**
- * contract-capture.test.ts — live capture wiring (OL-461, phase 2a)
+ * contract-capture.test.ts — live capture wiring (phase 2a)
  *
  * Proves the two invariants of the capture bridge: it is OFF unless opted in,
  * and it can never throw into the enforcement path (fail-open). Plus the
@@ -55,7 +55,7 @@ describe('captureConfigFromEnv', () => {
   });
 
   it('defaults the dir under ~/.rai/flight', () => {
-    expect(defaultCaptureDir({ HOME: '/home/tim' })).toBe('/home/tim/.rai/flight');
+    expect(defaultCaptureDir({ HOME: '/home/user' })).toBe('/home/user/.rai/flight');
   });
 });
 

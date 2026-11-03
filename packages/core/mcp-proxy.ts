@@ -53,7 +53,7 @@ import {
 } from './rai-scan-p1';
 
 // ---------------------------------------------------------------------------
-// OL-301 — result-path P0 inspection
+// Result-path P0 inspection
 //
 // ActionGate above gates the CALL (tool name + args, allow/deny). Nothing
 // previously inspected the RESULT flowing back from the downstream server
@@ -78,7 +78,7 @@ import {
 // action-gate-mcp.ts's isNetworkEnabledTool()). Narrowest surface matching
 // the real risk -- a poisoned-upstream scenario -- not the broadest.
 //
-// OL-394 instruction isolation is inherited from rai-scan-p1.ts's own
+// Instruction isolation is inherited from rai-scan-p1.ts's own
 // buildUserMessage() (<untrusted-content> wrapper + closing-tag escape),
 // not re-implemented here. P0 itself has no LLM in the loop, so it is not
 // a fresh injection surface; P1-lite is, which is exactly why it needs
@@ -504,7 +504,7 @@ async function startRawProxy(
         } else {
           const resultScanEnabled = policy.resultScan?.enabled ?? true;
 
-          // OL-301 item 4 (secondary): scan the outbound call args for L-2
+          // item 4 (secondary): scan the outbound call args for L-2
           // credential/exfil markers, independent of the allow/deny above.
           if (resultScanEnabled) {
             const argScan = await scanCallArgs(args, policy.serverName);
@@ -525,7 +525,7 @@ async function startRawProxy(
             }
           }
 
-          // Learn-and-lock (OL-461, phase 2a): observe the permitted call.
+          // Learn-and-lock (phase 2a): observe the permitted call.
           // No-op unless RAI_CAPTURE is set; fail-open so capture can never
           // turn an allowed call into a failed one. Recorded before forwarding
           // so a downstream error does not drop the observation.
@@ -534,7 +534,7 @@ async function startRawProxy(
           // Forward to downstream
           const result = await downstream.callTool({ name: toolName, arguments: args });
 
-          // OL-301 item 1 (primary): scan the RESULT before it re-enters
+          // item 1 (primary): scan the RESULT before it re-enters
           // model context. SIGNAL layer only -- see the header comment above
           // scanResult() for the honest-layer note.
           if (!resultScanEnabled) {
@@ -560,7 +560,7 @@ async function startRawProxy(
                 isError: true,
               });
             } else {
-              // OL-301 P1-lite: escalate to the Haiku-class scanner only for
+              // P1-lite: escalate to the Haiku-class scanner only for
               // results from network-enabled tools (per policy), and only
               // when shouldEscalateToP1() says the P0 verdict warrants it
               // (every 'flagged', or low-confidence 'clean'). 'blocked' is

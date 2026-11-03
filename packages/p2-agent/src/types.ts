@@ -48,7 +48,7 @@ export interface ScanHistoryEntry {
 }
 
 // ────────────────────────────────────────────────────────────
-// BS Council — verifiability axis (OL-281, spec 26-rai-p2-spec.md)
+// BS Council — verifiability axis (spec 26-rai-p2-spec.md)
 // ────────────────────────────────────────────────────────────
 
 export type BSCouncilVerdict =
@@ -97,7 +97,7 @@ export interface BSCouncilResult {
   explanation: string;
   dual_tag_false_alarm?: boolean;
   /**
-   * OL-395 hard rule: UNVERIFIED does NOT mean clean.
+   * Hard rule: UNVERIFIED does NOT mean clean.
    * Absence of web corroboration is not a safe verdict.
    * Downstream consumers must NOT treat UNVERIFIED as equivalent to CONFIRMED.
    */

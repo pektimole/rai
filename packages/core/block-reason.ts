@@ -1,5 +1,5 @@
 /**
- * block-reason.ts — RAI-Block-Reason header set, v1 (OL-300, 33- Part B)
+ * block-reason.ts — RAI-Block-Reason header set, v1 (33- Part B)
  *
  * When a scanner or gateway blocks a request, it must say *why* in a
  * machine-readable form an agent can act on (back off, switch tools, surface

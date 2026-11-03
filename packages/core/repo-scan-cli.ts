@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * repo-scan-cli.ts -- Local CLI for the OL-453 L1+L2 repo pre-ingest scanner.
+ * repo-scan-cli.ts -- Local CLI for the L1+L2 repo pre-ingest scanner.
  *
  * Usage:
  *   node packages/core/dist/repo-scan-cli.js https://github.com/owner/repo

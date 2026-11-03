@@ -1,5 +1,5 @@
 # RAI ActionGate policy: router-audit surface adapter
-# Spec: docs/28-rai-actiongate-spec.md § Surface Adapter: router-audit (OL-370)
+# Spec: docs/28-rai-actiongate-spec.md § Surface Adapter: router-audit
 # v0: observe-only — allow + warn + escalate. Block deferred (racy without OS hook).
 
 version: 1

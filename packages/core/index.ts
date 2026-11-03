@@ -39,13 +39,13 @@ export * from './private-layer.js';
 export { runDreamPhase, distillScanLog, type DreamPhaseResult, type DreamPhaseOptions } from './dream-phase.js';
 export { createIngestServer } from './ingest-server.js';
 
-// L1 hot-reload — signed, versioned pattern manifests (OL-300)
+// L1 hot-reload — signed, versioned pattern manifests
 export * from './l1-manifest.js';
 export * from './l1-registry.js';
 export * from './l1-store.js';
 export * from './l1-controller.js';
 
-// Learn-and-lock — policy generation pipeline (OL-461)
+// Learn-and-lock — policy generation pipeline
 // Phase 1: observe (hash-chained flight recorder)
 export * from './contract-recorder.js';
 // Phase 2: compile (behavioral-contract inference + signing)
@@ -57,12 +57,12 @@ export * from './contract-shadow.js';
 // Phase 4: activate (ratify stable rules → enforce, promote via signed CAS swap)
 export * from './contract-ratify.js';
 
-// ActionGate http adapter + agent trace replay (OL-648)
+// ActionGate http adapter + agent trace replay
 export * from './action-gate-http.js';
 export * from './action-gate-trace.js';
 
-// ActionGate live egress: forward proxy in front of the http adapter (OL-659)
+// ActionGate live egress: forward proxy in front of the http adapter
 export * from './egress-proxy.js';
 
-// Repo/URL pre-ingest scan -- L1 authenticity + L2 static hidden-channel scan (OL-453)
+// Repo/URL pre-ingest scan -- L1 authenticity + L2 static hidden-channel scan
 export * from './repo-scan.js';

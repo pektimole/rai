@@ -1,7 +1,7 @@
 /**
- * repo-scan.ts — RAI L1+L2 Repo/URL Pre-Ingest Scan (OL-453)
+ * repo-scan.ts — RAI L1+L2 Repo/URL Pre-Ingest Scan
  *
- * First concrete brick of the OL-453 ladder (WS-rai.md, [mob:2026-07-20]):
+ * First concrete brick of the ladder (WS-rai.md, [mob:2026-07-20]):
  * "build L1+L2 scanner over a given repo URL (metadata + static hidden-channel
  * scan → scoped verdict)."
  *
@@ -17,11 +17,11 @@
  *                       bare green (scope disclaimer always attached).
  *
  * Out of scope for this brick (per WS-rai.md ladder): L0 redirect-chain
- * resolution, L3 code/supply-chain (install/exec clearance), image-OCR
- * (OL-431), cross-source corroboration beyond GitHub's own API.
+ * resolution, L3 code/supply-chain (install/exec clearance), image-OCR,
+ * cross-source corroboration beyond GitHub's own API.
  *
  * Scope-lock: signal-layer, NOT a firewall. Selling this as protection is the
- * OL-391 overclaim trap — the badge always carries the disclaimer.
+ * Overclaim trap — the badge always carries the disclaimer.
  */
 
 // ---------------------------------------------------------------------------
@@ -138,7 +138,7 @@ async function ghGet(
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
-    'User-Agent': 'rai-repo-scan/1.0 (OL-453)',
+    'User-Agent': 'rai-repo-scan/1.0',
   };
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetchImpl(`${GITHUB_API}${path}`, { headers });
@@ -338,7 +338,7 @@ async function fetchRawFile(
     .split('/')
     .map(encodeURIComponent)
     .join('/')}`;
-  const res = await fetchImpl(url, { headers: { 'User-Agent': 'rai-repo-scan/1.0 (OL-453)' } });
+  const res = await fetchImpl(url, { headers: { 'User-Agent': 'rai-repo-scan/1.0' } });
   if (!('ok' in res) || !(res as any).ok) return null;
   const text = await (res as any).text();
   return typeof text === 'string' ? text.slice(0, maxBytes) : null;
@@ -531,10 +531,10 @@ export async function runL2(
 export const SCOPE_DISCLAIMER =
   'RAI repo scan is a signal layer, not a firewall. A clean verdict means known static hidden-channel ' +
   'patterns were not found and basic provenance checks did not fail — it is not a safety guarantee, and ' +
-  'it does not cover L3 (code/supply-chain, deps/postinstall/network calls) or image-OCR (OL-431).';
+  'it does not cover L3 (code/supply-chain, deps/postinstall/network calls) or image-OCR.';
 
 function buildBadge(l1Status: RepoL1Status, l2Status: L2Status, clearedFor: ClearedFor): string {
-  const residual = ['L3 code/supply-chain (not run)', 'image-OCR (out of scope, OL-431)'];
+  const residual = ['L3 code/supply-chain (not run)', 'image-OCR (out of scope)'];
   return `scanned {L1,L2}, cleared for {${clearedFor ?? 'nothing'}}, authenticity {${l1Status}}, residual {${residual.join('; ')}}`;
 }
 

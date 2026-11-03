@@ -7,14 +7,14 @@
  * corrections to scan-log at 0.5x weight on divergence.
  *
  * Expected layout on VPS:
- *   /home/tim/nanoclaw/dist/ray-scan.js        (NanoClaw's compiled P0)
- *   /home/tim/nanoclaw/dist/rai-scan-p1.js     (NanoClaw's compiled P1)
- *   /home/tim/nanoclaw/dist/scan-log.js        (NanoClaw's compiled scan-log)
- *   /home/tim/nanoclaw/redteam/vps-runner.mjs  (this file)
- *   /home/tim/nanoclaw/redteam/payloads.json   (bundled payloads)
+ *   ~/nanoclaw/dist/ray-scan.js        (NanoClaw's compiled P0)
+ *   ~/nanoclaw/dist/rai-scan-p1.js     (NanoClaw's compiled P1)
+ *   ~/nanoclaw/dist/scan-log.js        (NanoClaw's compiled scan-log)
+ *   ~/nanoclaw/redteam/vps-runner.mjs  (this file)
+ *   ~/nanoclaw/redteam/payloads.json   (bundled payloads)
  *
  * Usage (VPS):
- *   node /home/tim/nanoclaw/redteam/vps-runner.mjs [--p1] [--write-corrections]
+ *   node ~/nanoclaw/redteam/vps-runner.mjs [--p1] [--write-corrections]
  *
  * Exit code: 0 on suite pass, 1 on any failure, 2 on runner error.
  */

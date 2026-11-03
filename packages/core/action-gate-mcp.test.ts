@@ -29,7 +29,7 @@ function call(overrides: Partial<McpToolCall> = {}): McpToolCall {
   return {
     kind: 'mcp-tool-call',
     toolName: 'read_file',
-    arguments: { path: '/home/tim/notes.md' },
+    arguments: { path: '/home/user/notes.md' },
     serverName: 'test-server',
     ...overrides,
   };
@@ -100,7 +100,7 @@ describe('evaluateMcp', () => {
 
     it('allows clean arguments', () => {
       const v = evaluateMcp(
-        call({ arguments: { path: '/home/tim/readme.md' } }),
+        call({ arguments: { path: '/home/user/readme.md' } }),
         policy(),
       );
       expect(v.decision).toBe('allow');
@@ -214,7 +214,7 @@ describe('loadMcpPolicy', () => {
   });
 });
 
-// OL-301 P1-lite: which tools are network-enabled (gates escalation).
+// P1-lite: which tools are network-enabled (gates escalation).
 describe('isNetworkEnabledTool', () => {
   it('returns false when networkTools is absent', () => {
     expect(isNetworkEnabledTool('web_fetch', policy({ networkTools: undefined }))).toBe(false);

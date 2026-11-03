@@ -1,4 +1,4 @@
-# OL-659 egress wall: the agent sits on an internal-only network (no route out);
+# Egress wall: the agent sits on an internal-only network (no route out);
 # the proxy is its only gateway. A process that ignores HTTP(S)_PROXY still cannot get out.
 services:
   proxy:

@@ -13,7 +13,7 @@ import {
   type FsGitPolicy,
 } from './action-gate';
 
-const ROOT = '/home/tim/no5-context';
+const ROOT = '/home/user/context-repo';
 
 function policy(overrides: Partial<FsGitPolicy> = {}): FsGitPolicy {
   return { ...nanoclawDefaultPolicy(ROOT), ...overrides };
@@ -157,7 +157,7 @@ describe('ActionGate / fs-git', () => {
     });
   });
 
-  describe('policy file tamper-proofing (OL-396)', () => {
+  describe('policy file tamper-proofing', () => {
     it('nanoclawDefaultPolicy blockedBasenames includes policy files', () => {
       const p = nanoclawDefaultPolicy(ROOT);
       expect(p.blockedBasenames.has('nanoclaw.yaml')).toBe(true);
@@ -228,8 +228,8 @@ describe('ActionGate / fs-git', () => {
       // Absolute paths get resolved against root and may escape via ..
       // The literal-traversal check catches '..', so test a different escape:
       // a policy whose root has no trailing separator and a sibling-like prefix.
-      const p = policy({ root: '/home/tim/no5-context' });
-      // Construct a file that, after resolve, ends up at /home/tim/no5-context-evil/x.md
+      const p = policy({ root: '/home/user/context-repo' });
+      // Construct a file that, after resolve, ends up at /home/user/context-repo-evil/x.md
       // This shouldn't be reachable via segment splitting, but the check is the
       // belt-and-braces guarantee. We assert a traversal-free path stays inside.
       const v = evaluate(action({ file: 'proposals/x.md' }), p);

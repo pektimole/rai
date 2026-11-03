@@ -1,5 +1,5 @@
 /**
- * PM2 ecosystem for the RAI inbound MCP connector (OL-404).
+ * PM2 ecosystem for the RAI inbound MCP connector.
  *
  * Runs the built streamable-HTTP server as a managed process on the VPS,
  * adjacent to ingest-server (3847). Deploy via scripts/deploy/deploy-mcp-connector.sh.

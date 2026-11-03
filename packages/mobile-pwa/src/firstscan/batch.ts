@@ -1,5 +1,5 @@
 /**
- * First-scan batch input (OL-661).
+ * First-scan batch input.
  *
  * A batch is what the user brings in session 1: pasted text or shared
  * screenshots. `receivedAt` comes from item metadata only (a `Date:` line in

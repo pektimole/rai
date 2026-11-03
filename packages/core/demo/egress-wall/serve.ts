@@ -1,5 +1,5 @@
 /**
- * serve.ts — run the ActionGate egress proxy for the OL-659 container demo.
+ * serve.ts — run the ActionGate egress proxy for the container demo.
  * Policy: policies/agent-egress-http.yaml (default-deny, metadata blocked).
  * EGRESS_ALLOW (comma-separated) layers extra allowed hosts on top for the demo.
  */

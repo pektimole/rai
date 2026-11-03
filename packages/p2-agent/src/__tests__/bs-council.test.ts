@@ -268,10 +268,10 @@ describe('Turnbull-flip regression — Shai-Hulud claim', () => {
 });
 
 // ────────────────────────────────────────────────────────────
-// OL-395: UNVERIFIED ≠ clean hard rule
+// UNVERIFIED ≠ clean hard rule
 // ────────────────────────────────────────────────────────────
 
-describe('OL-395 — unverified_not_clean hard rule', () => {
+describe('unverified_not_clean hard rule', () => {
   it('UNVERIFIED verdict sets unverified_not_clean = true', () => {
     const result = mergeBSVerdicts({
       scanId: 'ol395-unverified',
