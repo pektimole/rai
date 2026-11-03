@@ -214,7 +214,7 @@ describe('notifiableFromDiff', () => {
 });
 
 describe('Tim audit 2026-04-23 fixtures', () => {
-  // Real findings from pektimole@gmail.com OAuth audit on 2026-04-23.
+  // Real findings from a personal Google account OAuth audit on 2026-04-23.
   // Used as a regression fixture to confirm the classifier flags the
   // exact apps Tim flagged in 19-rai-context.md.
   const audit: ObservedGrant[] = [

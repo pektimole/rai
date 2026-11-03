@@ -1,5 +1,5 @@
 /**
- * l1-store.ts — Disk persistence + signing + watcher for L1 manifests (OL-300)
+ * l1-store.ts — Disk persistence + signing + watcher for L1 manifests
  *
  * The store is the PRIVILEGED zone: it is the only component that holds the
  * signing key. It mints new signed manifests (append a rule, remove a rule,

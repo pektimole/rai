@@ -8,7 +8,7 @@ import { loadFsGitPolicy } from './policy-loader';
 const VALID_YAML = `
 version: 1
 adapter: fs-git
-root: /home/tim/no5-context
+root: /home/user/context-repo
 defaults:
   max_content_bytes: 50000
   max_depth: 2
@@ -28,7 +28,7 @@ describe('loadFsGitPolicy', () => {
     it('loads a policy for whatsapp_main', () => {
       const p = loadFsGitPolicy(VALID_YAML, 'whatsapp_main');
       expect(p).not.toBeNull();
-      expect(p!.root).toBe('/home/tim/no5-context');
+      expect(p!.root).toBe('/home/user/context-repo');
       expect(p!.allowedSourceGroups).toEqual(
         new Set(['whatsapp_main', 'telegram_main']),
       );

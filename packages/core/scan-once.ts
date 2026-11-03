@@ -4,7 +4,7 @@
  *
  * Bypasses the P0-then-P1 trigger gate: this script always calls scanP1
  * directly, regardless of what P0 would say. Use it to validate the system
- * prompt (e.g. OL-124 epistemic-manipulation patterns) on real-world content
+ * prompt (e.g. epistemic-manipulation patterns) on real-world content
  * without needing to wire the extension or NanoClaw.
  *
  * Usage:
@@ -12,7 +12,7 @@
  *   node packages/core/dist/scan-once.js < linkedin-post.txt
  *   pbpaste | node packages/core/dist/scan-once.js
  *
- * Requires ANTHROPIC_API_KEY in env. Source ~/.no5-env first.
+ * Requires ANTHROPIC_API_KEY in env. Source your env file first.
  */
 
 import { randomUUID } from 'crypto';
@@ -52,7 +52,7 @@ function buildInput(content: string): ScanInput {
 async function main(): Promise<void> {
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error('error: ANTHROPIC_API_KEY not set in environment.');
-    console.error('hint: source ~/.no5-env && node packages/core/dist/scan-once.js');
+    console.error('hint: export ANTHROPIC_API_KEY=... && node packages/core/dist/scan-once.js');
     process.exit(2);
   }
 

@@ -1,7 +1,7 @@
 # RAI ActionGate: Agent Action Firewall
 _Created: 2026-04-08_
 _Status: **Core engine + `fs-git`, `shell`, `mcp`, `native-messaging-host`, `router-audit` adapters, audit log: all Live.** `http` + `browser-dom` adapters not built. Doc synced 2026-08-04 (was stale since 2026-04-08 draft; code shipped Apr-Jul 2026, doc never caught up)._
-_Trigger: NanoClaw write-gate pattern (OL-022) reviewed in RAI session 2026-04-08_
+_Trigger: NanoClaw write-gate pattern reviewed in RAI session 2026-04-08_
 _Dependency: P0 live, P1 live, NanoClaw 5-layer Write Gate live (proven in production)_
 
 ---
@@ -12,7 +12,7 @@ RAI today is a **content-side** firewall. P0/P1/P2 all scan what an LLM reads (i
 
 The fastest-growing class of AI incidents in 2026 is not "the model said something wrong." It is "the agent did something it should never have been allowed to do" — `rm -rf` in the wrong directory, `git push --force` to main, file writes outside scope, shell calls, MCP tool invocations against the wrong endpoint.
 
-NanoClaw's Write Gate (OL-022, shipped 2026-03-21, in production 7+ months) is the proof point. A 5-layer deterministic policy stopped every attempted out-of-scope write from agents in `whatsapp_main` group, including ones that originated from successfully injected prompts that P0/P1 *did not catch in time*. Content scanning is necessary but not sufficient.
+NanoClaw's Write Gate (shipped 2026-03-21, in production 7+ months) is the proof point. A 5-layer deterministic policy stopped every attempted out-of-scope write from agents in `whatsapp_main` group, including ones that originated from successfully injected prompts that P0/P1 *did not catch in time*. Content scanning is necessary but not sufficient.
 
 **Core insight:** even a fully trusted LLM output must still pass an action policy. Trust is not authorization.
 
@@ -20,7 +20,7 @@ NanoClaw's Write Gate (OL-022, shipped 2026-03-21, in production 7+ months) is t
 
 ## Capability Separation (Foundational Primitive)
 
-_Source: pipelock-import (github.com/luckyPipewrench/pipelock, Apache 2.0). Architecture pattern, not a code copy. Cross-ref: OL-327._
+_Source: pipelock-import (github.com/luckyPipewrench/pipelock, Apache 2.0). Architecture pattern, not a code copy._
 
 ActionGate's framing above is **detection-side**: scan the action, apply policy, allow or deny. That is necessary but it shares content-scanning's weakness, it assumes the deciding layer is reachable and uncorrupted. A prompt-injected agent that can reach the policy engine's own controls can try to talk its way past them.
 
@@ -116,10 +116,10 @@ ActionGate is one core engine, many surface adapters. Each adapter binds the eng
 | `shell` | Claude Code, Cursor, Aider | exec, spawn | **Live**, `packages/core/action-gate-shell.ts`, `38f45d7` 2026-04-09 |
 | `mcp` | Any MCP server | tool invocation | **Live**, `packages/core/action-gate-mcp.ts` + `mcp-proxy.ts` (transparent proxy), `bf4da33` 2026-04-09 |
 | `http` | Browser extension agentic mode, API clients | fetch, mutation verbs | Spec (not built) |
-| `browser-dom` | RAI extension (OL-074) | form submit, click, navigate | Future (not built) |
+| `browser-dom` | RAI extension | form submit, click, navigate | Future (not built) |
 | `native-messaging-host` | OS (browser NativeMessagingHosts dirs) | manifest write/modify/remove (vendor covert capability expansion) | **Live**, Phase A+B (`72bfb28` 2026-05-02: runner + tests + notify hook + launchd; Linux/Windows pending) |
-| `router-audit` | Hybrid-inference router (AI PC OS / on-device classifier) | task routed local↔cloud, sensitivity classification, consent state at the routing boundary | **Live** (OL-370), `packages/core/action-gate-router-audit.ts`, `32d44de` 2026-06-21 |
-| `process-spawn` | OS process tree (browser/shell processes an agent runs in) | lineage check: human-spawned vs. agent-spawned session, Confused Deputy detection | Spec (not built), OL-265, see Pre-Flight Gate section below |
+| `router-audit` | Hybrid-inference router (AI PC OS / on-device classifier) | task routed local↔cloud, sensitivity classification, consent state at the routing boundary | **Live**, `packages/core/action-gate-router-audit.ts`, `32d44de` 2026-06-21 |
+| `process-spawn` | OS process tree (browser/shell processes an agent runs in) | lineage check: human-spawned vs. agent-spawned session, Confused Deputy detection | Spec (not built), see Pre-Flight Gate section below |
 
 ### Policy file format
 
@@ -184,7 +184,7 @@ P2 says "trust this." ActionGate says "even if trusted, this is in scope."
 
 ## Threat Signature: trusted-sender-attachment-injection
 
-_Added 2026-08-24, source: OL-261 (threat class, 2026-05-13) + OL-323 (live case, 2026-05-27, GoMedicus Series A DD). Full incident + Beat 2 evidence: `19-rai-context.md` Evidence Card, this date._
+_Added 2026-08-24, source: threat class first logged 2026-05-13; live case 2026-05-27 during a financing due-diligence process. Full incident + Beat 2 evidence: `19-rai-context.md` Evidence Card, this date._
 
 **Not an ActionGate adapter.** This threat operates at ingestion (L0/L1, before the LLM parses content); ActionGate operates at egress (L4, after the LLM decides to act). Documented here because it composes directly with ActionGate's policy chain: content that clears Pre-Parse still passes through ActionGate before any resulting action executes, and content that fails Pre-Parse never reaches the point where an ActionGate-gated action could even be proposed. Two independent gates, same firewall.
 
@@ -207,7 +207,7 @@ Attachment received (any surface: Claude Desktop, Claude Code, Gmail Plugin, DD 
   |     - imperative mood + address-to-AI framing + authority claim
   |     - not literal keyword match (defeats trigger-phrase evasion, see 19-rai-context.md Voice-Channel card 2026-07-10)
   |-- 2. Hidden-content scan: white-on-white text, zero-width chars, off-screen markdown comments
-  |     - reuses OL-394 novel-hiding detection family
+  |     - reuses novel-hiding detection family
   |-- 3. Provenance tag: {sender_id, channel, trust_tier} attached to every parsed chunk
   |     - trust_tier does NOT gate scan priority (the whole threat is that high-trust skips scrutiny)
   \-- 4. Verdict: clean-pass | flagged-report-only | block
@@ -220,11 +220,11 @@ Content enters LLM context (if clean-pass or flagged-report-only)
 [ActionGate, L4], any downstream action still gated independently, per existing policy chain
 ```
 
-**Surface priority** (highest attachment-threat-density first): Gmail Plugin (OL-260, email = primary AI-phishing surface) > DD dataroom upload paths (this incident's actual vector) > Claude Desktop drag-drop > Claude Code file read. Cross-ref `WS-rai-surface-architecture.md` for surface build sequencing.
+**Surface priority** (highest attachment-threat-density first): Gmail Plugin (email = primary AI-phishing surface) > DD dataroom upload paths (this incident's actual vector) > Claude Desktop drag-drop > Claude Code file read. Cross-ref `WS-rai-surface-architecture.md` for surface build sequencing.
 
-**Status:** Spec, not built. No adapter code exists yet; this section documents the signature + hook contract for the eventual build. Build trigger: next attachment-bearing surface (Gmail Plugin, OL-260) enters active build.
+**Status:** Spec, not built. No adapter code exists yet; this section documents the signature + hook contract for the eventual build. Build trigger: next attachment-bearing surface (Gmail Plugin) enters active build.
 
-**Cross-ref:** OL-261 (threat class), OL-323 (this live case), `19-rai-context.md` Evidence Card 2026-08-24, Voice-Channel Evidence Card (2026-07-10, `19-rai-context.md`, structural pre-parse precedent), OL-394 (hidden-content detection family), `WS-rai-surface-architecture.md`.
+**Cross-ref:** `19-rai-context.md` Evidence Card 2026-08-24, Voice-Channel Evidence Card (2026-07-10, `19-rai-context.md`, structural pre-parse precedent), the hidden-content detection family, `WS-rai-surface-architecture.md`.
 
 ---
 
@@ -265,7 +265,7 @@ Steps 1-3 + 6 shipped 2026-04-09 (one day, as estimated). Step 4 (NanoClaw rebin
 | Claude Code | `PreToolUse` hook in `~/.claude/settings.json` | Already supports synchronous deny via exit code. Direct fit. |
 | Cursor / Aider | Shell wrapper around exec | Less clean, requires PATH shim |
 | MCP servers | Proxy MCP server that gates downstream calls | Most work, highest leverage |
-| Browser extension | Background script intercept on agentic mode | Pairs with OL-074 |
+| Browser extension | Background script intercept on agentic mode | Pairs with the `browser-dom` adapter |
 | NanoClaw | Already wired (Write Gate) | Refactor only |
 
 ---
@@ -283,7 +283,7 @@ Steps 1-3 + 6 shipped 2026-04-09 (one day, as estimated). Step 4 (NanoClaw rebin
 | 7 | Audit log with scan_id correlation | 2h | Step 3 | ✅ Done, `c921f91` 2026-04-10 (`packages/core/audit-log.ts`) |
 | 8 | Documentation + landing page section | 2h | Steps 1-7 | 🔶 Spec doc synced 2026-08-04 (this pass). Landing page section not verified. |
 
-Plus adapters built beyond this plan's original scope: `native-messaging-host` (OL-140, `72bfb28` 2026-05-02), tamper-proofing (OL-396, `133ea25` 2026-06-21), `router-audit` (OL-370, `32d44de` 2026-06-21): see their own sections below, already accurate.
+Plus adapters built beyond this plan's original scope: `native-messaging-host` (`72bfb28` 2026-05-02), tamper-proofing (`133ea25` 2026-06-21), `router-audit` (`32d44de` 2026-06-21): see their own sections below, already accurate.
 
 Steps 1-3, 5-7 shipped 2026-04-09/10, close to the ~3-day estimate. Step 4 is the one open item, and it's a decision fork (does NanoClaw's separate repo still get rebound to this module, 4 months after ActionGate diverged into its own product surface), not a build task: flagged to Tim via `queue.md`.
 
@@ -310,7 +310,7 @@ RAI's brand is "ambient firewall for AI." ActionGate is the missing column.
 
 ---
 
-## Surface Adapter: `native-messaging-host` (OL-140 Option 2, spec 2026-04-22)
+## Surface Adapter: `native-messaging-host` (Option 2, spec 2026-04-22)
 
 _Covers Vendor Covert Capability Expansion (VCCE) -- the failure class where a trusted vendor writes an IPC manifest to the OS at install time, expanding the attack surface below the model output layer and invisible to prompt/output guards. Anchor case: Anthropic Claude Desktop Native Messaging manifests, documented in 19-rai-context.md._
 
@@ -332,7 +332,7 @@ It does NOT fit `fs-git` because the origin is a vendor binary, not an agent. It
 | **Linux (Tier 2, spec)** | `~/.config/{google-chrome,chromium,BraveSoftware/Brave-Browser,microsoft-edge,vivaldi,opera}/NativeMessagingHosts/` + `/etc/opt/chrome/native-messaging-hosts/` (system-wide), `/usr/lib/mozilla/native-messaging-hosts/` (Firefox, future) |
 | **Windows (Tier 2, spec)** | Registry: `HKEY_CURRENT_USER\Software\Google\Chrome\NativeMessagingHosts\*`, same under `Microsoft\Edge`, `BraveSoftware\Brave-Browser`, `Chromium`, `Vivaldi`. File pointed-to from registry value `(Default)`. HKLM mirror for system-wide. |
 
-v0 covers Tier 1 only (OL-140 Option 1). Option 2 adds Linux + Windows and the policy layer.
+v0 covers Tier 1 only (Option 1). Option 2 adds Linux + Windows and the policy layer.
 
 ### Action shape
 
@@ -416,7 +416,7 @@ Vendor classifications (`ai_vendor`, etc.) come from a bundled list, distributed
 | Verdict | Semantics at this layer | Realistic enforcement |
 |---|---|---|
 | `allow` | Silently accept, log to audit | Always achievable (observation only) |
-| `warn` | Accept, surface to user via notification channel | Via WhatsApp push (OL-021 pattern), Slack, Telegram, or local notification |
+| `warn` | Accept, surface to user via notification channel | Via WhatsApp push (pattern), Slack, Telegram, or local notification |
 | `sanitize-and-allow` | Quarantine the write by moving the manifest to `~/.rai/vcce-quarantine/` and replacing it with a stub that denies the bridge | Achievable on macOS + Linux (filesystem write); on Windows means registry key swap. Reversible. |
 | `block` | Prevent the bridge from functioning | Stronger than `sanitize-and-allow` only if combined with re-write loop guard. Without kernel-level policy (SIP profile, MDM), installers that run on every app launch will recreate the file. RAI must watch + re-quarantine. |
 
@@ -424,11 +424,11 @@ Vendor classifications (`ai_vendor`, etc.) come from a bundled list, distributed
 
 ### Migration path from v0 watcher
 
-v0 (`~/no5-scripts/rai-vcce-watch.sh`, launchd `com.rai.vcce-watch`) is already the event producer. The Option 2 work is consumer-side:
+v0 (`~/scripts/rai-vcce-watch.sh`, launchd `com.rai.vcce-watch`) is already the event producer. The Option 2 work is consumer-side:
 
 1. **Phase A -- JSONL bridge (1h):** ActionGate engine gains a `native-messaging-host` adapter that tails `~/.rai/vcce-watch.jsonl`, normalises each event into the `NativeMessagingHostAction` shape, and runs the policy engine. No change to v0 watcher.
-2. **Phase B -- Notification channel (2h):** `warn` verdicts flow to NanoClaw via HTTP POST to a new `/rai/actiongate/notify` endpoint, which pushes to WhatsApp/Telegram. Reuse OL-021 pattern.
-3. **Phase C -- Unified audit log (2h):** ActionGate emits to `~/.rai/audit/rai-actiongate.jsonl` using the canonical ActionGate verdict schema. vcce-watch.jsonl remains the source-of-truth file-event log. Audit log is read layer for dashboard (OL-099).
+2. **Phase B -- Notification channel (2h):** `warn` verdicts flow to NanoClaw via HTTP POST to a new `/rai/actiongate/notify` endpoint, which pushes to WhatsApp/Telegram. Reuse pattern.
+3. **Phase C -- Unified audit log (2h):** ActionGate emits to `~/.rai/audit/rai-actiongate.jsonl` using the canonical ActionGate verdict schema. vcce-watch.jsonl remains the source-of-truth file-event log. Audit log is read layer for dashboard.
 4. **Phase D -- Linux adapter (1d):** inotify-based replacement for fswatch + new path set. Same JSONL shape, same downstream wiring.
 5. **Phase E -- Windows adapter (1d):** registry watcher (`RegNotifyChangeKeyValue`) on the Chrome/Edge/Brave keys. Emits into same JSONL. Binary path resolution follows the registry `(Default)` value.
 6. **Phase F -- Quarantine mode (1d):** `sanitize-and-allow` implementation. Move manifest to `~/.rai/vcce-quarantine/<browser>/<vendor>.json`, write stub with empty `allowed_origins`. Reversible via `rai vcce release <vendor>`.
@@ -450,7 +450,7 @@ Surface Adapter `native-messaging-host` is the concrete payoff of Pitch Deck Bea
 
 ---
 
-## Surface Adapter: `router-audit` (OL-370, spec 2026-06-04)
+## Surface Adapter: `router-audit` (spec 2026-06-04)
 
 _Covers the hybrid-inference routing threat class: an on-device or vendor classifier decides, task by task and invisibly, what stays local and what is sent to the cloud. The user never sees the decision, never consented to the classifier, and gets no log. Anchor case: Computex 2026-06 convergence, NVIDIA (desk agent silicon), Apple (on-device sensitive inference), Microsoft (AI PC OS), Perplexity (mid-task local/cloud router). Source-of-truth narrative + deck copy: `19-rai-context.md` "hybrid-inference router audit" section (mob:2026-06-04)._
 
@@ -477,7 +477,7 @@ interface RouterAuditAction {
 }
 ```
 
-Schema reuses the OL-315 context-provenance tag near-verbatim; the two compose (a clean provenance tag can still ride a task that the router sends to cloud without consent).
+Schema reuses the context-provenance tag near-verbatim; the two compose (a clean provenance tag can still ride a task that the router sends to cloud without consent).
 
 ### Policy model (YAML)
 
@@ -527,13 +527,13 @@ This adapter is the build-side proof of Pitch Deck v2 Beat 1 ("They told you AI 
 
 ### Cross-ref
 
-OL-370 (this adapter), OL-315 (`context-provenance` gate, schema reuse + composition), OL-265 (`process-spawn` / Confused Deputy, paired pre-flight class), OL-240 (Distributed Sensing Architecture), `19-rai-context.md` "hybrid-inference router audit" section (source-of-truth narrative, enforcement rule, Beat 1+2 deck copy), Constitution Rule 4 (audit-without-profit differentiator).
+Related: `context-provenance` gate (schema reuse + composition), `process-spawn` / Confused Deputy (paired pre-flight class), Distributed Sensing Architecture, `19-rai-context.md` "hybrid-inference router audit" section (source-of-truth narrative, enforcement rule, Beat 1+2 deck copy), Constitution Rule 4 (audit-without-profit differentiator).
 
 ---
 
-## Pre-Flight Gate: `context-provenance` (OL-315, spec 2026-05-23)
+## Pre-Flight Gate: `context-provenance` (spec 2026-05-23)
 
-_Covers the Silent Context Injection threat class: identity, presence, or behavioral signals that enter an agent's working context below the user's awareness and below existing security tooling. Anchor case: KIT/KASTEL BFI paper (CCS '25, ScienceDaily 2026-05-22) -- WiFi beamforming feedback information (unencrypted, standard hardware) identifies people with ~100% accuracy, no device required. Paired with the process-spawn adapter (OL-265, Confused Deputy class) as the two ActionGate pre-flight extensions that protect the agent's pre-action state._
+_Covers the Silent Context Injection threat class: identity, presence, or behavioral signals that enter an agent's working context below the user's awareness and below existing security tooling. Anchor case: KIT/KASTEL BFI paper (CCS '25, ScienceDaily 2026-05-22) -- WiFi beamforming feedback information (unencrypted, standard hardware) identifies people with ~100% accuracy, no device required. Paired with the process-spawn adapter (Confused Deputy class) as the two ActionGate pre-flight extensions that protect the agent's pre-action state._
 
 ### Why it fits here, not elsewhere
 
@@ -545,7 +545,7 @@ The right layer is ActionGate, because:
 2. The enforcement target is the **agent's pre-action state**, not its output or its tool call.
 3. The policy model is allowlist + verification on `(source, method, consent)` tuples, identical in shape to `fs-git` allowlists on `(path, extension, group)`.
 
-Difference from the surface adapters above: this gate runs *before* a tool call exists. It does not gate verbs, it gates the inputs that decide which verbs the agent will reach for. Same pre-flight class as the OL-265 process-spawn adapter -- both protect what the agent *starts from*, not what it *does*.
+Difference from the surface adapters above: this gate runs *before* a tool call exists. It does not gate verbs, it gates the inputs that decide which verbs the agent will reach for. Same pre-flight class as the process-spawn adapter -- both protect what the agent *starts from*, not what it *does*.
 
 ### Provenance tag schema
 
@@ -582,7 +582,7 @@ Pre-flight verdict on each context item:
 
 **Canonical hard rule:** if `consent_timestamp: null` AND `method: passive_inference` → BLOCK or ESCALATE.
 
-`block` = drop the context item before the agent sees it. `escalate` = surface to user via notify channel (WhatsApp / Telegram / local notification, OL-021 pattern), require explicit grant before retry. The block / escalate choice is policy-driven: consumer tier defaults to `escalate` (user-in-the-loop), enterprise tier defaults to `block` (fail-closed, SIEM-logged).
+`block` = drop the context item before the agent sees it. `escalate` = surface to user via notify channel (WhatsApp / Telegram / local notification, pattern), require explicit grant before retry. The block / escalate choice is policy-driven: consumer tier defaults to `escalate` (user-in-the-loop), enterprise tier defaults to `block` (fail-closed, SIEM-logged).
 
 ### Policy file format (YAML)
 
@@ -622,14 +622,14 @@ deny_list:
 
 Expand by appending to YAML, never by code change. Same principle as `fs-git` and `native-messaging-host`.
 
-### Pairing with the process-spawn adapter (OL-265)
+### Pairing with the process-spawn adapter
 
 Both gates are ActionGate pre-flight extensions. They protect the **agent's pre-action state**, not its post-action side-effects. They compose:
 
 | Pre-flight gate | Watches | Source |
 |---|---|---|
-| `context-provenance` (OL-315, this section) | What context items entered the agent's working state, and whether they were consented to | Sensor / auth / ambient signal layer |
-| `process-spawn` (OL-265) | Whether the browser/shell process the agent runs in was spawned by a human session or by another agent (Confused Deputy class, VentureBeat 2026-05-13) | Process lineage / agent-spawn audit |
+| `context-provenance` (this section) | What context items entered the agent's working state, and whether they were consented to | Sensor / auth / ambient signal layer |
+| `process-spawn` | Whether the browser/shell process the agent runs in was spawned by a human session or by another agent (Confused Deputy class, VentureBeat 2026-05-13) | Process lineage / agent-spawn audit |
 
 A context item from a trusted source can still flow into an agent-spawned browser process; a process-spawn lineage can still be clean for an agent operating on un-consented context. Both gates must pass for the action chain to proceed. Failure on either is a pre-flight stop -- the surface adapters (`fs-git`, `shell`, `mcp`, `http`, `browser-dom`, `native-messaging-host`) never get the chance to evaluate.
 
@@ -650,13 +650,13 @@ This gate is the concrete payoff of Beat 1 ("The Unowned Gap") in Pitch Deck v2.
 
 ### Cross-ref
 
-OL-315 (Silent Context Injection threat class, this gate's origin), OL-265 (ActionGate process-spawn / Confused Deputy, paired pre-flight gate), OL-240 (Distributed Sensing Architecture), `19-rai-context.md` Beat 1 diagram spec + Context Provenance Tag Schema section (source-of-truth for the schema), KIT/KASTEL BFI paper (CCS '25, ScienceDaily 2026-05-22, anchor evidence).
+Related: Silent Context Injection threat class (this gate's origin), ActionGate `process-spawn` / Confused Deputy (paired pre-flight gate), Distributed Sensing Architecture, `19-rai-context.md` Beat 1 diagram spec + Context Provenance Tag Schema section (source-of-truth for the schema), KIT/KASTEL BFI paper (CCS '25, ScienceDaily 2026-05-22, anchor evidence).
 
 ---
 
-## Pre-Flight Gate: `process-spawn` (OL-265, spec 2026-08-25)
+## Pre-Flight Gate: `process-spawn` (spec 2026-08-25)
 
-_Covers the Confused Deputy threat class: an agent process inherits the trust and permissions of the human session it runs inside, with no distinction made between "the human is driving this browser/shell tab" and "another agent spawned this browser/shell tab to act through it." Anchor case: VentureBeat 2026-05-13, four independent research teams surfaced the pattern across three Claude surfaces within 48h; Anthropic's standing response ("the user consented to the agent's actions") does not distinguish a human-initiated session from an agent-initiated one, because today nothing upstream of the model records that distinction. Paired with the `context-provenance` adapter (OL-315) as the two ActionGate pre-flight extensions that protect the agent's pre-action state, see "Pairing with the process-spawn adapter" above. Full narrative + Beat 3 Evidence Card: `19-rai-context.md` (2026-05-13/14, mob:2026-05-14)._
+_Covers the Confused Deputy threat class: an agent process inherits the trust and permissions of the human session it runs inside, with no distinction made between "the human is driving this browser/shell tab" and "another agent spawned this browser/shell tab to act through it." Anchor case: VentureBeat 2026-05-13, four independent research teams surfaced the pattern across three Claude surfaces within 48h; Anthropic's standing response ("the user consented to the agent's actions") does not distinguish a human-initiated session from an agent-initiated one, because today nothing upstream of the model records that distinction. Paired with the `context-provenance` adapter as the two ActionGate pre-flight extensions that protect the agent's pre-action state, see "Pairing with the process-spawn adapter" above. Full narrative + Beat 3 Evidence Card: `19-rai-context.md` (2026-05-13/14, mob:2026-05-14)._
 
 ### Why it fits here, not elsewhere
 
@@ -743,7 +743,7 @@ deny_list:
 **Status: Spec, not built.** No spawn-hook implementation exists yet on any surface. Sequencing, once prioritized:
 
 1. **Phase A, shell lineage (Claude Code, CLI agents):** tag session at launch via parent-PID + TTY check, emit to the same `~/.rai/audit/rai-actiongate.jsonl` schema as the other adapters. Cheapest surface, no browser API dependency.
-2. **Phase B, browser lineage:** requires either a browser extension hook (OL-074, `browser-dom` adapter territory) or CDP-level spawn interception. Harder, depends on `browser-dom` adapter landing first.
+2. **Phase B, browser lineage:** requires either a browser extension hook (`browser-dom` adapter territory) or CDP-level spawn interception. Harder, depends on `browser-dom` adapter landing first.
 3. **Phase C, consent-token propagation:** define how a human-authorized parent agent passes a signed consent token to a child it spawns, so `agent_process_with_consent` is actually achievable rather than always falling to `escalate`.
 4. **Phase D, enforcement (`escalate`/`block`):** needs host cooperation or an OS hook, same open question as the other pre-flight/surface adapters that currently ship observe-only.
 
@@ -759,5 +759,5 @@ This gate is the concrete payoff of Pitch Deck Beat 3 ("Confused Deputy"): the a
 
 ### Cross-ref
 
-OL-265 (Confused Deputy threat class, this gate's origin), OL-315 (`context-provenance` gate, paired pre-flight class, see "Pairing with the process-spawn adapter" above), OL-191 (MCP STDIO trust boundary), OL-178 (CVE-2026-33068), OL-140 (`native-messaging-host` / VCCE, build-out pattern reused here), `19-rai-context.md` Beat 3 Evidence Card (source-of-truth narrative, VentureBeat 2026-05-13 sourcing).
+Related: Confused Deputy threat class (this gate's origin), `context-provenance` gate (paired pre-flight class, see "Pairing with the process-spawn adapter" above), MCP STDIO trust boundary, CVE-2026-33068, `native-messaging-host` / VCCE (build-out pattern reused here), `19-rai-context.md` Beat 3 Evidence Card (source-of-truth narrative, VentureBeat 2026-05-13 sourcing).
 

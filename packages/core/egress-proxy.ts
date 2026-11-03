@@ -15,7 +15,7 @@
  * checked, not the address it resolves to).
  *
  * The proxy is only a wall when the agent has no other route out (internal
- * Docker network); see docs/36-rai-qwen-trace-replay.md. Origin: OL-659.
+ * Docker network); see docs/36-rai-qwen-trace-replay.md.
  */
 
 import * as http from 'http';

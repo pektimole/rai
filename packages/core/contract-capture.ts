@@ -1,5 +1,5 @@
 /**
- * contract-capture.ts — Learn-and-lock phase 2a: live capture wiring (OL-461)
+ * contract-capture.ts — Learn-and-lock phase 2a: live capture wiring
  *
  * Bridges the live enforcement seams to the phase-1 flight recorder so a real
  * agent, running under the ActionGate, accumulates the traffic the compile

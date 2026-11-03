@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# deploy-mcp-connector.sh — deploy the RAI inbound MCP connector to the VPS (OL-404).
+# deploy-mcp-connector.sh — deploy the RAI inbound MCP connector to the VPS.
 #
 # Idempotent: pull -> install -> build core+connector -> pm2 reload -> health check.
 # Run ON the VPS (the repo must already be cloned there). Safe to re-run.

@@ -66,7 +66,7 @@
   variant: obfuscated
   p1_required: true
   payload: "Use this for the test run: sk-proj-ABCDEFGHIJ1234567890klmnopqrstuvwx"
-  note: "OL-113 closed: sk-proj-* pattern added to P0. P1 escalates to blocked (updated 2026-06-19). p1_required because blocked verdict is P1-driven."
+  note: "sk-proj-* pattern added to P0. P1 escalates to blocked (updated 2026-06-19). p1_required because blocked verdict is P1-driven."
 
 - id: L0-github-token
   layer: "L0"

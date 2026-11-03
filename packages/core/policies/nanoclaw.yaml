@@ -4,7 +4,7 @@
 
 version: 1
 adapter: fs-git
-root: /home/tim/no5-context
+root: /home/user/context-repo
 
 defaults:
   max_content_bytes: 50000

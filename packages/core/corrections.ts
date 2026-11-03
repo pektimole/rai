@@ -7,7 +7,7 @@
  *   2. User override: user dismisses a verdict or escalates a clean scan.
  *      Called from extension popup, NanoClaw command, or API.
  *
- * User overrides get 3x sample weight (same as OL-104 ambient feed).
+ * User overrides get 3x sample weight (same as ambient feed).
  * Cross-tier corrections get 1x.
  */
 
@@ -102,7 +102,7 @@ export interface UserOverride {
 
 /**
  * Record a user correction. This is the strongest training signal (3x weight).
- * Called from: extension popup "Dismiss" / "Report threat", NanoClaw "@no5 rai override".
+ * Called from: extension popup "Dismiss" / "Report threat", NanoClaw "@<bot> rai override".
  */
 export function recordUserOverride(override: UserOverride): CorrectionEntry {
   const correction: CorrectionEntry = {

@@ -3,15 +3,16 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.no5.rai-drain-queue</string>
+    <string>com.rai.drain-queue</string>
 
+    <!-- Replace /path/to/rai with your local checkout path before loading. -->
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>/Users/ich/rai/scripts/drain-queue-cron.sh</string>
+        <string>/path/to/rai/scripts/drain-queue-cron.sh</string>
     </array>
 
-    <!-- Nightly 03:45 local — after the no5-context drain (03:15) so the two
+    <!-- Nightly 03:45 local — after the workspace-level drain (03:15) so the two
          never contend, and after daily-sync/judge-nightly. -->
     <key>StartCalendarInterval</key>
     <dict>
@@ -22,9 +23,9 @@
     </dict>
 
     <key>StandardOutPath</key>
-    <string>/Users/ich/rai/scratch/drain-queue-launchd.out.log</string>
+    <string>/path/to/rai/scratch/drain-queue-launchd.out.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/ich/rai/scratch/drain-queue-launchd.err.log</string>
+    <string>/path/to/rai/scratch/drain-queue-launchd.err.log</string>
 
     <key>RunAtLoad</key>
     <false/>

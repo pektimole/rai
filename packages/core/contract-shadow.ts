@@ -1,5 +1,5 @@
 /**
- * contract-shadow.ts — Learn-and-lock phase 3: shadow (OL-461)
+ * contract-shadow.ts — Learn-and-lock phase 3: shadow
  *
  * Replays captured traffic through a candidate behavioral contract WITHOUT
  * enforcing, and emits the "would-have-blocked" deltas so an operator sees the

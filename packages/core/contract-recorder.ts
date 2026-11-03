@@ -1,5 +1,5 @@
 /**
- * contract-recorder.ts — Learn-and-lock phase 1: observe (OL-461)
+ * contract-recorder.ts — Learn-and-lock phase 1: observe
  *
  * The flight recorder is the OBSERVE phase of the four-phase learn-and-lock
  * pipeline (docs/33-rai-l1-hotreload-spec.md Part A). An agent runs in capture

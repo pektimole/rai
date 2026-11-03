@@ -1,5 +1,5 @@
 /**
- * l1-controller.ts — Wires the L1 hot-reload pieces into one runtime (OL-300)
+ * l1-controller.ts — Wires the L1 hot-reload pieces into one runtime
  *
  * Binds: L1Store (privileged, signs) + L1Registry (enforcement, verifies) +
  * the scanner's dynamic-pattern hook. A mutation (add/remove/rollback) mints a

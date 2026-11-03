@@ -455,7 +455,7 @@ export async function processTaskIpc(
       break;
 
     case 'context_update': {
-      // Secure write-back to No5 context layer (RAI Write Gate)
+      // Secure write-back to the agent context layer (RAI Write Gate)
       if (!isMain) {
         logger.warn(
           { sourceGroup },
@@ -478,7 +478,7 @@ export async function processTaskIpc(
 
       // BLOCKED_FILES is defined inline — not loaded from a mutable file — so this
       // check is active from the very first context_update message, before any
-      // agent-initiated setup or install script can run. (OL-396 bootstrap guarantee.)
+      // agent-initiated setup or install script can run. (bootstrap guarantee.)
       const BLOCKED_FILES = new Set([
         '00-WAKE.md',
         '00-README.md',
@@ -489,7 +489,7 @@ export async function processTaskIpc(
 
       // Allowed subdirectories for structured artifacts (proposals, drafts, spikes).
       // Files at these paths still must end .md, must not contain .., and the
-      // resolved path must remain inside no5-context. Basename is checked against
+      // resolved path must remain inside the context repo. Basename is checked against
       // BLOCKED_FILES regardless of subdirectory.
       const ALLOWED_SUBDIRS = new Set([
         'proposals',
@@ -548,8 +548,8 @@ export async function processTaskIpc(
       }
 
       const contextDir = path.join(
-        process.env.HOME || '/home/tim',
-        'no5-context',
+        process.env.HOME || '/home/user',
+        'context-repo',
       );
       const targetPath = path.resolve(contextDir, file);
 

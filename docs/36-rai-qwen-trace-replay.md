@@ -1,6 +1,6 @@
-# ActionGate replay of Cohere's Qwen3.8 trace (OL-648)
+# ActionGate replay of Cohere's Qwen3.8 trace
 
-_2026-10-28. Proof asset for the Cohere outreach (OL-647) and Pitch Deck v2 Beat 2/4._
+_2026-10-28. Proof asset for the Cohere outreach and Pitch Deck v2 Beat 2/4._
 
 ## Claim
 
@@ -38,7 +38,7 @@ Whole-trace normalise + replay, 2,000 runs, Node on the dev Mac: **p50 23 µs, p
 | userns / unshare / nsenter deny | shell | `policies/agent-userns-shell.yaml` |
 | Reasoning/action mismatch | signal (non-blocking flag) | `action-gate-trace.ts` |
 
-## Blocked live at the egress wall (OL-659)
+## Blocked live at the egress wall
 
 The replay above runs on recorded events. This section is the same policy enforced live.
 

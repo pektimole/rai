@@ -2,7 +2,7 @@
  * rai-scan-p1.test.ts -- Regression tests for the P1 system prompt.
  *
  * No live LLM call here -- just static structure checks against the SYSTEM_PROMPT
- * string. Locks in the OL-124 AI-provenance fingerprint classes and the
+ * string. Locks in the AI-provenance fingerprint classes and the
  * canonical threat layer enumeration so future edits cannot silently drop them.
  */
 
@@ -39,7 +39,7 @@ describe('P1 system prompt — canonical threat layer enumeration', () => {
   });
 });
 
-describe('P1 system prompt — OL-124 AI-provenance fingerprint classes', () => {
+describe('P1 system prompt — AI-provenance fingerprint classes', () => {
   it.each(NAMED_PATTERN_CLASSES)(
     'declares "%s" by exact name',
     (className) => {
@@ -120,7 +120,7 @@ describe('Gate 1 — BS Council verdict merge (docs/26-rai-p2-spec.md §Two-Gate
   });
 });
 
-// OL-301 P1-lite: escalation trigger rule (mcp-proxy.ts's network-tool
+// P1-lite: escalation trigger rule (mcp-proxy.ts's network-tool
 // gating calls this once it has already confirmed the tool is
 // network-enabled -- this suite covers the P0-verdict/confidence logic
 // alone, independent of that gate).

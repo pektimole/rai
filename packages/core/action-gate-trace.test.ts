@@ -1,5 +1,5 @@
 /**
- * action-gate-trace.test.ts — OL-648: replay of Cohere's Qwen3.8 traces
+ * action-gate-trace.test.ts — replay of Cohere's Qwen3.8 traces
  *
  * Real trace: packages/core/fixtures/qwen-trace/qwen-investigation.jsonl
  *   (CohereLabs/10-2026-qwen-investigation-traces; the Beijing PUT).

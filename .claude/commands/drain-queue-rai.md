@@ -4,7 +4,7 @@ description: Unattended RAI dev-loop drain. Do ONE pending job from rai/queue.md
 
 # /drain-queue-rai: Unattended RAI development loop
 
-Repo-scoped twin of the no5-context `/drain-queue`. Named `-rai` (not just `/drain-queue`) to avoid colliding with the global user-level `/drain-queue` command, which shadows same-named project commands in headless (`claude -p`) invocations. This one runs **inside the rai product repo** (`/Users/ich/rai`, github.com/pektimole/rai) and closes jobs by **committing working code**, not by writing OLs/decision-log. It resolves only when cwd = `~/rai` (project command). No5-context files are OUT OF SCOPE here: never touch them from this drain.
+Repo-scoped twin of a workspace-level `/drain-queue` command. Named `-rai` (not just `/drain-queue`) to avoid colliding with the global user-level `/drain-queue` command, which shadows same-named project commands in headless (`claude -p`) invocations. This one runs **inside the rai product repo** (`~/rai`, github.com/pektimole/rai) and closes jobs by **committing working code**, not by updating an external task tracker or decision log. It resolves only when cwd = `~/rai` (project command). Files outside this repo are OUT OF SCOPE here: never touch them from this drain.
 
 Designed to be fired as **`/loop /drain-queue-rai`** so each job runs in a fresh context (accurate disk state). Standalone `/drain-queue-rai` also works: one job, then report.
 
@@ -12,7 +12,7 @@ Firing this over the queue IS Tim's Phase B `go` for each job's commit. He is aw
 
 ## Per invocation
 
-1. **Fresh-state check.** `cd /Users/ich/rai`. Read `queue.md`. `git fetch origin main && git rebase --autostash origin/main` first (a parallel session may have shipped or added jobs). If rebase conflicts, stop and Block the run with the conflict.
+1. **Fresh-state check.** `cd ~/rai`. Read `queue.md`. `git fetch origin main && git rebase --autostash origin/main` first (a parallel session may have shipped or added jobs). If rebase conflicts, stop and Block the run with the conflict.
 
 2. **Sweep Suggested → Pending.** For each item under `## Suggested`, apply the identical gate from step 6, PLUS: anything tagged `[DESIGN-PROPOSAL]` or a genuine architecture/scope fork never auto-promotes (P2 consensus design, threat-layer schema changes, brand/deck copy, API-surface breaking changes all count). Everything else that passes: move the line, unchanged, to the bottom of Pending. Non-passing/design items stay in Suggested, untouched, no Blocked entry. If anything moved, commit `queue.md` alone (`chore(queue): promote suggested`) before continuing.
 
@@ -32,7 +32,7 @@ Firing this over the queue IS Tim's Phase B `go` for each job's commit. He is aw
  - hit a genuine decision fork with no safe default.
  Never guess on these.
 
-7. **Grep before building.** `ls`/grep for the target artifact first: a parallel session may already have shipped it (this exact miss cost two no5 sessions). If already done, mark it done with a note, skip.
+7. **Grep before building.** `ls`/grep for the target artifact first: a parallel session may already have shipped it (this exact miss has cost sessions before). If already done, mark it done with a note, skip.
 
 8. **Do the job fully.** Real code. Match repo conventions: TypeScript, workspace layout, existing file idiom. Follow `CLAUDE.md` (P0=local regex zero-cost, P1 Haiku→Sonnet<0.65, brand `(R)AI`/RAI/"Ray"). If the job adds behavior, add or extend a vitest test for it in the same package.
 
@@ -47,7 +47,7 @@ Firing this over the queue IS Tim's Phase B `go` for each job's commit. He is aw
 ## Guardrails
 - One job per invocation, one code-commit per job (+ its queue.md commit). Never batch, never parallel.
 - **A red build or failing test is an automatic hold, not a judgment call.** Restore-to-green + Block.
-- Scope is the rai repo ONLY. RAI OLs/decision-log live in no5-context and are closed there, not here. If a job's real closure needs a no5-context OL write, do the code half, commit it, and Block the OL half with "needs no5-context /close: OL-XXX".
+- Scope is the rai repo ONLY. Task-tracker and decision-log entries live outside this repo and are closed there, not here. If a job's real closure needs a tracker update, do the code half, commit it, and Block the tracker half with "needs tracker close: <item>".
 - If a job needs a higher model tier (deep architecture, P2 consensus reasoning, threat-model judgment), do the safely-doable slice, Block the rest with "needs Opus/Fable: <why>".
 - Report honestly: failed/skipped/blocked jobs say so with the reason. No silent drops.
 

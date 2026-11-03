@@ -1,7 +1,7 @@
 /**
  * l1-store.test.ts — persistence, watcher, and the end-to-end hot-reload path
  * proving a newly injected rule reaches the live scanner without a restart,
- * and a rollback removes it (OL-300 acceptance criteria).
+ * and a rollback removes it (acceptance criteria).
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';

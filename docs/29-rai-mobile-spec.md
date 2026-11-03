@@ -3,7 +3,6 @@ _Created: 2026-05-04_
 _Status: Spec draft_
 _Trigger: Desktop conceptual session 2026-05-04 confirmed four architecture calls (PWA Android first, OCR v0, share-sheet only, accept iOS delete prompt)_
 _Dependency: P0 live, P1 live, labelled-corpus schema locked across Telegram bot + Chrome extension_
-_Active build OL: OL-186_
 _Architecture reference: `spikes/2026-05-04-rai-input-surface-bridges.md`_
 
 ---
@@ -149,7 +148,7 @@ Listed for context only; do not build until v0 ships and data justifies.
 - **iOS Share Extension (native)**: required because iOS Safari has no share-target. Tim's daily driver, so this comes second after Android PWA validation.
 - **Vision-model hybrid**: Claude with image input as escalation path when OCR-driven P1 returns flagged with low confidence, mirrors the P0->P1 escalation pattern. Catches deepfake artifacts and manufactured-screenshot tells that pure OCR misses.
 - **In-app capture button**: only if usage data shows users abandon mid-flow at the screenshot step.
-- **VPS corpus sync**: opt-in upload to the same endpoint Telegram lab bot will use (OL-187). Manual JSONL drop is acceptable until then.
+- **VPS corpus sync**: opt-in upload to the same endpoint Telegram lab bot will use. Manual JSONL drop is acceptable until then.
 
 ---
 
@@ -188,6 +187,6 @@ These are L0 reflective-abuse class issues, not blockers.
 | Mobile web (Android, in-browser) | Share-sheet -> PWA -> screenshot bridge | This spec |
 | Mobile native apps (Android) | Share-sheet -> PWA -> screenshot bridge | This spec |
 | Mobile (iOS, any) | Native Share Extension | v1 |
-| Telegram | Forward text to public bot (P0-only); URL-only forwards out of scope | Shipped (public bot live, lab bot deferred per OL-187) |
+| Telegram | Forward text to public bot (P0-only); URL-only forwards out of scope | Shipped (public bot live, lab bot deferred) |
 
 Three complementary bridges. None depends on URL-fetching. Schema is identical across all of them.

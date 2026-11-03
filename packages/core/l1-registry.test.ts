@@ -1,6 +1,6 @@
 /**
  * l1-registry.test.ts — atomic promotion gates: signature, monotonicity,
- * chain compare-and-swap, tombstones (OL-300)
+ * chain compare-and-swap, tombstones
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';

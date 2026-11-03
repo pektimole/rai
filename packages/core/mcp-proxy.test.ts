@@ -152,10 +152,10 @@ describe('MCP Proxy integration', () => {
     expect(result.isError).toBeUndefined();
   });
 
-  // OL-301: result-path P0 inspection. These tools pass ActionGate's call-leg
+  // Result-path P0 inspection. These tools pass ActionGate's call-leg
   // check (clean tool name, clean/empty args) but return a result the
   // downstream server itself poisoned -- the previously-unscanned return path.
-  describe('OL-301 result-path P0 inspection', () => {
+  describe('result-path P0 inspection', () => {
     it('blocks a result carrying an L-2 critical pattern', async () => {
       const result = await client.callTool({
         name: 'poisoned_result',
@@ -200,7 +200,7 @@ describe('MCP Proxy integration', () => {
   });
 });
 
-// OL-301 P1-lite: buildResultReply() is a pure function (no I/O), so these
+// P1-lite: buildResultReply() is a pure function (no I/O), so these
 // are plain unit tests -- no proxy/subprocess needed. Covers all four
 // branches: P1 blocked, P1 flagged, P1 clean (clears a P0 flag), and the
 // no-P1 (null) fallback to unchanged pre-P1-lite P0 behavior.
@@ -285,7 +285,7 @@ describe('buildResultReply', () => {
   });
 });
 
-// OL-301 P1-lite: end-to-end gating. network_tools: ["*"] in the policy
+// P1-lite: end-to-end gating. network_tools: ["*"] in the policy
 // makes every P0-flagged result on this server a candidate for escalation.
 // ANTHROPIC_API_KEY is deliberately forced empty (StdioClientTransport's env
 // option replaces the child's inherited env, not merges with the real shell
@@ -294,7 +294,7 @@ describe('buildResultReply', () => {
 // happens to be present in the dev shell. Output must be byte-identical to
 // the P0-only flagged_result case above: a failed escalation must never
 // change, block, or silently clear a real P0 flag.
-describe('OL-301 P1-lite escalation (network-tool gating, deterministic fail-open)', () => {
+describe('P1-lite escalation (network-tool gating, deterministic fail-open)', () => {
   let client: Client;
   let transport: StdioClientTransport;
 

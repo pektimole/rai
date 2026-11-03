@@ -1,24 +1,26 @@
 #!/bin/bash
 # drain-queue-cron.sh — unattended nightly RAI dev-loop runner.
 # Fires headless `claude -p "/drain-queue-rai"` from ~/rai repeatedly until Pending
-# is empty or a safety cap hits. Mirrors no5-context/scripts/drain-queue-cron.sh,
-# but scoped to the rai product repo (commits code, not OLs).
+# is empty or a safety cap hits. Mirrors a workspace-level drain-queue-cron.sh,
+# but scoped to the rai product repo (commits code, not tracker entries).
 # Command is named /drain-queue-rai (not /drain-queue): the global user-level
 # /drain-queue command shadows same-named project commands in headless `claude -p`
 # invocations regardless of cwd — confirmed 2026-07-20, a same-named project
-# command silently resolved to the no5-context one for 10 iterations, no-op.
-# launchd: com.no5.rai-drain-queue.plist, nightly 03:45 (after no5 drain 03:15).
+# command silently resolved to the global one for 10 iterations, no-op.
+# launchd: com.rai.drain-queue.plist, nightly 03:45 (after the workspace drain at 03:15).
+# Overrides: RAI_DIR (repo path), RAI_NODE_BIN (node bin dir), RAI_ENV_FILE (env file to source).
 
-export PATH="/Users/ich/.nvm/versions/node/v22.19.0/bin:$PATH"
+export PATH="${RAI_NODE_BIN:-$HOME/.nvm/versions/node/v22.19.0/bin}:$PATH"
 source ~/.bash_profile 2>/dev/null
-[ -f /Users/ich/.no5-env ] && source /Users/ich/.no5-env
+RAI_ENV_FILE="${RAI_ENV_FILE:-$HOME/.rai-env}"
+[ -f "$RAI_ENV_FILE" ] && source "$RAI_ENV_FILE"
 
-# .bash_profile / .no5-env set ANTHROPIC_API_KEY, which makes claude prefer the
+# .bash_profile / the env file may set ANTHROPIC_API_KEY, which makes claude prefer the
 # API key over OAuth and DISABLES claude.ai connectors. Unset so headless claude
-# uses the OAuth session (memory: headless-claude-anthropic-key-disables-connectors).
+# uses the OAuth session.
 unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
 
-RAI="/Users/ich/rai"
+RAI="${RAI_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 LOG="$RAI/scratch/drain-queue-cron.log"
 LOCK="$RAI/scratch/.drain-queue-cron.lock"
 MAX_ITER=10   # safety cap: at most 10 jobs drained per nightly run

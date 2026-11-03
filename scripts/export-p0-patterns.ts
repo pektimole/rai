@@ -1,4 +1,4 @@
-// OL-660: dump the static P0 pattern floor as JSON for the Open WebUI Python port.
+// Dump the static P0 pattern floor as JSON for the Open WebUI Python port.
 // Usage: npx tsx scripts/export-p0-patterns.ts > integrations/open-webui/p0-patterns.json
 import { getStaticPatterns } from '../packages/core/rai-scan-p0.js';
 const out = getStaticPatterns().map((p) => ({

@@ -1,7 +1,7 @@
 /**
  * action-gate-router-audit.test.ts — RAI ActionGate router-audit adapter tests
  *
- * Spec: docs/28-rai-actiongate-spec.md § Surface Adapter: router-audit (OL-370)
+ * Spec: docs/28-rai-actiongate-spec.md § Surface Adapter: router-audit
  *
  * Coverage map (one test per spec enforcement rule):
  *   1. PII → cloud, no consent                    → escalate (rule: escalate-unconsented-pii-to-cloud)

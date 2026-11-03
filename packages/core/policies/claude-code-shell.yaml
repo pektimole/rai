@@ -22,8 +22,8 @@ blocked_patterns:
   - "> /dev/"
   # External code execution: screen the source first (clone to scratch, read, rai_scan), then run it by hand.
   - "\\|\\s*(sudo\\s+)?(ba|z|da)?sh(\\s|$)"
-  - "claude\\s+plugin\\s+install\\s+(?!no5-[a-z]+@local-mods)"
-  - "claude\\s+plugin\\s+marketplace\\s+add\\s+(?!/Users/ich/\\.claude/local-mods)"
+  - "claude\\s+plugin\\s+install\\s+(?![a-z0-9-]+@local-mods)"
+  - "claude\\s+plugin\\s+marketplace\\s+add\\s+(?!(?:/Users|/home)/[^/\\s]+/\\.claude/local-mods)"
   - "--plugin-dir"
   - "npx\\s+(-y|--yes)\\b"
 

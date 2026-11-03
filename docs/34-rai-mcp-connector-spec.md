@@ -1,5 +1,5 @@
 # RAI MCP Connector, Spec
-_OL-404 | Created: 2026-06-23 | Status: Draft_
+_Created: 2026-06-23 | Status: Draft_
 
 ---
 
@@ -26,7 +26,7 @@ There is no funnel. The product is the distribution.
 
 RAI already has `mcp-proxy.ts`: that is **outbound**: RAI wrapping a *downstream* MCP server to gate its tool calls. That is the ActionGate/L4 product for paying teams.
 
-OL-404 is **inbound**: RAI *becoming* an MCP server that exposes its scan tools to Claude Code users. Different direction, different audience, same codebase.
+is **inbound**: RAI *becoming* an MCP server that exposes its scan tools to Claude Code users. Different direction, different audience, same codebase.
 
 ```
 [Claude Code user]
@@ -247,7 +247,7 @@ Or via Claude Code settings: `Add MCP server → URL → https://rai.ray-ai.com/
 | Anthropic MCP Marketplace | Submit listing, approval ~1 week | Week 2 |
 | Claude.ai connector marketplace | Same listing, different surface | Week 2–3 |
 | README + Claude Code docs | Blog post + example config | Week 1 |
-| GitHub repo (public) | Open connector code, not core scans | OL-406 dependency |
+| GitHub repo (public) | Open connector code, not core scans | dependency |
 
 **Zero-CAC path:** Anthropic surfaces the MCP marketplace inside Claude Code settings. A security-aware developer adds RAI, uses it once on a real injection attempt, hits the dashboard → upgrade path.
 
@@ -302,6 +302,6 @@ Value: shippable GTM artifact. Analytics dashboard starts populating from Day 1 
 | `packages/core` ingest-server | Live (port 3847) |
 | MCP streamable HTTP transport | npm `@modelcontextprotocol/sdk` server |
 | Hetzner VPS (NanoClaw) | Live |
-| Public domain for MCP URL | OL-273 (entity-ray.md) dependency |
+| Public domain for MCP URL | (entity-ray.md) dependency |
 
 No new dependencies beyond MCP SDK. All scan logic already ships in `packages/core`.

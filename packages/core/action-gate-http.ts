@@ -5,7 +5,7 @@
  * hard block on cloud metadata endpoints. Same principles as the shell
  * adapter: fail-closed, first-deny-wins, pure function.
  *
- * Origin: OL-648, Cohere / Qwen3.8 egress attempt (19-rai-context.md).
+ * Origin: Cohere / Qwen3.8 egress attempt (19-rai-context.md).
  */
 
 export type HttpDecision = 'allow' | 'deny';

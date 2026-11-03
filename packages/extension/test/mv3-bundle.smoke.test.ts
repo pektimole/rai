@@ -2,7 +2,7 @@
  * MV3 bundle smoke test -- loads the actual `npm run build` output (dist/),
  * not the src/ modules, so a build/bundling regression that quietly drops the
  * P0 scanner from the service worker chunk cannot slip past unit tests that
- * only import src/shared/rai-scan-p0.ts directly. (OL-241)
+ * only import src/shared/rai-scan-p0.ts directly.
  *
  * Requires `npm run build` to have produced dist/ first.
  */

@@ -1,6 +1,6 @@
 /**
  * ray-scan.ts — Ray P0: AI Interaction Firewall
- * No5 / NanoClaw pre-processing hook
+ * NanoClaw pre-processing hook
  *
  * Layer schema (canonical — matches 16-ray-context.md):
  *   L-2  Infrastructure / supply chain
@@ -42,7 +42,7 @@ export type Channel =
   | 'browser'
   | 'clipboard'
   | 'artifact'
-  // OL-301: MCP tool call/result traffic through the ActionGate mcp-proxy.
+  // MCP tool call/result traffic through the ActionGate mcp-proxy.
   | 'mcp';
 export type PipelineStage = 'ingest' | 'process' | 'output' | 'display';
 export type PayloadType = 'text' | 'image' | 'file' | 'mixed';
@@ -106,7 +106,7 @@ interface Pattern {
 }
 
 /** Public alias so the L1 manifest/registry layer can produce patterns in the
- *  exact shape the scanner consumes (OL-300 hot-reload). */
+ *  exact shape the scanner consumes (hot-reload). */
 export type P0Pattern = Pattern;
 
 // Hot-reloaded patterns layered ON TOP OF the static floor below. Default
@@ -125,7 +125,7 @@ export function getDynamicPatterns(): P0Pattern[] {
   return dynamicPatterns;
 }
 
-/** Read-only view of the static P0 floor (OL-660: exported so the Open WebUI
+/** Read-only view of the static P0 floor (exported so the Open WebUI
  *  Python port can be generated from the same library, never hand-copied). */
 export function getStaticPatterns(): readonly P0Pattern[] {
   return PATTERNS;
@@ -145,7 +145,7 @@ const PATTERNS: Pattern[] = [
     label: 'Context file reference',
     layer: 'L-2',
     severity: 'critical',
-    signal: 'No5 context file name detected in payload',
+    signal: 'Agent context file name detected in payload',
   },
   {
     regex:
@@ -161,7 +161,7 @@ const PATTERNS: Pattern[] = [
     label: 'Context file manipulation',
     layer: 'L-2',
     severity: 'critical',
-    signal: 'Instruction to modify No5 context files',
+    signal: 'Instruction to modify agent context files',
   },
   {
     regex:

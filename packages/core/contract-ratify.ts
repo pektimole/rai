@@ -1,5 +1,5 @@
 /**
- * contract-ratify.ts — Learn-and-lock phase 4: ratify + promote (OL-461)
+ * contract-ratify.ts — Learn-and-lock phase 4: ratify + promote
  *
  * Phase 4 is the two-step that makes a candidate contract go live
  * (docs/33-rai-l1-hotreload-spec.md Part A, phase 4: activate):

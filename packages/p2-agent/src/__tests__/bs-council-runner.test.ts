@@ -171,7 +171,7 @@ describe('runBSCouncil — provider dispatch', () => {
   });
 });
 
-describe('web search routing (OL-281)', () => {
+describe('web search routing', () => {
   beforeEach(() => {
     callMock.mockReset();
     callMock.mockImplementation(async ({ systemPrompt }: ProviderCallInput) => {

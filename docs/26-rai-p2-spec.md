@@ -1,8 +1,8 @@
 # RAI P2: Multi-Agent Consensus Architecture
 _Created: 2026-04-05_
-_Updated: 2026-05-19 (BS Council layer added — OL-281)_
+_Updated: 2026-05-19 (BS Council layer added)_
 _Status: Spec draft. Threat-axis code-complete (22 tests). Verifiability-axis (BS Council) spec-only, implementation pending._
-_Trigger: WhatsApp conversation 2026-04-05, Tim + Nano re: April Fools blind spot. 2026-05-19 update: Shai-Hulud/Turnbull misclassification — OL-281._
+_Trigger: WhatsApp conversation 2026-04-05, Tim + Nano re: April Fools blind spot. 2026-05-19 update: Shai-Hulud/Turnbull misclassification._
 _Dependency: P1 live (shipped 2026-03-29), P0 live_
 
 ---
@@ -78,7 +78,7 @@ P2 does NOT run on every message. Trigger conditions:
 
 ---
 
-## BS Council Layer (added 2026-05-19, OL-281)
+## BS Council Layer (added 2026-05-19)
 
 ### Why this section exists
 
@@ -200,7 +200,7 @@ export interface BSCouncilResult {
   explanation: string;       // one-line; surfaces in extension popup default state
   dual_tag_false_alarm?: boolean;
   /**
-   * OL-395 hard rule: set to `true` when verdict is UNVERIFIED.
+   * Hard rule: set to `true` when verdict is UNVERIFIED.
    * Absence of web corroboration is NOT a safe signal. Downstream callers
    * (ActionGate Gate 2, threat-axis merge, extension popup) MUST treat
    * UNVERIFIED as "unknown risk": never as "no issue found".
@@ -209,7 +209,7 @@ export interface BSCouncilResult {
 }
 ```
 
-### Hard rule: UNVERIFIED ≠ clean (OL-395)
+### Hard rule: UNVERIFIED ≠ clean
 
 `UNVERIFIED` means the BS Council found no usable web sources to evaluate the claim. It does **not** mean the claim is safe or true. Causes:
 - Brave Search returned no results (rate limit, offline, niche topic)
@@ -285,7 +285,7 @@ THEN   verdict consistency: same verdict OR documented escalation
 | Confidence language | Free-form | "high-confidence" requires citation stack; otherwise auto-downgrade |
 | Action gating | ActionGate consults policy only | ActionGate consults policy + BS Council Gate 2 freshness check |
 
-### Implementation order (OL-281 wire-up)
+### Implementation order (wire-up)
 
 | Step | What | Effort |
 |---|---|---|
@@ -391,7 +391,7 @@ Total: ~1 day focused work. Not complex, just needs the right trigger conditions
 
 ## Open Questions
 
-- ~~Should agent chains use WebSearch for live verification, or only analyze provided content?~~ **Resolved 2026-05-19 (OL-281): Agents A+B mandatory web_search for verifiability axis; threat axis stays content-only.**
+- ~~Should agent chains use WebSearch for live verification, or only analyze provided content?~~ **Resolved 2026-05-19: Agents A+B mandatory web_search for verifiability axis; threat axis stays content-only.**
 - Consensus threshold: majority vote or weighted confidence merge?
 - Should P2 results feed back into P1 prompt (learning loop) or stay independent?
 

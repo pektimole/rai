@@ -1,5 +1,5 @@
 # RAI ActionGate policy: agent egress (http adapter)
-# OL-648: default-deny outbound + cloud metadata block. Expand by appending, never by code change.
+# Default-deny outbound + cloud metadata block. Expand by appending, never by code change.
 
 version: 1
 adapter: http

@@ -1,5 +1,5 @@
 /**
- * First-scan report (OL-661).
+ * First-scan report.
  *
  * Built once from a batch and deep-frozen: the counts shown to the user are the
  * counts that were computed, and nothing recomputes or inflates them later.

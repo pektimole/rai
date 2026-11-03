@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /**
- * scan-batch.ts -- OL-157 batch scanner around scanP1.
+ * scan-batch.ts -- batch scanner around scanP1.
  *
  * Reads a jsonl manifest of posts ({id, path, ground_truth?}), runs scanP1 N
  * times per post with bounded concurrency, retries on transient API errors,
  * resumable via a state file, and writes one jsonl record per post to the
  * output file (or stdout).
  *
- * Designed for OL-158 study scale (50-200 posts). Determinism telemetry baked
+ * Designed study scale (50-200 posts). Determinism telemetry baked
  * in via N=2 default — agreement flag in output surfaces post-level variance
  * without requiring a separate determinism pass.
  *
  * Usage (from repo root):
- *   source ~/.no5-env
+ *   source ~/.rai-env   # any env file that exports ANTHROPIC_API_KEY
  *   cd packages/core && npm run build
  *   node packages/core/dist/scan-batch.js \
  *     --input scratch/validation-posts/manifest.jsonl \
@@ -97,7 +97,7 @@ function parseArgs(argv: string[]): CliOpts {
 }
 
 function printHelp(): void {
-  console.error(`scan-batch -- OL-157 batch scanner
+  console.error(`scan-batch -- batch scanner
 
 Required:
   --input  <path>   jsonl manifest, one {id, path, ground_truth?} per line
@@ -286,7 +286,7 @@ async function appendJsonl(file: string, record: unknown): Promise<void> {
 
 async function main(): Promise<void> {
   if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('error: ANTHROPIC_API_KEY not set. run: source ~/.no5-env');
+    console.error('error: ANTHROPIC_API_KEY not set. export it or source your env file');
     process.exit(2);
   }
   const opts = parseArgs(process.argv.slice(2));

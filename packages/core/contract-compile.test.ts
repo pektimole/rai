@@ -1,5 +1,5 @@
 /**
- * contract-compile.test.ts — compile phase (OL-461)
+ * contract-compile.test.ts — compile phase
  *
  * Proves the three load-bearing invariants of the behavioral-contract compiler:
  *   1. Conditional-on-opportunity confidence — a rule's denominator is events

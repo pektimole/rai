@@ -1,5 +1,5 @@
 /**
- * l1-manifest.ts — Signed, versioned L1 pattern manifest (OL-300)
+ * l1-manifest.ts — Signed, versioned L1 pattern manifest
  *
  * The L1 regex layer historically baked its patterns into source (see the
  * PATTERNS const in rai-scan-p0.ts). A new threat pattern meant a release

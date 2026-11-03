@@ -7,7 +7,7 @@
  * No DOM, no Chrome APIs -- safe to unit-test in node.
  *
  * Spec: 28-rai-actiongate-spec.md surface adapter `native-messaging-host`,
- * Phase C entry in OL-140.
+ * Phase C entry.
  */
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /**
- * contract-ratify.test.ts — ratify + promote (OL-461, phase 4)
+ * contract-ratify.test.ts — ratify + promote (phase 4)
  *
  * Proves the two-step activation: ratify flips only eligible (stable) rules to
  * `enforce` and re-signs (a below-floor rule can never be ratified), and promote

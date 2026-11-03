@@ -8,7 +8,7 @@
  *
  * Single-user v0: locked to RAI_TELEGRAM_CHAT_ID. Reject everything else.
  *
- * Required env (source ~/.no5-env):
+ * Required env (e.g. source ~/.rai-env):
  *   RAI_TELEGRAM_BOT_TOKEN
  *   RAI_TELEGRAM_CHAT_ID
  *   ANTHROPIC_API_KEY

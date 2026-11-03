@@ -1,5 +1,5 @@
 /**
- * l1-registry.ts — In-memory active L1 manifest with atomic hot-swap (OL-300)
+ * l1-registry.ts — In-memory active L1 manifest with atomic hot-swap
  *
  * The registry is the ENFORCEMENT zone: it holds only the public key and is
  * verify-only. It never signs. This mirrors the capability-separation

@@ -2,7 +2,7 @@
 
 > **Auto-generated. Do not edit.**
 > Source of truth: `architecture.json` · Regenerate: `npm run regen-arch`
-> Generated: 2026-10-28 08:18 UTC · Commit: `8f5ad91` (`main`) · ⚠ working tree dirty
+> Generated: 2026-11-03 15:15 UTC · Commit: `303aff5` (`chore/public-hygiene-2026-11-03`) · ⚠ working tree dirty
 > Schema version: 1.0 · Last manual edit to source: 2026-05-19
 
 ---
@@ -57,14 +57,14 @@ graph LR
 
 ## Engine modules
 
-| ID | Name | Status | Package | OLs | What |
-|---|---|---|---|---|---|
-| P0 | Pattern scan | ✓ shipped | `@rai/core` | — | Local regex scanner. Zero-cost, runs on every surface. Detects known signatures across L-2/L-1/L0. |
-| P1 | Semantic scan | ✓ shipped | `@rai/core` | OL-124 | Claude API scanner. Default Haiku, escalates to Sonnet when confidence < 0.65. Covers L-2/L-1/L0/L1. |
-| P2 | BS Council | ✓ engine shipped | `@rai/p2-agent` | OL-281 | 4-agent verifiability layer. Heterogeneous providers (Anthropic + Together + Ollama) across 3 diversity axes. Verdicts: CONFIRMED / CONTESTED / UNVERIFIED / FALSE-ALARM. Covers L1/L2/L3. |
-| L4 | ActionGate | ◐ in-flight | `@rai/core` | OL-140, OL-245 | Agent action firewall. Lineage tracking + OAuth scope attestation. MCP adapter + shell adapter + native-messaging-host adapter all implemented. Phantom adaptive layer next to it. |
-| Phantom | Phantom adaptive | ◐ in-flight | `@rai/core` | — | Adaptive threat layer next to L4 — learns per-agent action patterns to flag unfamiliar side-effects. Companion to ActionGate. |
-| M | Memory / Sensing | ✓ engine shipped | `@rai/core` | OL-239, OL-241 | Distributed sensing + threat-signature store. Phase 1 shipped: local-only PrivateLayer + cross-surface ingest endpoint + dream-phase offline distillation, 45 tests passing. Phase 2 (community pool with differential privacy) pending. |
+| ID | Name | Status | Package | What |
+|---|---|---|---|---|
+| P0 | Pattern scan | ✓ shipped | `@rai/core` | Local regex scanner. Zero-cost, runs on every surface. Detects known signatures across L-2/L-1/L0. |
+| P1 | Semantic scan | ✓ shipped | `@rai/core` | Claude API scanner. Default Haiku, escalates to Sonnet when confidence < 0.65. Covers L-2/L-1/L0/L1. |
+| P2 | BS Council | ✓ engine shipped | `@rai/p2-agent` | 4-agent verifiability layer. Heterogeneous providers (Anthropic + Together + Ollama) across 3 diversity axes. Verdicts: CONFIRMED / CONTESTED / UNVERIFIED / FALSE-ALARM. Covers L1/L2/L3. |
+| L4 | ActionGate | ◐ in-flight | `@rai/core` | Agent action firewall. Lineage tracking + OAuth scope attestation. MCP adapter + shell adapter + native-messaging-host adapter all implemented. Phantom adaptive layer next to it. |
+| Phantom | Phantom adaptive | ◐ in-flight | `@rai/core` | Adaptive threat layer next to L4 — learns per-agent action patterns to flag unfamiliar side-effects. Companion to ActionGate. |
+| M | Memory / Sensing | ✓ engine shipped | `@rai/core` | Distributed sensing + threat-signature store. Phase 1 shipped: local-only PrivateLayer + cross-surface ingest endpoint + dream-phase offline distillation, 45 tests passing. Phase 2 (community pool with differential privacy) pending. |
 
 ### Files per module
 
@@ -105,15 +105,15 @@ graph LR
 
 ## Surfaces
 
-| ID | Surface | Status | Package | OLs | What |
-|---|---|---|---|---|---|
-| ext-chrome | Browser Extension (Chrome MV3) | ✓ shipped | `rai-extension` | — | Right-click scan + ambient DOM scan on AI sites. |
-| telegram | Telegram Bot | ✓ shipped | `@rai/telegram-bot` | — | Forward-to-scan multi-tenant consumer beachhead. |
-| pwa | Mobile PWA | ✓ shipped | `rai-mobile-pwa` | — | Manual scan + share-target on iOS/Android. |
-| nanoclaw | NanoClaw (Claude Code hook) | ✓ shipped | `(external)` | — | PreToolUse hook. Tim's own dev environment. |
-| claude-desktop | Claude Desktop hook | ◐ in-flight | `(external)` | OL-235 | DOM scan on claude.ai chats. |
-| ng-host | Native Messaging Host (ActionGate adapter) | ○ spec | `(spec)` | OL-140 | L4 gate bridge — VCCE for Chrome → local policy engine. |
-| vps-relay | VPS Distributed Sensing Node | ◐ built (test pending) | `(infra)` | OL-241 | Ingest endpoint for cross-surface scan events. Smoke test pending. |
+| ID | Surface | Status | Package | What |
+|---|---|---|---|---|
+| ext-chrome | Browser Extension (Chrome MV3) | ✓ shipped | `rai-extension` | Right-click scan + ambient DOM scan on AI sites. |
+| telegram | Telegram Bot | ✓ shipped | `@rai/telegram-bot` | Forward-to-scan multi-tenant consumer beachhead. |
+| pwa | Mobile PWA | ✓ shipped | `rai-mobile-pwa` | Manual scan + share-target on iOS/Android. |
+| nanoclaw | NanoClaw (Claude Code hook) | ✓ shipped | `(external)` | PreToolUse hook. Tim's own dev environment. |
+| claude-desktop | Claude Desktop hook | ◐ in-flight | `(external)` | DOM scan on claude.ai chats. |
+| ng-host | Native Messaging Host (ActionGate adapter) | ○ spec | `(spec)` | L4 gate bridge — VCCE for Chrome → local policy engine. |
+| vps-relay | VPS Distributed Sensing Node | ◐ built (test pending) | `(infra)` | Ingest endpoint for cross-surface scan events. Smoke test pending. |
 
 ---
 
