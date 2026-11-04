@@ -124,6 +124,63 @@ The mobile bridge is plumbing on top of the ported scanner. Schema parity is the
 
 ---
 
+## 6b. First Scan: Opt-in Deep Scan (OL-663, OL-661 option B, decided yes 2026-11-03)
+
+_Spec only. Build target later: `mobile-pwa src/firstscan/scan.ts`. No code, no API calls in this change. Cross-ref OL-661 (first-scan AI-generation box)._
+
+**Problem:** the first-scan batch runs `scanP0` on every item, but P0 has no L1 rules and `shouldEscalateToP1` escalates only flagged or conf < 0.6 items (never blocked or clean). The AI-generation box therefore reads "checked k of n", typically 0-1 of n, and cannot answer rung 01 "Is this real?".
+
+**Decision:** an opt-in deep scan runs P1 on every item of the first-scan batch, paid by the user's own BYOK key (`rai-mobile-anthropic-key`). Default stays the cheap path (P0 plus escalation per section 6). Deep scan is never automatic.
+
+### Opt-in flow
+1. Precondition: BYOK key present. No key: the option is not shown, the box keeps "checked k of n" and offers "Add your API key to check all n".
+2. After P0 finishes, the first-scan screen shows an offer card: "Check all n items with AI (uses your API key)". Two buttons: `Deep scan all` and `Keep quick scan`. Quick scan is the pre-selected default; closing the card equals quick scan.
+3. Tapping `Deep scan all` opens the cost sheet (below). Nothing is sent before the user confirms there.
+4. On confirm the batch runs P1 per item (`scanP1(apiKey, text, 'share', p0.verdict, p0Patterns)`, Haiku, Sonnet escalation at conf < 0.65, then `mergeVerdicts`). Items already P1-checked via normal escalation are skipped, not paid twice.
+5. Progress shows "k of n checked", running spend, and a `Stop` button. Stop keeps all results so far.
+6. End state: box reads "checked k of n" with k = n on a complete run; if the cap or a stop ended it early, it says why ("stopped at your cap").
+
+### Cost display (before the scan starts)
+The cost sheet shows, in this order: items to check (m = n minus already checked), estimated cost range, the cap, and the two buttons `Start` and `Cancel`.
+- Estimate = m x (avg input tokens + output tokens) x model price. Low bound = all Haiku. High bound = every item escalated to Sonnet (worst case). Show both: "about $X, at most $Y".
+- Token counts come from the actual item text (character count / 4 as the pre-flight approximation) plus the fixed system prompt size.
+- Per-model prices are read from one config constant at build time, not hardcoded in copy. Concrete dollar figures in the UI are UNVERIFIED until set from the current price table.
+- Currency and rounding: show up to 2 decimals, "less than $0.01" below that.
+- The cost is charged to the user's own Anthropic account, not to RAI. The sheet says so in one line.
+
+### Spending cap
+- The cap is mandatory, never off. Field on the cost sheet, pre-filled with a default, editable, stored in `localStorage` (`rai-mobile-deepscan-cap-usd`).
+- Default cap: proposed = the high estimate rounded up, but never above a fixed ceiling constant. Ceiling value is an open question for Tim (below).
+- Enforcement is a running tally of actual usage (response `usage` tokens x price), checked before each call using the worst-case price of the next call. If tally + next worst case would exceed the cap, the run stops; it never overshoots by more than zero calls in flight (calls run sequentially, or with concurrency 1-2 so at most that many are in flight).
+- Items are processed in order of risk first (P0 flagged, then low conf, then the rest) so a capped run covers the most useful items.
+- Hitting the cap is a normal end state, not an error: results kept, box shows "checked k of n, stopped at your cap", offer to raise the cap and continue (re-opens the cost sheet for the remaining items).
+
+### Failure handling
+- 401 or 403 from the API: stop immediately, keep results, show "API key rejected".
+- 429 or 5xx: retry with backoff up to 2 times per item, then mark the item unchecked and continue; the count shown is honest ("checked k of n").
+- Never invent a verdict for an unchecked item. Unchecked items stay P0-only and are labelled as such.
+
+### Privacy and safety
+- Item text goes only to the Anthropic API on the user's key, same as the existing P1 path. No RAI server sees it.
+- Item text is untrusted input: wrapped as in `scanP1`, never concatenated into instructions.
+- The key is never logged, never written to the corpus row, never shown after entry.
+- Corpus rows from deep-scanned items carry `scan_mode: "deep_first_scan"` so the eval harness can separate them from escalation-only rows.
+
+### Acceptance criteria
+- Without a key there is no deep-scan option.
+- No API call happens before the user taps `Start` on the cost sheet.
+- The cost sheet shows an estimate range and the cap before any spend.
+- A run never spends more than the cap (tally check against recorded `usage`).
+- Stop and cap both keep partial results and show an honest "checked k of n".
+- Already-P1-checked items are not re-scanned.
+
+### Open questions (Tim)
+1. Cap ceiling constant and default (proposal: default = high estimate, ceiling to be set by Tim).
+2. Concurrency: sequential (simplest cap enforcement, slower) vs 2 in flight.
+3. Should a completed deep scan be remembered so a re-run of the same batch is free (cache by content hash)?
+
+---
+
 ## 7. Corpus Row Shape
 
 Identical to existing schema (locked 2026-05-04). Reproduced for reference:
