@@ -1182,6 +1182,31 @@ Structural gap confirmed: 78% of organizations run AI agents with real productio
 [mob:2026-05-02]
 
 
+### Threat Model, L-2 Supply Chain: Hidden Instructions Inside Trusted Code Libraries (OL-328, 2026-11-04)
+
+Also named "Dependency-Embedded Prompt Injection" / "Vibe-Coded Sabotage Vector". Source: Ars Technica / Dan Goodin (2026-05-28), jqwik on Maven Central. Reuses the archived signature draft (no5-context pending-decisions/ARCHIVED/2026-05-29-write-threat-signature-dependency-embed.md).
+
+**Definition:** prompt-injection instructions embedded in a dependency the user already trusts (library, test engine, package, config template). The injection is not user input and needs no user interaction; CI/CD or the agent bootstrap loads it.
+
+**Attack pattern:**
+1. Attacker compromises or publishes into a widely used dependency.
+2. Payload sits in non-executable contexts that an agent reads (test output, fixtures, README or config templates, comments, tool descriptions).
+3. The agent or CI job consumes the dependency; the text lands in the agent's context before or beside the user prompt.
+4. The agent's behaviour is steered, e.g. falsified test results, suppressed failures, skipped checks.
+
+**Live case, jqwik:** JUnit 5 property-based test engine on Maven Central embedded hidden instructions aimed at AI agents to sabotage their test output. Runs in CI with no human in the loop.
+
+**Coverage gap (RAI v1):** the scanners look at user prompts and API traffic. Neither sees a hijacked dependency until the agent has already consumed it. Current scope assumes a trusted development environment and verified registries; transitive dependencies are not inspected.
+
+**Scope boundary:** pre-load dependency inspection is out of scope for RAI v1 and sits on the HORIZON layer. Documented here as a known gap, not an active detection rule.
+
+**Mitigation, v1 (outside RAI):** dependency pinning, checksum verification, SCA tooling, treat tool and test output as untrusted input to the agent.
+**Mitigation, HORIZON:** pre-load signature scanning of dependency text surfaces, dependency provenance attestation. ActionGate (L4) is the backstop: a steered agent still needs an action, which the gate can block (see docs/28-rai-actiongate-spec.md, Threat Layer Mapping).
+
+**Related:** OL-261, OL-323 (trusted-sender attachment injection, same pattern, different surface), OL-267, OL-240 (L-2 supply chain auditing).
+**Layer note:** the OL-328 row calls this "L-0 supply chain vector"; the canonical layer table in docs/28 puts supply chain at L-2, used here.
+**Status:** UNVERIFIED beyond the single public report; no RAI detection rule exists.
+
 ### Beat 2 Evidence Card: Agent Orchestration Failure Taxonomy (2026-05-11)
 
 Source: arXiv batch 2026-05-11 (6 RAI-tagged NOW items). Full spike: `no5-context/spikes/2026-05-10-rai-beat2-evidence.md`

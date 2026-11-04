@@ -176,6 +176,8 @@ Orthogonal. They compose.
 | Mode | Probabilistic, multi-agent consensus | Deterministic, policy-driven |
 | Cost | 4 LLM calls per run | Zero LLM calls, microseconds |
 | Failure mode | False positive = annoying | False positive = blocked work, fail-closed |
+**Supply chain pointer (OL-328):** hidden instructions inside trusted code libraries (dependency-embedded prompt injection, jqwik case) is an L-2 threat that bypasses prompt and traffic scanning. Threat model: docs/19-rai-context.md, "Threat Model, L-2 Supply Chain". ActionGate is the backstop at L4.
+
 | When it runs | On flagged claims | On every action attempt |
 
 P2 says "trust this." ActionGate says "even if trusted, this is in scope."
