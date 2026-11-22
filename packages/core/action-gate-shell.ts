@@ -37,6 +37,12 @@ export interface FileAction {
   filePath: string;
   /** Working directory. */
   workingDir: string;
+  /**
+   * Extra paths the same target resolves to (raw-normalized, realpath, `.git/hooks`
+   * aliases), computed by the caller (see action-gate-file-resolve.ts) so this module
+   * stays fs-free. Each is screened like filePath, so symlinked targets are caught.
+   */
+  resolvedPaths?: string[];
 }
 
 export interface ShellPolicy {
@@ -232,13 +238,17 @@ export function evaluateFileTarget(
   action: FileAction,
   policy: ShellPolicy,
 ): ShellVerdict {
-  for (const pattern of policy.persistencePathPatterns) {
-    if (pattern.test(action.filePath)) {
-      return {
-        decision: 'ask',
-        rule: 'persistence-path',
-        reason: `file target is persistence-sensitive: ${pattern.source}`,
-      };
+  const candidates = [action.filePath, ...(action.resolvedPaths ?? [])];
+  for (const candidate of candidates) {
+    for (const pattern of policy.persistencePathPatterns) {
+      if (pattern.test(candidate)) {
+        const via = candidate === action.filePath ? '' : ` (resolves to ${candidate})`;
+        return {
+          decision: 'ask',
+          rule: 'persistence-path',
+          reason: `file target is persistence-sensitive${via}: ${pattern.source}`,
+        };
+      }
     }
   }
 

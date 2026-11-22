@@ -37,6 +37,7 @@ import {
   type ShellPolicyYaml,
   type ShellVerdict,
 } from '../action-gate-shell';
+import { fileTargetCandidates } from '../action-gate-file-resolve';
 import { getDefaultAuditLog } from '../audit-log';
 
 // Policy file location: next to this script in ../policies/
@@ -84,10 +85,13 @@ export function decide(input: any, policy: ShellPolicy): ShellVerdict {
     if (!filePath) {
       return { decision: 'allow', rule: 'no-file-path', reason: 'no file_path in tool input' };
     }
+    const workingDir = input?.cwd || process.cwd();
     const action: FileAction = {
       kind: 'file-write',
       filePath,
-      workingDir: input?.cwd || process.cwd(),
+      workingDir,
+      // raw + realpath + .git/hooks aliases, so symlinked targets can't dodge the patterns
+      resolvedPaths: fileTargetCandidates(filePath, workingDir),
     };
     return evaluateFileTarget(action, policy);
   }

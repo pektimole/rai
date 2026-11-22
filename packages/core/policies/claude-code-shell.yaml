@@ -44,5 +44,13 @@ persistence_path_patterns:
   - "Library/LaunchAgents\\b"                 # macOS login persistence
   - "\\.git/hooks\\b"                         # repo-local hook persistence
   - "\\.claude/settings[^/]*\\.json\\b"       # Claude Code hook/permission config
+  # RAI self-protection (finding 2026-11-22): the gate's own policy, hook and adapter
+  # sources. File targets are also matched via realpath + .git/hooks reverse map
+  # (action-gate-file-resolve.ts), so symlinked targets are caught.
+  # Anchor (?:^|[^\w-]) so both file paths and paths inside Bash command strings match.
+  - "(?:^|[^\\w-])packages/core/policies/"    # own policies
+  - "(?:^|[^\\w-])packages/core/hooks/"       # own hooks (incl. this gate)
+  - "(?:^|[^\\w-])packages/core/action-gate[^/\\s]*\\.ts\\b"  # adapter sources
+  - "(?:^|[^\\w-])git-hooks/"                 # versioned hook scripts symlinked from .git/hooks
 
 # No working dir restriction for now (Claude Code operates in project dir)

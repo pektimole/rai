@@ -84,7 +84,7 @@ describe('rai-shell-gate decide() — real policy, normal work -> allow', () => 
   });
   it('Edit of a normal project file -> allow', () => {
     expect(
-      decide(fileWrite('Edit', '/Users/tim/rai/packages/core/action-gate-shell.ts'), policy)
+      decide(fileWrite('Edit', '/Users/tim/rai/packages/core/scanner.ts'), policy)
         .decision,
     ).toBe('allow');
   });
