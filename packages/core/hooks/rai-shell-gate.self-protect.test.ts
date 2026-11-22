@@ -10,6 +10,7 @@ import * as path from 'path';
 import { afterAll, beforeAll, describe, it, expect } from 'vitest';
 import { decide, loadPolicyFromFile, POLICY_PATH } from './rai-shell-gate';
 import { fileTargetCandidates } from '../action-gate-file-resolve';
+import { globToRegExp, loadShellPolicy } from '../action-gate-shell';
 
 const policy = loadPolicyFromFile(POLICY_PATH);
 const CORE_DIR = path.resolve(path.dirname(POLICY_PATH), '..');
@@ -105,6 +106,50 @@ describe('self-protection: normal edits -> allow', () => {
   });
   it('Edit on docs -> allow', () => {
     expect(decide(edit(path.join(REPO_DIR, 'docs/28-rai-actiongate-spec.md')), policy).decision).toBe('allow');
+  });
+});
+
+describe('self-protection: literal ~/rai globs in policy', () => {
+  const globs = [
+    '~/rai/packages/core/policies/**',
+    '~/rai/packages/core/hooks/**',
+    '~/rai/packages/core/action-gate*.ts',
+  ];
+  it('policy yaml carries the requested globs verbatim', () => {
+    const raw = fs.readFileSync(POLICY_PATH, 'utf-8');
+    for (const g of globs) expect(raw).toContain(`"${g}"`);
+  });
+  it('each glob alone routes its targets to ask (raw, expanded, $HOME, Bash)', () => {
+    const only = (g: string) => loadShellPolicy({ version: 1, adapter: 'shell', fail_closed: false, persistence_path_patterns: [g] });
+    const cases: Array<[string, string]> = [
+      [globs[0], '~/rai/packages/core/policies/claude-code-shell.yaml'],
+      [globs[0], '/Users/someone/rai/packages/core/policies/sub/deep.yaml'],
+      [globs[1], '$HOME/rai/packages/core/hooks/rai-shell-gate.ts'],
+      [globs[2], '/home/u/rai/packages/core/action-gate-shell.ts'],
+      [globs[2], '/home/u/rai/packages/core/action-gate.ts'],
+    ];
+    for (const [g, p] of cases) {
+      expect(decide(edit(p, '/'), only(g)).decision, `${g} vs ${p}`).toBe('ask');
+    }
+    expect(
+      decide({ tool_name: 'Bash', tool_input: { command: 'sed -i "" s/a/b/ ~/rai/packages/core/hooks/x.ts' }, cwd: '/' }, only(globs[1])).decision,
+    ).toBe('ask');
+  });
+  it('globs do not over-match', () => {
+    const p = loadShellPolicy({ version: 1, adapter: 'shell', fail_closed: false, persistence_path_patterns: globs });
+    for (const f of [
+      '/Users/x/rai/packages/core/index.ts',
+      '/Users/x/rai/packages/core/action-gate-shell.tsx',
+      '/Users/x/rai/packages/core/sub/action-gate.ts',
+      '/Users/x/other/packages/core/policies/a.yaml',
+      '/Users/x/rai/packages/core/policiesX/a.yaml',
+    ]) {
+      expect(decide(edit(f, '/'), p).decision, f).toBe('allow');
+    }
+  });
+  it('globToRegExp: * stays in one segment, ** crosses', () => {
+    expect(globToRegExp('~/a/*.ts').test('/Users/u/a/b/c.ts')).toBe(false);
+    expect(globToRegExp('~/a/**').test('/Users/u/a/b/c.ts')).toBe(true);
   });
 });
 

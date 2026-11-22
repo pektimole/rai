@@ -275,6 +275,40 @@ export interface ShellPolicyYaml {
   allowed_working_dir_prefixes?: string[];
 }
 
+/** Home-dir spellings a `~/` glob must match: literal ~, $HOME, ${HOME}, expanded macOS/Linux home. */
+const HOME_PREFIX_RE = '(?:~|\\$HOME|\\$\\{HOME\\}|/Users/[^/\\s]+|/home/[^/\\s]+)';
+
+/**
+ * Convert a `~/`-rooted path glob to a RegExp (fs-free, no os.homedir()).
+ * `**` = any depth, `*` = within one segment, `?` = one char. Matches unexpanded
+ * (`~/x`, `$HOME/x`) and expanded (`/Users/<u>/x`) spellings, so it works on
+ * Bash command strings and on raw + realpath file targets alike.
+ */
+export function globToRegExp(glob: string): RegExp {
+  let re = HOME_PREFIX_RE;
+  const rest = glob.slice(1); // drop "~", keep leading "/"
+  for (let i = 0; i < rest.length; i++) {
+    const c = rest[i];
+    if (c === '*' && rest[i + 1] === '*') {
+      re += '.*';
+      i++;
+    } else if (c === '*') {
+      re += '[^/\\s]*';
+    } else if (c === '?') {
+      re += '[^/\\s]';
+    } else {
+      re += c.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+    }
+  }
+  // Not a prefix of a longer name (action-gate*.ts must not match .tsx).
+  return new RegExp(`(?:^|[^\\w.-])${re}(?![\\w.-])`);
+}
+
+/** persistence_path_patterns entry: `~/...` = path glob, anything else = regex. */
+export function compilePathPattern(p: string): RegExp {
+  return p.startsWith('~/') ? globToRegExp(p) : new RegExp(p);
+}
+
 export function loadShellPolicy(yamlDoc: ShellPolicyYaml): ShellPolicy {
   if (yamlDoc.version !== 1) {
     throw new Error(`unsupported policy version: ${yamlDoc.version}`);
@@ -292,7 +326,7 @@ export function loadShellPolicy(yamlDoc: ShellPolicyYaml): ShellPolicy {
     ),
     askPatterns: (yamlDoc.ask_patterns ?? []).map((p) => new RegExp(p)),
     persistencePathPatterns: (yamlDoc.persistence_path_patterns ?? []).map(
-      (p) => new RegExp(p),
+      compilePathPattern,
     ),
     allowedWorkingDirPrefixes: yamlDoc.allowed_working_dir_prefixes ?? [],
   };
