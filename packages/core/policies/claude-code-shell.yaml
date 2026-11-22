@@ -27,4 +27,22 @@ blocked_patterns:
   - "--plugin-dir"
   - "npx\\s+(-y|--yes)\\b"
 
+# --- Confirm-required (ask) classes — ActionGate gap #2, finding 2026-11-22 ---
+# These do NOT block; they route to Claude Code's native human confirm (ask).
+# Hidden / covert mail recipients: data exfil via bcc/cc, raw SMTP, python smtplib.
+ask_patterns:
+  - "\\bmailx?\\s+[^|&;]*-[bc]\\b"      # mail -b / mail -c (bcc/cc recipient)
+  - "[Bb][Cc][Cc]:\\s*\\S+@"            # sendmail/piped message carrying a Bcc: header
+  - "--mail-rcpt\\b"                    # curl covert SMTP recipient
+  - "\\bsmtplib\\b"                     # python smtplib send
+
+# Persistence surfaces: a write here survives the session / re-runs on login/commit.
+# Matched against both shell command strings and file-write (Write/Edit/MultiEdit) targets.
+persistence_path_patterns:
+  - "(?:^|/)\\.(zshrc|zprofile|zshenv|zlogin|bashrc|bash_profile|bash_login|profile)\\b"
+  - "(?:~|/Users/[^/]+|/home/[^/]+)/bin\\b"   # ~/bin on PATH
+  - "Library/LaunchAgents\\b"                 # macOS login persistence
+  - "\\.git/hooks\\b"                         # repo-local hook persistence
+  - "\\.claude/settings[^/]*\\.json\\b"       # Claude Code hook/permission config
+
 # No working dir restriction for now (Claude Code operates in project dir)

@@ -113,7 +113,7 @@ ActionGate is one core engine, many surface adapters. Each adapter binds the eng
 | Adapter | Host | Action types | Status |
 |---|---|---|---|
 | `fs-git` | NanoClaw write-back | git add/commit/push, file write | **Live** (proven, 5-layer), `packages/core/action-gate.ts`, `89cba87` 2026-04-09 |
-| `shell` | Claude Code, Cursor, Aider | exec, spawn | **Live**, `packages/core/action-gate-shell.ts`, `38f45d7` 2026-04-09 |
+| `shell` | Claude Code, Cursor, Aider | exec, spawn | **Live**, `packages/core/action-gate-shell.ts`, `38f45d7` 2026-04-09; mail-recipient + persistence checks: built (shell), MCP recipient check: not built (gap #2, 2026-11-22) |
 | `mcp` | Any MCP server | tool invocation | **Live**, `packages/core/action-gate-mcp.ts` + `mcp-proxy.ts` (transparent proxy), `bf4da33` 2026-04-09 |
 | `http` | Browser extension agentic mode, API clients | fetch, mutation verbs | Spec (not built) |
 | `browser-dom` | RAI extension (OL-074) | form submit, click, navigate | Future (not built) |

