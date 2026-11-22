@@ -11,7 +11,7 @@
 // Types
 // ---------------------------------------------------------------------------
 
-export type ShellDecision = 'allow' | 'deny';
+export type ShellDecision = 'allow' | 'deny' | 'ask';
 
 export interface ShellVerdict {
   decision: ShellDecision;
@@ -23,6 +23,18 @@ export interface ShellAction {
   kind: 'shell-exec';
   /** Full command string as submitted by the agent. */
   command: string;
+  /** Working directory. */
+  workingDir: string;
+}
+
+/**
+ * A file write/edit target (Write / Edit / MultiEdit tool calls).
+ * Evaluated against the same persistence-path patterns as shell commands.
+ */
+export interface FileAction {
+  kind: 'file-write';
+  /** Path the tool will write to. */
+  filePath: string;
   /** Working directory. */
   workingDir: string;
 }
@@ -39,6 +51,18 @@ export interface ShellPolicy {
   blockedCommands: Set<string>;
   /** Regex patterns matched against the full command string. First match = deny. */
   blockedPatterns: RegExp[];
+  /**
+   * Regex patterns matched against the full command string. First match = ask
+   * (native human confirm), evaluated only after all deny checks pass.
+   * Covers hidden mail recipients (bcc/cc, raw SMTP, smtplib) etc.
+   */
+  askPatterns: RegExp[];
+  /**
+   * Regex patterns for persistence-sensitive paths (shell rc files, ~/bin,
+   * LaunchAgents, .git/hooks, ~/.claude/settings*.json). Matched against the
+   * full command string AND against file-write targets. First match = ask.
+   */
+  persistencePathPatterns: RegExp[];
   /** If non-empty, working directory must start with one of these prefixes. */
   allowedWorkingDirPrefixes: string[];
 }
@@ -168,10 +192,60 @@ export function evaluateShell(
     }
   }
 
+  // 6. Ask patterns (hidden recipients etc.) — confirm, never silently allow.
+  //    Evaluated after every deny check, so deny always wins over ask.
+  for (const pattern of policy.askPatterns) {
+    if (pattern.test(action.command)) {
+      return {
+        decision: 'ask',
+        rule: 'ask-pattern',
+        reason: `command needs confirmation, matches: ${pattern.source}`,
+      };
+    }
+  }
+
+  // 7. Persistence-sensitive path targets inside the command — confirm.
+  for (const pattern of policy.persistencePathPatterns) {
+    if (pattern.test(action.command)) {
+      return {
+        decision: 'ask',
+        rule: 'persistence-path',
+        reason: `command targets persistence-sensitive path: ${pattern.source}`,
+      };
+    }
+  }
+
   return {
     decision: 'allow',
     rule: 'all-checks-passed',
     reason: 'command permitted by policy',
+  };
+}
+
+/**
+ * Evaluate a file-write target (Write / Edit / MultiEdit) against the
+ * persistence-path patterns. These writes can silently install side effects
+ * (shell rc, LaunchAgents, .git/hooks, ~/.claude/settings*.json), so a match
+ * routes to native human confirm rather than deny.
+ */
+export function evaluateFileTarget(
+  action: FileAction,
+  policy: ShellPolicy,
+): ShellVerdict {
+  for (const pattern of policy.persistencePathPatterns) {
+    if (pattern.test(action.filePath)) {
+      return {
+        decision: 'ask',
+        rule: 'persistence-path',
+        reason: `file target is persistence-sensitive: ${pattern.source}`,
+      };
+    }
+  }
+
+  return {
+    decision: 'allow',
+    rule: 'file-target-ok',
+    reason: 'file target not persistence-sensitive',
   };
 }
 
@@ -186,6 +260,8 @@ export interface ShellPolicyYaml {
   allowed_commands?: string[];
   blocked_commands?: string[];
   blocked_patterns?: string[];
+  ask_patterns?: string[];
+  persistence_path_patterns?: string[];
   allowed_working_dir_prefixes?: string[];
 }
 
@@ -202,6 +278,10 @@ export function loadShellPolicy(yamlDoc: ShellPolicyYaml): ShellPolicy {
     allowedCommands: new Set(yamlDoc.allowed_commands ?? []),
     blockedCommands: new Set(yamlDoc.blocked_commands ?? []),
     blockedPatterns: (yamlDoc.blocked_patterns ?? []).map(
+      (p) => new RegExp(p),
+    ),
+    askPatterns: (yamlDoc.ask_patterns ?? []).map((p) => new RegExp(p)),
+    persistencePathPatterns: (yamlDoc.persistence_path_patterns ?? []).map(
       (p) => new RegExp(p),
     ),
     allowedWorkingDirPrefixes: yamlDoc.allowed_working_dir_prefixes ?? [],
