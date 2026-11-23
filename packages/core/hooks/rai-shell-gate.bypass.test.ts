@@ -77,10 +77,15 @@ describe('bypass 1: other write tools -> ask on own sources', () => {
       'mcp__82e39fbf-3864-45e2-b982-a935932a3c6e__patch_file',
       'mcp__82e39fbf-3864-45e2-b982-a935932a3c6e__append_to_file',
       'mcp__shell__execute_command', 'mcp__terminal__run_in_terminal',
+      'CronCreate', 'RemoteTrigger',
+      'mcp__scheduled-tasks__create_scheduled_task', 'mcp__scheduled-tasks__update_scheduled_task',
     ]) {
       expect(re.test(t), t).toBe(true);
     }
-    for (const t of ['Read', 'Grep', 'mcp__filesystem__read_file', 'mcp__terminal__read_terminal']) {
+    for (const t of [
+      'Read', 'Grep', 'mcp__filesystem__read_file', 'mcp__terminal__read_terminal',
+      'mcp__scheduled-tasks__list_scheduled_tasks', 'CronList',
+    ]) {
       expect(re.test(t), t).toBe(false);
     }
   });

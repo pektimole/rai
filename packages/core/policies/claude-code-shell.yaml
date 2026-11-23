@@ -35,6 +35,10 @@ ask_patterns:
   - "[Bb][Cc][Cc]:\\s*\\S+@"            # sendmail/piped message carrying a Bcc: header
   - "--mail-rcpt\\b"                    # curl covert SMTP recipient
   - "\\bsmtplib\\b"                     # python smtplib send
+# Scheduled persistence via shell (finding 2026-11-22, follow-up): installing a
+# crontab or loading a launchd job re-runs code outside the session. crontab -l reads only.
+  - "\\bcrontab\\b(?!\\s+-l\\b)"
+  - "\\blaunchctl\\s+(load|bootstrap|enable|submit)\\b"
 
 # Persistence surfaces: a write here survives the session / re-runs on login/commit.
 # Matched against both shell command strings and file-write (Write/Edit/MultiEdit) targets.
@@ -66,5 +70,11 @@ persistence_path_patterns:
   - "~/rai/packages/core/tsconfig*.json"      # pinned via tsx --tsconfig
   - "~/rai/node_modules/**"                   # js-yaml, tsx, esbuild (hook runtime)
   - "~/rai/packages/core/node_modules/**"
+  # Scripts other Claude Code hooks run (finding 2026-11-22, follow-up). Editing one
+  # runs attacker code on the next session/tool event. Scripts named in settings.json
+  # hook commands are added at runtime (hookScriptPaths in rai-shell-gate.ts).
+  - "~/.claude/hooks/**"
+  - "~/.claude/local-mods/**"
+  - "~/.claude/plugins/**"
 
 # No working dir restriction for now (Claude Code operates in project dir)

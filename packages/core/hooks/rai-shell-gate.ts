@@ -19,10 +19,12 @@
  */
 
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import * as yaml from 'js-yaml';
 import {
+  compilePathPattern,
   evaluateShell,
   evaluateFileTarget,
   loadShellPolicy,
@@ -57,7 +59,20 @@ const PATH_FIELDS = ['file_path', 'notebook_path', 'path', 'source', 'destinatio
  * sync with FILE_WRITE_TOOLS / MCP_*_RE (asserted in tests).
  */
 export const HOOK_MATCHER =
-  'Bash|Write|Edit|MultiEdit|NotebookEdit|mcp__.*__(write_file|edit_file|patch_file|append_to_file|move_file|create_file|execute_command|run_in_terminal)';
+  'Bash|Write|Edit|MultiEdit|NotebookEdit|CronCreate|RemoteTrigger|mcp__.*__(write_file|edit_file|patch_file|append_to_file|move_file|create_file|execute_command|run_in_terminal|create_scheduled_task|update_scheduled_task)';
+
+/** Tools that create or change a scheduled run (survives the session). */
+const SCHEDULE_TOOL_RE = /^(CronCreate|RemoteTrigger|mcp__.+__(create_scheduled_task|update_scheduled_task))$/;
+/** RemoteTrigger actions that only read. */
+const REMOTE_TRIGGER_READ = new Set(['list', 'get', 'list_runs', 'get_run_log']);
+
+/** Package-manager commands that rewrite node_modules (the hook's runtime). */
+const PKG_MUTATE_RE =
+  /\b(npm|pnpm|yarn|bun)(?:\s+--?\S+(?:[ =][^\s-]\S*)?)*\s+(install|i|ci|update|up|add|upgrade|uninstall|remove|rm|link|rebuild|dedupe|prune)\b/;
+/** A command that names the protected install (~/rai). */
+const RAI_PATH_RE = /(?:~|\$HOME|\$\{HOME\}|\/Users\/[^/\s]+|\/home\/[^/\s]+)\/rai(?![\w.-])/;
+/** Interpreters named in hook commands: not scripts, and too generic to protect. */
+const INTERPRETERS = new Set(['node', 'python', 'python3', 'bash', 'sh', 'zsh', 'tsx', 'npx', 'deno', 'bun', 'env']);
 
 /**
  * Last-resort policy used when the YAML cannot be loaded. Mirrors the
@@ -84,6 +99,8 @@ export const FALLBACK_POLICY_YAML: ShellPolicyYaml = {
     String.raw`[Bb][Cc][Cc]:\s*\S+@`,
     String.raw`--mail-rcpt\b`,
     String.raw`\bsmtplib\b`,
+    String.raw`\bcrontab\b(?!\s+-l\b)`,
+    String.raw`\blaunchctl\s+(load|bootstrap|enable|submit)\b`,
   ],
   persistence_path_patterns: [
     String.raw`(?:^|/)\.(zshrc|zprofile|zshenv|zlogin|bashrc|bash_profile|bash_login|profile)\b`,
@@ -104,11 +121,86 @@ export const FALLBACK_POLICY_YAML: ShellPolicyYaml = {
     '~/rai/packages/core/tsconfig*.json',
     '~/rai/node_modules/**',
     '~/rai/packages/core/node_modules/**',
+    '~/.claude/hooks/**',
+    '~/.claude/local-mods/**',
+    '~/.claude/plugins/**',
   ],
 };
 
 /** Absolute path of this hook script. */
 export const SCRIPT_PATH = path.resolve(new URL(import.meta.url).pathname);
+/** Repo root holding the hook runtime (node_modules, tsx). */
+export const REPO_ROOT = path.resolve(path.dirname(SCRIPT_PATH), '../../..');
+
+/** Claude Code settings files whose hook commands we read (user + project). */
+export function claudeSettingsFiles(cwd?: string, home: string = os.homedir()): string[] {
+  const files = [path.join(home, '.claude/settings.json'), path.join(home, '.claude/settings.local.json')];
+  if (cwd) files.push(path.join(cwd, '.claude/settings.json'), path.join(cwd, '.claude/settings.local.json'));
+  return files;
+}
+
+/**
+ * Scripts executed by Claude Code hooks: absolute (or ~ / $HOME) path tokens in
+ * every hooks.*[].hooks[].command, minus interpreters and directories. Unreadable
+ * or invalid settings files are skipped.
+ */
+export function hookScriptPaths(settingsFiles: string[], home: string = os.homedir()): string[] {
+  const out = new Set<string>();
+  for (const file of settingsFiles) {
+    let settings: any;
+    try {
+      settings = JSON.parse(fs.readFileSync(file, 'utf-8'));
+    } catch {
+      continue;
+    }
+    const hooks = settings?.hooks;
+    if (!hooks || typeof hooks !== 'object') continue;
+    for (const entries of Object.values(hooks)) {
+      if (!Array.isArray(entries)) continue;
+      for (const entry of entries) {
+        for (const h of Array.isArray(entry?.hooks) ? entry.hooks : []) {
+          if (typeof h?.command !== 'string') continue;
+          for (let tok of h.command.split(/[\s'"|;&()<>`]+/)) {
+            tok = tok.replace(/^(?:~|\$HOME|\$\{HOME\})(?=\/)/, home);
+            if (!path.isAbsolute(tok) || INTERPRETERS.has(path.basename(tok))) continue;
+            try {
+              if (fs.statSync(tok).isDirectory()) continue;
+            } catch {
+              // missing script: still protect it, creating it would plant a hook
+            }
+            out.add(path.normalize(tok));
+          }
+        }
+      }
+    }
+  }
+  return [...out];
+}
+
+/** Persistence patterns for hook scripts (~/ glob under home, escaped literal elsewhere). */
+export function hookScriptPatterns(scripts: string[], home: string = os.homedir()): RegExp[] {
+  // Literal absolute path always; plus the ~ glob (~, $HOME, /Users/<u> spellings)
+  // for scripts under home. Literal also covers homes outside /Users|/home.
+  return scripts.flatMap((p) => {
+    const literal = new RegExp(`(?:^|[^\\w.-])${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w.-])`);
+    const rel = path.relative(home, p);
+    if (rel && !rel.startsWith('..') && !path.isAbsolute(rel) && !/[*?]/.test(rel)) {
+      return [literal, compilePathPattern(`~/${rel}`)];
+    }
+    return [literal];
+  });
+}
+
+/** Policy plus extra persistence patterns (new object, inputs untouched). */
+export function withPersistencePaths(policy: ShellPolicy, extra: RegExp[]): ShellPolicy {
+  if (extra.length === 0) return policy;
+  return { ...policy, persistencePathPatterns: [...policy.persistencePathPatterns, ...extra] };
+}
+
+function isUnder(dir: string, root: string): boolean {
+  const rel = path.relative(root, dir);
+  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+}
 
 /**
  * Printed by the settings wrapper when the hook process crashes before it can
@@ -162,7 +254,33 @@ export function decide(input: any, policy: ShellPolicy): ShellVerdict {
       command,
       workingDir: input?.tool_input?.cwd || input?.cwd || process.cwd(),
     };
-    return evaluateShell(action, policy);
+    const v = evaluateShell(action, policy);
+    if (v.decision !== 'allow') return v;
+    // Package-manager writes to ~/rai rewrite the hook's own runtime (tsx, js-yaml).
+    if (
+      PKG_MUTATE_RE.test(command) &&
+      (isUnder(path.resolve(action.workingDir), REPO_ROOT) || RAI_PATH_RE.test(command) || command.includes(REPO_ROOT))
+    ) {
+      return {
+        decision: 'ask',
+        rule: 'repo-install',
+        reason: 'package install/update in the ActionGate repo rewrites the hook runtime (node_modules)',
+      };
+    }
+    return v;
+  }
+
+  // Scheduled runs (cron, cloud triggers, scheduled tasks) re-run prompts outside the session.
+  if (SCHEDULE_TOOL_RE.test(toolName)) {
+    const act = input?.tool_input?.action;
+    if (toolName === 'RemoteTrigger' && typeof act === 'string' && REMOTE_TRIGGER_READ.has(act)) {
+      return { decision: 'allow', rule: 'scheduled-task-read', reason: `RemoteTrigger ${act} only reads` };
+    }
+    return {
+      decision: 'ask',
+      rule: 'scheduled-task',
+      reason: `${toolName} creates or changes a scheduled run that survives the session`,
+    };
   }
 
   // File-write tools: screen every target path against persistence paths.
@@ -204,13 +322,24 @@ export interface HookEvaluation {
  * FALLBACK_POLICY instead of failing open: sensitive actions keep their
  * deny/ask verdict (rule prefixed policy-load-failed/), everything else allows.
  */
-export function evaluateHookInput(input: any, policyPath: string = POLICY_PATH): HookEvaluation {
+export function evaluateHookInput(
+  input: any,
+  policyPath: string = POLICY_PATH,
+  settingsFiles: string[] = claudeSettingsFiles(typeof input?.cwd === 'string' ? input.cwd : undefined),
+): HookEvaluation {
+  // Scripts other hooks run are persistence surfaces too (derived, not listed in YAML).
+  let extra: RegExp[] = [];
+  try {
+    extra = hookScriptPatterns(hookScriptPaths(settingsFiles));
+  } catch {
+    // derivation is best-effort; static ~/.claude/hooks/** etc. still apply
+  }
   let policy: ShellPolicy;
   try {
-    policy = loadPolicyFromFile(policyPath);
+    policy = withPersistencePaths(loadPolicyFromFile(policyPath), extra);
   } catch (err) {
     const loadError = String(err);
-    const v = decide(input, FALLBACK_POLICY);
+    const v = decide(input, withPersistencePaths(FALLBACK_POLICY, extra));
     const verdict: ShellVerdict =
       v.decision === 'allow'
         ? { decision: 'allow', rule: 'policy-load-failed', reason: `policy load failed, fallback allowed: ${v.reason}` }
