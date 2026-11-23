@@ -57,5 +57,14 @@ persistence_path_patterns:
   - "(?:^|[^\\w-])packages/core/hooks/"       # own hooks (incl. this gate)
   - "(?:^|[^\\w-])packages/core/action-gate[^/\\s]*\\.ts\\b"  # adapter sources
   - "(?:^|[^\\w-])git-hooks/"                 # versioned hook scripts symlinked from .git/hooks
+  # Import closure (finding 2026-11-22, follow-up): code the hook loads at runtime.
+  # Editing any of it runs attacker code inside the gate. Asserted complete by
+  # rai-shell-gate.closure.test.ts (walks the hook's imports).
+  - "~/rai/packages/core/audit-log.ts"
+  - "(?:^|[^\\w-])packages/core/audit-log\\.ts\\b"
+  - "~/rai/packages/core/package.json"        # module type / exports for the hook
+  - "~/rai/packages/core/tsconfig*.json"      # pinned via tsx --tsconfig
+  - "~/rai/node_modules/**"                   # js-yaml, tsx, esbuild (hook runtime)
+  - "~/rai/packages/core/node_modules/**"
 
 # No working dir restriction for now (Claude Code operates in project dir)

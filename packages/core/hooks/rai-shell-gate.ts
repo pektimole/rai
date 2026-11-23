@@ -6,18 +6,9 @@
  * AND file-write targets (Write / Edit / MultiEdit / NotebookEdit + MCP file
  * write tools) against the shell policy, and outputs a permission decision.
  *
- * Install in ~/.claude/settings.json (matcher = HOOK_MATCHER below):
- * {
- *   "hooks": {
- *     "PreToolUse": [{
- *       "matcher": "Bash|Write|Edit|MultiEdit|NotebookEdit|mcp__.*__(write_file|edit_file|patch_file|append_to_file|move_file|create_file|execute_command|run_in_terminal)",
- *       "hooks": [{
- *         "type": "command",
- *         "command": "npx tsx /path/to/rai/packages/core/hooks/rai-shell-gate.ts"
- *       }]
- *     }]
- *   }
- * }
+ * Install in ~/.claude/settings.json: matcher = HOOK_MATCHER, command =
+ * hookCommand() (pinned repo tsx + tsconfig, crash -> ask). Print both with:
+ *   node_modules/.bin/tsx -e "import('./packages/core/hooks/rai-shell-gate.ts').then(m=>console.log(m.HOOK_MATCHER+'\n'+m.hookCommand()))"
  *
  * Decisions: allow (silent), deny (hard block), ask (native human confirm).
  * Exit 0 + JSON stdout = decision.
@@ -107,8 +98,42 @@ export const FALLBACK_POLICY_YAML: ShellPolicyYaml = {
     String.raw`(?:^|[^\w-])packages/core/hooks/`,
     String.raw`(?:^|[^\w-])packages/core/action-gate[^/\s]*\.ts\b`,
     String.raw`(?:^|[^\w-])git-hooks/`,
+    '~/rai/packages/core/audit-log.ts',
+    String.raw`(?:^|[^\w-])packages/core/audit-log\.ts\b`,
+    '~/rai/packages/core/package.json',
+    '~/rai/packages/core/tsconfig*.json',
+    '~/rai/node_modules/**',
+    '~/rai/packages/core/node_modules/**',
   ],
 };
+
+/** Absolute path of this hook script. */
+export const SCRIPT_PATH = path.resolve(new URL(import.meta.url).pathname);
+
+/**
+ * Printed by the settings wrapper when the hook process crashes before it can
+ * decide (broken import, missing module, tsx failure). Claude Code treats a
+ * non-zero hook exit as non-blocking, so without this a crash = allow.
+ */
+export const CRASH_OUTPUT = JSON.stringify({
+  hookSpecificOutput: {
+    hookEventName: 'PreToolUse',
+    permissionDecision: 'ask',
+    permissionDecisionReason: '[ActionGate L4] gate crashed before deciding, confirm manually (rule: hook-crash)',
+  },
+});
+
+/**
+ * Settings command for this hook. Pins the repo's own tsx + tsconfig (npx and
+ * tsx would otherwise resolve them from the session cwd, i.e. from code the
+ * agent may control) and turns any crash into ask via CRASH_OUTPUT.
+ */
+export function hookCommand(script: string = SCRIPT_PATH): string {
+  const repo = path.resolve(path.dirname(script), '../../..');
+  const tsx = path.join(repo, 'node_modules/.bin/tsx');
+  const tsconfig = path.join(repo, 'packages/core/tsconfig.json');
+  return `${tsx} --tsconfig ${tsconfig} ${script} || printf '%s\\n' '${CRASH_OUTPUT}'`;
+}
 
 export const FALLBACK_POLICY: ShellPolicy = loadShellPolicy(FALLBACK_POLICY_YAML);
 
@@ -262,7 +287,7 @@ const invokedDirectly =
 if (invokedDirectly) {
   main().catch((err) => {
     process.stderr.write(`[rai-shell-gate] fatal: ${err}\n`);
-    // Exit 0 with allow on unexpected errors (fail open, don't break workflow)
-    outputDecision('allow', `hook error: ${err}`);
+    // Never fail open: an unexpected error routes to human confirm, not allow.
+    outputDecision('ask', `[ActionGate L4] hook error, confirm manually: ${err} (rule: hook-error)`);
   });
 }
