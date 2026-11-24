@@ -63,8 +63,10 @@ describe('1. hook scripts from settings.json', () => {
   afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
   it('extracts scripts, skips interpreters and directories, keeps missing scripts', () => {
-    const paths = hookScriptPaths([settings, path.join(tmp, 'nope.json')], home).sort();
-    expect(paths).toEqual([inHome, path.join(home, 'missing.js'), outside].sort());
+    const paths = hookScriptPaths([settings, path.join(tmp, 'nope.json')], home, '').sort();
+    // existing scripts also contribute their realpath (/var -> /private/var on macOS)
+    const want = new Set([inHome, path.join(home, 'missing.js'), outside, fs.realpathSync(inHome), fs.realpathSync(outside)]);
+    expect(paths).toEqual([...want].sort());
   });
 
   it('invalid settings JSON is skipped', () => {
@@ -142,6 +144,131 @@ describe('2. crontab / launchctl via shell', () => {
       }
     });
   }
+});
+
+describe('5. bare hook commands resolve via PATH', () => {
+  let tmp: string;
+  let bin: string;
+  let real: string;
+  let settings: string;
+  beforeAll(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'rai-barecmd-'));
+    bin = path.join(tmp, 'bin');
+    fs.mkdirSync(bin);
+    fs.mkdirSync(path.join(tmp, 'scripts'));
+    real = path.join(tmp, 'scripts/mytool-impl');
+    fs.writeFileSync(real, '#!/bin/sh\n', { mode: 0o755 });
+    fs.symlinkSync(real, path.join(bin, 'mytool'));
+    fs.writeFileSync(path.join(bin, 'notexec'), '', { mode: 0o644 });
+    settings = path.join(tmp, 'settings.json');
+    fs.writeFileSync(
+      settings,
+      JSON.stringify({
+        hooks: {
+          PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'FOO=1 mytool hook claude' }] }],
+          Stop: [{ hooks: [{ type: 'command', command: 'notexec x || printf ok; ghost-cmd; node x.js' }] }],
+        },
+      }),
+    );
+  });
+  afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
+
+  it('protects PATH entry + symlink target; skips non-exec, unknown, interpreters, system dirs', () => {
+    const paths = hookScriptPaths([settings], tmp, `/usr/bin:${bin}:/bin`).sort();
+    expect(paths).toEqual([path.join(bin, 'mytool'), fs.realpathSync(real)].sort());
+  });
+
+  it('derived patterns ask on writes, allow reads', () => {
+    const pol = withPersistencePaths(policy, hookScriptPatterns(hookScriptPaths([settings], tmp, bin), tmp));
+    expect(decide(edit(path.join(bin, 'mytool')), pol).decision).toBe('ask');
+    expect(decide(edit(real), pol).decision).toBe('ask');
+    const target = fs.realpathSync(real); // the path a write would actually name, e.g. ~/no5-scripts/rtk-ai
+    expect(decide(bash(`cp /tmp/evil ${target}`), pol).decision).toBe('ask');
+    expect(decide(bash(`cp /tmp/evil ${path.join(bin, 'mytool')}`), pol).decision).toBe('ask');
+    expect(decide(bash(`cat ${target}`), pol).decision).toBe('allow');
+  });
+
+  const realSettings = path.join(os.homedir(), '.claude/settings.json');
+  it.skipIf(!fs.existsSync(realSettings) || !process.env.PATH?.split(':').some((d) => fs.existsSync(path.join(d, 'rtk'))))(
+    'real settings: rtk (bare) is protected',
+    () => {
+      const paths = hookScriptPaths([realSettings]);
+      expect(paths.some((p) => path.basename(p) === 'rtk')).toBe(true);
+    },
+  );
+});
+
+describe('6. crontab only in command position', () => {
+  for (const [label, pol] of POLICIES) {
+    it(`${label}: mentions allow, invocations ask`, () => {
+      for (const c of [
+        'sudo crontab -u root /tmp/f',
+        'sudo -u root crontab /tmp/f',
+        '/usr/bin/crontab /tmp/f',
+        '(crontab -l; echo "* * * * * x") | crontab -',
+        'X=1 crontab /tmp/f',
+        'echo $(crontab /tmp/f)',
+        'bash -c "crontab /tmp/f"',
+        "sh -c 'crontab -r'",
+        'eval "crontab /tmp/f"',
+        'cd /tmp && crontab f',
+        'xargs crontab < /tmp/list',
+      ]) {
+        expect(decide(bash(c), pol).decision, c).toBe('ask');
+      }
+      for (const c of [
+        'grep crontab file.ts',
+        '/usr/bin/grep -rn "crontab\\|foo" hooks/',
+        'man crontab',
+        'crontab -l | grep x',
+        'git commit -m "narrow crontab rule"',
+        'echo crontab',
+      ]) {
+        expect(decide(bash(c), pol).decision, c).toBe('allow');
+      }
+    });
+  }
+});
+
+describe('7. pure reads of protected paths', () => {
+  for (const [label, pol] of POLICIES) {
+    it(`${label}: read-only -> allow, anything else -> ask`, () => {
+      for (const c of [
+        'cat ~/.zshrc',
+        'head -50 ~/rai/packages/core/hooks/rai-shell-gate.ts',
+        'grep -n foo ~/.claude/settings.json | head',
+        'diff ~/.zshrc /tmp/zshrc.bak',
+        'ls -la ~/.claude/hooks/',
+        'wc -l packages/core/policies/claude-code-shell.yaml 2>/dev/null',
+        'git diff packages/core/hooks/rai-shell-gate.ts',
+        'git log --oneline -5 -- packages/core/policies/',
+        'tail -f ~/Library/LaunchAgents/x.plist 2>&1',
+      ]) {
+        const v = decide(bash(c), pol);
+        expect(v.decision, c).toBe('allow');
+        expect(v.rule, c).toBe('persistence-path-read');
+      }
+      for (const c of [
+        'cat /tmp/x > ~/.zshrc',
+        'cat /tmp/x >> ~/.zshrc',
+        'grep a ~/.zshrc; rm /tmp/x',
+        'cat ~/.zshrc && echo x >> ~/.zshrc',
+        'sed -i "" s/a/b/ ~/.claude/hooks/x.sh',
+        'cat ~/.zshrc | tee ~/.bashrc',
+        'git diff --output=~/.zshrc',
+        'git -c core.pager=x diff ~/.zshrc',
+        'cat $(echo ~/.zshrc)',
+        'sort -o ~/.zshrc ~/.zshrc',
+      ]) {
+        expect(decide(bash(c), pol).decision, c).toBe('ask');
+      }
+    });
+  }
+
+  it('ask patterns still win over read-only', () => {
+    expect(decide(bash('cat ~/.zshrc | crontab -'), policy).decision).toBe('ask');
+    expect(decide(bash('cat ~/.zshrc | crontab -'), policy).rule).toBe('ask-pattern');
+  });
 });
 
 describe('3. scheduled-task tools', () => {

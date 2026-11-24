@@ -37,7 +37,9 @@ ask_patterns:
   - "\\bsmtplib\\b"                     # python smtplib send
 # Scheduled persistence via shell (finding 2026-11-22, follow-up): installing a
 # crontab or loading a launchd job re-runs code outside the session. crontab -l reads only.
-  - "\\bcrontab\\b(?!\\s+-l\\b)"
+# crontab only in command position (after ; & | ( ` $( , bash -c, eval, sudo/env/xargs...),
+# so `grep crontab file` or `man crontab` do not ask.
+  - '(?:^|[;&|(\x60\n]|\$\(|\s-c\s+[''"]?|\beval\s+[''"]?)\s*(?:\w+=\S*\s+)*(?:(?:sudo|env|exec|command|nohup|nice|time|xargs)\b(?:\s+-\S+(?:\s+[^\s-]\S*)?)*\s+)*(?:[^\s;&|''"]*/)?crontab\b(?!\s+-l\b)'
   - "\\blaunchctl\\s+(load|bootstrap|enable|submit)\\b"
 
 # Persistence surfaces: a write here survives the session / re-runs on login/commit.

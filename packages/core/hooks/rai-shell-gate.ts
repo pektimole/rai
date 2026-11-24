@@ -73,6 +73,69 @@ const PKG_MUTATE_RE =
 const RAI_PATH_RE = /(?:~|\$HOME|\$\{HOME\}|\/Users\/[^/\s]+|\/home\/[^/\s]+)\/rai(?![\w.-])/;
 /** Interpreters named in hook commands: not scripts, and too generic to protect. */
 const INTERPRETERS = new Set(['node', 'python', 'python3', 'bash', 'sh', 'zsh', 'tsx', 'npx', 'deno', 'bun', 'env']);
+/** SIP-protected system dirs: binaries there cannot be swapped by the agent, skip them. */
+const SYSTEM_BIN_RE = /^\/(?:bin|sbin|usr\/bin|usr\/sbin|usr\/libexec|System)\//;
+
+/** Bare program names in command position of each segment (after VAR=val prefixes). */
+function bareCommands(command: string): string[] {
+  const out: string[] = [];
+  for (const seg of command.split(/&&|\|\||[;|&\n()`]/)) {
+    const words = seg.trim().split(/\s+/).filter(Boolean);
+    let i = 0;
+    while (i < words.length && /^\w+=/.test(words[i])) i++;
+    const w = words[i]?.replace(/^['"]+|['"]+$/g, '');
+    if (w && /^[\w.+-]+$/.test(w) && !INTERPRETERS.has(w)) out.push(w);
+  }
+  return out;
+}
+
+/** First executable `name` on PATH, plus its realpath when it is a symlink. System dirs dropped. */
+function resolveOnPath(name: string, pathEnv: string): string[] {
+  for (const dir of pathEnv.split(':')) {
+    if (!dir || !path.isAbsolute(dir)) continue;
+    const p = path.join(dir, name);
+    try {
+      fs.accessSync(p, fs.constants.X_OK);
+      if (!fs.statSync(p).isFile()) continue;
+    } catch {
+      continue;
+    }
+    const res = [p];
+    try {
+      const real = fs.realpathSync(p);
+      if (real !== p) res.push(real);
+    } catch {
+      // dangling after access check: keep the PATH entry
+    }
+    return res.filter((x) => !SYSTEM_BIN_RE.test(x));
+  }
+  return [];
+}
+
+/** Read-only programs: allowed to name a persistence path (they cannot change it). */
+const READ_ONLY_CMDS = new Set([
+  'cat', 'head', 'tail', 'grep', 'egrep', 'fgrep', 'wc', 'ls', 'stat', 'diff', 'cmp',
+  'shasum', 'md5', 'md5sum', 'sha256sum', 'realpath', 'readlink',
+]);
+const GIT_READ_SUBCMDS = new Set(['diff', 'log', 'show', 'status', 'blame', 'ls-files']);
+
+/**
+ * True when the command only reads: a single pipeline whose every stage is a
+ * read-only program (or a read-only git subcommand). No chaining, redirects,
+ * substitutions or heredocs.
+ */
+export function isReadOnlyCommand(command: string): boolean {
+  const c = command.replace(/\s[12]?>&[12](?=\s|$)/g, ' ').replace(/\s[12]?>\/dev\/null(?=\s|$)/g, ' ');
+  if (/[;&<>`\n]|\$\(/.test(c)) return false;
+  return c.split('|').every((seg) => {
+    const words = seg.trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) return false;
+    if (words[0] === 'git') {
+      return GIT_READ_SUBCMDS.has(words[1] ?? '') && !words.some((w) => /^--output\b/.test(w) || w === '-o');
+    }
+    return READ_ONLY_CMDS.has(words[0]);
+  });
+}
 
 /**
  * Last-resort policy used when the YAML cannot be loaded. Mirrors the
@@ -99,7 +162,7 @@ export const FALLBACK_POLICY_YAML: ShellPolicyYaml = {
     String.raw`[Bb][Cc][Cc]:\s*\S+@`,
     String.raw`--mail-rcpt\b`,
     String.raw`\bsmtplib\b`,
-    String.raw`\bcrontab\b(?!\s+-l\b)`,
+    String.raw`(?:^|[;&|(\x60\n]|\$\(|\s-c\s+['"]?|\beval\s+['"]?)\s*(?:\w+=\S*\s+)*(?:(?:sudo|env|exec|command|nohup|nice|time|xargs)\b(?:\s+-\S+(?:\s+[^\s-]\S*)?)*\s+)*(?:[^\s;&|'"]*/)?crontab\b(?!\s+-l\b)`,
     String.raw`\blaunchctl\s+(load|bootstrap|enable|submit)\b`,
   ],
   persistence_path_patterns: [
@@ -144,7 +207,11 @@ export function claudeSettingsFiles(cwd?: string, home: string = os.homedir()): 
  * every hooks.*[].hooks[].command, minus interpreters and directories. Unreadable
  * or invalid settings files are skipped.
  */
-export function hookScriptPaths(settingsFiles: string[], home: string = os.homedir()): string[] {
+export function hookScriptPaths(
+  settingsFiles: string[],
+  home: string = os.homedir(),
+  pathEnv: string = process.env.PATH ?? '',
+): string[] {
   const out = new Set<string>();
   for (const file of settingsFiles) {
     let settings: any;
@@ -169,6 +236,16 @@ export function hookScriptPaths(settingsFiles: string[], home: string = os.homed
               // missing script: still protect it, creating it would plant a hook
             }
             out.add(path.normalize(tok));
+            try {
+              const real = fs.realpathSync(tok);
+              if (real !== path.normalize(tok)) out.add(real);
+            } catch {
+              // missing: literal path only
+            }
+          }
+          // Bare programs (e.g. `rtk hook claude`) run whatever PATH resolves to.
+          for (const name of bareCommands(h.command)) {
+            for (const p of resolveOnPath(name, pathEnv)) out.add(p);
           }
         }
       }
@@ -255,6 +332,10 @@ export function decide(input: any, policy: ShellPolicy): ShellVerdict {
       workingDir: input?.tool_input?.cwd || input?.cwd || process.cwd(),
     };
     const v = evaluateShell(action, policy);
+    // Pure reads of a protected path cannot persist anything.
+    if (v.rule === 'persistence-path' && isReadOnlyCommand(command)) {
+      return { decision: 'allow', rule: 'persistence-path-read', reason: 'read-only command on a protected path' };
+    }
     if (v.decision !== 'allow') return v;
     // Package-manager writes to ~/rai rewrite the hook's own runtime (tsx, js-yaml).
     if (
