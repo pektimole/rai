@@ -100,6 +100,10 @@ function resolveOnPath(name: string, pathEnv: string): string[] {
     } catch {
       continue;
     }
+    // Found in a SIP-protected system dir: the agent cannot swap it, and its
+    // realpath may point outside system dirs (e.g. /usr/bin/printf -> uutils
+    // coreutils on CI). Skip so a system binary's target is never spuriously protected.
+    if (SYSTEM_BIN_RE.test(p)) return [];
     const res = [p];
     try {
       const real = fs.realpathSync(p);
@@ -107,7 +111,7 @@ function resolveOnPath(name: string, pathEnv: string): string[] {
     } catch {
       // dangling after access check: keep the PATH entry
     }
-    return res.filter((x) => !SYSTEM_BIN_RE.test(x));
+    return res;
   }
   return [];
 }
