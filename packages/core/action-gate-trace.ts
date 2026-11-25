@@ -29,7 +29,7 @@ export interface NormalisedTurn {
   calls: NormalisedCall[];
 }
 
-export type ReplayDecision = 'allow' | 'deny' | 'flag';
+export type ReplayDecision = 'allow' | 'deny' | 'flag' | 'ask';
 
 export interface ReplayVerdict {
   turn: number;
