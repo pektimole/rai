@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:image" content="https://withrai.xyz/og.png">
+<meta property="og:title" content="It's on you now. Keep your own record of what your AI did.">
+<meta property="og:description" content="Which agent you allowed, what it could reach, what it did, when you switched it off. Kept on your side. Early access from RA(I).">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Banks now treat your AI agent's actions as yours. RA(I) Ledger keeps your own record of what you allowed and when you revoked it. Early access waitlist.">
+<title>RA(I) Ledger: keep your own record of what your AI did</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#080808;--text:#f0ede8;--muted:#8a8a8a;--border:#1c1c1c;--accent:#00e5c8;--warn:#f2b36b;}
+html,body{background:var(--bg);}
+body{color:var(--text);font-family:'DM Mono',monospace;font-size:14px;line-height:1.6;overflow-x:hidden;}
+a{color:var(--accent);}
+nav{display:flex;align-items:center;justify-content:space-between;padding:24px 48px;border-bottom:1px solid var(--border);}
+.nav-logo{font-size:16px;text-decoration:none;color:var(--text);}
+.nav-logo span{color:var(--accent);}
+.nav-cta{background:var(--accent);color:#080808;padding:10px 18px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;}
+section{padding:72px 48px;border-bottom:1px solid var(--border);}
+.in{max-width:720px;}
+.eyebrow{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--accent);margin-bottom:24px;}
+h1{font-family:'Fraunces',serif;font-weight:300;font-size:clamp(40px,7vw,80px);line-height:1.02;letter-spacing:-1.5px;margin-bottom:28px;}
+h1 em,h2 em{font-style:italic;color:var(--accent);}
+h2{font-family:'Fraunces',serif;font-weight:300;font-size:clamp(26px,3.5vw,38px);line-height:1.1;margin-bottom:28px;}
+.lede{color:var(--muted);font-size:15px;line-height:1.7;margin-bottom:32px;max-width:600px;}
+.log{border:1px solid var(--border);padding:20px;font-size:12px;line-height:1.8;max-width:560px;margin-top:8px;}
+.log .t{color:var(--muted);}
+.log .w{color:var(--warn);}
+.pts{display:grid;gap:1px;background:var(--border);grid-template-columns:repeat(3,minmax(0,1fr));}
+.pt{background:var(--bg);padding:24px;}
+.pt h3{font-family:'Fraunces',serif;font-weight:400;font-size:18px;line-height:1.3;margin-bottom:10px;}
+.pt p{font-size:12px;color:var(--muted);}
+ol.steps{list-style:none;counter-reset:s;}
+ol.steps li{counter-increment:s;border-top:1px solid var(--border);padding:18px 0 18px 44px;position:relative;}
+ol.steps li::before{content:"0" counter(s);position:absolute;left:0;top:18px;color:var(--accent);font-size:12px;}
+ol.steps b{display:block;font-family:'Fraunces',serif;font-weight:400;font-size:19px;margin-bottom:4px;}
+ol.steps span{color:var(--muted);font-size:13px;}
+.tiers{display:grid;gap:1px;background:var(--border);grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:12px;}
+.tier{background:var(--bg);padding:24px;}
+.tier .k{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+.tier h3{font-family:'Fraunces',serif;font-weight:400;font-size:20px;margin-bottom:8px;}
+.tier p{font-size:12px;color:var(--muted);}
+form{max-width:520px;}
+fieldset{border:none;margin-bottom:22px;}
+legend{font-size:13px;margin-bottom:10px;}
+input[type=email]{width:100%;background:var(--bg);border:1px solid var(--border);padding:13px 14px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);}
+.opts{display:flex;flex-wrap:wrap;gap:8px;}
+.opts label{border:1px solid var(--border);padding:8px 12px;font-size:12px;cursor:pointer;display:flex;gap:8px;align-items:center;}
+.opts input{accent-color:#00e5c8;}
+button[type=submit]{background:var(--accent);color:#080808;border:none;padding:14px 24px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;}
+.ok{display:none;color:var(--accent);font-size:13px;margin-top:12px;}
+.err{display:none;color:var(--warn);font-size:12px;margin-top:12px;}
+.fine{font-size:11px;color:var(--muted);margin-top:16px;max-width:520px;}
+footer{padding:32px 48px;font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+footer a{color:var(--muted);text-decoration:none;margin-left:16px;}
+@media(max-width:760px){nav,footer{padding:20px 24px;}section{padding:48px 24px;}.pts,.tiers{grid-template-columns:minmax(0,1fr);}}
+</style>
+</head>
+<body>
+<nav><a href="/" class="nav-logo"><span>(R)</span>AI</a><a href="#join" class="nav-cta">Join</a></nav>
+
+<section>
+ <div class="in">
+  <div class="eyebrow">RA(I) Ledger · early access</div>
+  <h1>It's on you now. <em>Keep your own record.</em></h1>
+  <p class="lede">Your bank now treats what your AI agent does as done by you. RA(I) Ledger keeps a record on your side: which agent you allowed, what it could reach, what it did, and when you switched it off. Across every agent and every shop.</p>
+  <div class="log" aria-label="Example of a Ledger record">
+   <div class="t">03 Nov · allowed</div><div>Shopping agent · electronics only · card ending 4417 · up to EUR 300</div><br>
+   <div class="t">21 Nov · action</div><div>Bought headphones, EUR 189, within limit</div><br>
+   <div class="t">26 Nov · flag</div><div class="w">Agent tried a new shop not in its list. Allow or block?</div><br>
+   <div class="t">02 Dec · revoked</div><div>Access ended. Screenshot and timestamp kept.</div>
+  </div>
+ </div>
+</section>
+
+<section>
+ <div class="in" style="max-width:1000px;">
+  <div class="eyebrow">Why now</div>
+  <h2>The banks moved first. <em>The record is yours to keep.</em></h2>
+  <div class="pts">
+   <div class="pt"><h3>Agent actions count as yours</h3><p>Citi, PNC, Citizens, Chase, Bank of America and Wells Fargo have spelled out that a third-party agent acting in your account acts as you.</p></div>
+   <div class="pt"><h3>Even after a leak</h3><p>Citi's new terms hold you responsible even if the agent leaks your login or ignores your instructions.</p></div>
+   <div class="pt"><h3>Proof of switching off</h3><p>Wells Fargo's terms, live since 24 November, ask you to keep evidence of when you revoked an agent.</p></div>
+  </div>
+  <p class="fine">Sources: <a href="https://techcrunch.com/2026/11/18/more-banks-says-customers-using-ai-agents-are-on-their-own-even-if-they-get-hacked/" rel="noopener">TechCrunch, 18 Nov 2026</a> · <a href="https://www.americanbanker.com/news/wells-fargo-wants-customers-to-prove-theyve-revoked-ai-agents" rel="noopener">American Banker</a>. Not legal advice. Not sure where you stand today? <a href="/check">Run the free 5-minute check</a>.</p>
+ </div>
+</section>
+
+<section>
+ <div class="in">
+  <div class="eyebrow">How it works</div>
+  <h2>Three things, <em>kept on your side.</em></h2>
+  <ol class="steps">
+   <li><b>Note what you allow</b><span>Which agent, which accounts or shops, how much, until when.</span></li>
+   <li><b>See what was done in your name</b><span>A plain timeline of agent actions, across ChatGPT, Claude, Gemini and the rest.</span></li>
+   <li><b>Prove when you switched it off</b><span>Every revoke gets a timestamp and the evidence, ready if your bank asks.</span></li>
+  </ol>
+  <p class="fine">Works next to the approvals your AI app, your shop and your bank already give you. Not a wallet, not a bank, not an antivirus.</p>
+ </div>
+</section>
+
+<section id="join">
+ <div class="in">
+  <div class="eyebrow">Early access</div>
+  <div class="tiers">
+   <div class="tier"><div class="k">Free</div><h3>Your "what did I allow" record</h3><p>Grants, actions, revokes, in one place you own.</p></div>
+   <div class="tier"><div class="k">Paid beta</div><h3>A limit your agent can't change</h3><p>Held outside the agent, across agents and shops. Price shown before you pay anything.</p></div>
+  </div>
+  <h2 style="margin-top:40px;">Join the <em>waitlist.</em></h2>
+  <form name="ledger-waitlist" id="lForm" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+   <input type="hidden" name="form-name" value="ledger-waitlist">
+   <p style="display:none;"><label>Leave empty <input name="bot-field"></label></p>
+   <fieldset><legend>Email</legend><input type="email" name="email" placeholder="you@example.com" required></fieldset>
+   <fieldset><legend>Which AI agents do you already let shop, book or touch your bank?</legend><div class="opts">
+    <label><input type="checkbox" name="agents" value="chatgpt">ChatGPT</label><label><input type="checkbox" name="agents" value="claude">Claude</label><label><input type="checkbox" name="agents" value="gemini">Gemini</label><label><input type="checkbox" name="agents" value="perplexity">Perplexity</label><label><input type="checkbox" name="agents" value="alexa">Alexa</label><label><input type="checkbox" name="agents" value="other">Other</label><label><input type="checkbox" name="agents" value="none">None yet</label></div></fieldset>
+   <fieldset><legend>Where do you bank?</legend><div class="opts">
+    <label><input type="radio" name="bank" value="us-big">A big US bank</label><label><input type="radio" name="bank" value="us-other">Other US bank</label><label><input type="radio" name="bank" value="eu">Europe</label><label><input type="radio" name="bank" value="other">Elsewhere</label></div></fieldset>
+   <fieldset><legend>If this works as described, what would you pay?</legend><div class="opts">
+    <label><input type="radio" name="price" value="0.99">EUR 0.99 / month</label><label><input type="radio" name="price" value="2.99">EUR 2.99 / month</label><label><input type="radio" name="price" value="setup">One-off setup</label><label><input type="radio" name="price" value="free">Only if free</label></div></fieldset>
+   <button type="submit">Join the waitlist</button>
+   <div class="ok" id="lOk">You're on the list. One email when early access opens.</div>
+   <div class="err" id="lErr">That did not go through. Try again in a minute.</div>
+  </form>
+  <p class="fine">RA(I) Ledger is in development. Nothing on this page is live yet. Joining is free and commits you to nothing. Your email is used only to tell you when early access opens, never sold, never shared.</p>
+ </div>
+</section>
+
+<footer><span><span style="color:var(--accent);">(R)</span>AI · Security Lab SE</span><span><a href="/check">Free check</a><a href="/">withrai.xyz</a><a href="mailto:go@withrai.xyz">go@withrai.xyz</a></span></footer>
+<script>
+document.getElementById('lForm').addEventListener('submit',function(e){e.preventDefault();const f=this;
+ fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(new FormData(f)).toString()})
+ .then(r=>{if(!r.ok)throw new Error(r.status);f.querySelector('button').style.display='none';document.getElementById('lOk').style.display='block';})
+ .catch(()=>{document.getElementById('lErr').style.display='block';});});
+</script>
+</body>
+</html>

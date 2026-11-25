@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:image" content="https://withrai.xyz/og.png">
+<meta property="og:title" content="Your bank says your AI agent is you. Check what it can reach.">
+<meta property="og:description" content="8 checks, about 5 minutes, runs in your browser. Free, from RA(I).">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="US banks now treat what your AI agent does as done by you. 8 checks to see what your agents can reach. Runs in your browser.">
+<title>RA(I) check: what can your AI agent reach?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#080808;--text:#f0ede8;--muted:#8a8a8a;--border:#1c1c1c;--accent:#00e5c8;--warn:#f2b36b;}
+html,body{background:var(--bg);}
+body{color:var(--text);font-family:'DM Mono',monospace;font-size:14px;line-height:1.6;overflow-x:hidden;}
+a{color:var(--accent);}
+nav{display:flex;align-items:center;justify-content:space-between;padding:24px 48px;border-bottom:1px solid var(--border);}
+.nav-logo{font-size:16px;text-decoration:none;color:var(--text);}
+.nav-logo span{color:var(--accent);}
+.wrap{max-width:720px;padding:72px 48px;}
+.eyebrow{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--accent);margin-bottom:24px;}
+h1{font-family:'Fraunces',serif;font-weight:300;font-size:clamp(36px,6vw,64px);line-height:1.05;letter-spacing:-1px;margin-bottom:28px;}
+h1 em{font-style:italic;color:var(--accent);}
+.lede{color:var(--muted);font-size:15px;line-height:1.7;margin-bottom:16px;}
+.lede b{color:var(--text);font-weight:400;}
+.src{font-size:11px;color:var(--muted);margin-bottom:48px;}
+.item{border-top:1px solid var(--border);padding:24px 0;}
+.item:last-of-type{border-bottom:1px solid var(--border);}
+.q{display:flex;gap:14px;align-items:flex-start;}
+.n{color:var(--muted);font-size:11px;padding-top:3px;min-width:22px;}
+.qt{font-family:'Fraunces',serif;font-size:20px;line-height:1.3;flex:1;}
+.why{color:var(--muted);font-size:13px;margin:10px 0 0 36px;}
+.how{font-size:12px;margin:8px 0 0 36px;color:var(--text);opacity:.85;}
+.btns{display:flex;gap:8px;margin:14px 0 0 36px;flex-wrap:wrap;}
+.btns button{background:transparent;color:var(--text);border:1px solid var(--border);padding:8px 14px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;}
+.btns button.on.yes{border-color:var(--accent);color:var(--accent);}
+.btns button.on.no{border-color:var(--warn);color:var(--warn);}
+.btns button.on.na{border-color:var(--muted);color:var(--muted);}
+.result{margin-top:48px;border:1px solid var(--border);padding:28px;}
+.score{font-family:'Fraunces',serif;font-size:40px;line-height:1;margin-bottom:8px;}
+.score span{color:var(--accent);}
+.todo{margin:18px 0;font-size:13px;}
+.todo li{margin:0 0 8px 18px;color:var(--warn);}
+.todo li span{color:var(--text);}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+.cta{background:var(--accent);color:#080808;border:none;padding:12px 20px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;text-decoration:none;}
+.ghost{background:transparent;color:var(--text);border:1px solid var(--border);padding:12px 20px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;}
+form{margin-top:28px;border-top:1px solid var(--border);padding-top:24px;}
+form p{font-size:13px;color:var(--muted);margin-bottom:12px;}
+form input[type=email]{width:100%;max-width:360px;background:var(--bg);border:1px solid var(--border);padding:12px 14px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);margin-bottom:10px;}
+.ok{display:none;color:var(--accent);font-size:12px;margin-top:10px;}
+.err{display:none;color:var(--warn);font-size:12px;margin-top:10px;}
+.next{margin-top:56px;font-size:13px;color:var(--muted);}
+.next a{margin-right:20px;}
+footer{padding:32px 48px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+footer a{color:var(--muted);text-decoration:none;margin-left:16px;}
+@media(max-width:700px){nav,footer{padding:20px 24px;}.wrap{padding:48px 24px;}.why,.how,.btns{margin-left:0;}}
+</style>
+</head>
+<body>
+<nav><a href="/" class="nav-logo"><span>(R)</span>AI</a><a href="/ledger" style="font-size:12px;">Keep your own record</a></nav>
+<main class="wrap">
+ <div class="eyebrow">Free check · runs in your browser</div>
+ <h1>Your bank says your AI agent is you. <em>Check what it can reach.</em></h1>
+ <p class="lede">Since November, several big US banks treat what a third-party AI agent does in your account as done by you. Citi says that holds even if the agent leaks your login or ignores your instructions. Wells Fargo's new terms, live since 24 November, also ask you to keep proof of when you switched an agent off.</p>
+ <p class="lede"><b>8 checks, about 5 minutes.</b> Your answers stay in this browser. Nothing is sent unless you choose to count your score at the end.</p>
+ <p class="src">Sources: <a href="https://techcrunch.com/2026/11/18/more-banks-says-customers-using-ai-agents-are-on-their-own-even-if-they-get-hacked/" rel="noopener">TechCrunch, 18 Nov 2026</a> · <a href="https://www.americanbanker.com/news/wells-fargo-wants-customers-to-prove-theyve-revoked-ai-agents" rel="noopener">American Banker on Wells Fargo</a>. Not legal advice: read your own bank's terms.</p>
+
+ <div id="list"></div>
+
+ <div class="result" id="result">
+  <div class="score">Score <span id="sc">0</span> / <span id="tot">8</span></div>
+  <div style="font-size:12px;color:var(--muted);" id="state">Answer the checks above.</div>
+  <ul class="todo" id="todo"></ul>
+  <div class="row">
+   <button class="cta" id="copy">Copy my list</button>
+   <button class="ghost" id="dl">Download as text</button>
+  </div>
+  <div class="ok" id="copied">Copied.</div>
+  <form name="bank-check" id="countForm" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+   <input type="hidden" name="form-name" value="bank-check">
+   <input type="hidden" name="score" id="fScore" value="">
+   <input type="hidden" name="open_items" id="fOpen" value="">
+   <p style="display:none;"><label>Leave empty <input name="bot-field"></label></p>
+   <p>Optional: count your score so we see how people do. Only the score and which checks are open are sent, no other answers. Add an email if you want one note when this list changes.</p>
+   <label for="cEmail" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">Email address</label>
+   <input id="cEmail" type="email" name="email" placeholder="you@example.com (optional)">
+   <div class="row" style="margin-top:0;"><button class="ghost" type="submit">Count my score</button></div>
+   <div class="ok" id="cOk">Counted. Thank you.</div>
+   <div class="err" id="cErr">That did not go through. Try again in a minute.</div>
+   <div class="err" id="cNone">Answer at least one check first.</div>
+  </form>
+ </div>
+
+ <div class="next">Next: <a href="/ledger">Keep your own record of what your AI did</a><a href="/guide">Run your own AI, the guide</a></div>
+</main>
+<footer><span><span style="color:var(--accent);">(R)</span>AI · Security Lab SE</span><span><a href="/">withrai.xyz</a><a href="mailto:go@withrai.xyz">go@withrai.xyz</a></span></footer>
+<script>
+const C=[
+ {q:"You know every AI agent that can get into a bank, card or shop account in your name.",why:"You can't switch off what you forgot you connected.",how:"Look at: browser extensions, ChatGPT, Claude, Gemini or Perplexity connectors, budgeting apps, shopping assistants."},
+ {q:"No agent holds your actual bank password.",why:"An agent logging in as you looks like you. Citi's terms put losses on you even if that login leaks.",how:"Where your bank offers it, use its own connection for apps (often read-only) instead of typing your password into an agent."},
+ {q:"Your agents can read, but not move money, unless you chose that on purpose.",why:"Several banks already split read access from paying. Most people never need an agent to pay.",how:"In each agent or app: check the permission it asked for. Remove payment rights you don't use."},
+ {q:"Any spending an agent can do runs through a separate card or account with a low limit.",why:"A limit inside the agent can be changed by the agent. A limit at the bank can't.",how:"Use a separate virtual card or sub-account, set its limit at the bank, give only that one to agents."},
+ {q:"You can switch off each agent in one step and you know where.",why:"In a hurry you won't find a setting buried in three menus.",how:"Write down, per agent: where to revoke it (app setting, bank setting, password change)."},
+ {q:"When you switch an agent off, you keep proof: date, which agent, a screenshot or email.",why:"Wells Fargo now asks customers to show when they revoked an agent. Without proof, it's on you.",how:"Make a note or screenshot every time you connect or disconnect an agent. Keep them in one place."},
+ {q:"Your coding or desktop agent never starts in Downloads or a folder with files you didn't write.",why:"Planted instruction files there (AGENTS.md, CLAUDE.md, .cursorrules) can steer the agent.",how:"Before you start an agent in a folder, list those files and read them."},
+ {q:"If you run your own AI at home: it can't be reached from the internet without a login.",why:"Self-hosted AI tools are often left open by accident.",how:"On your phone, switch off Wi-Fi and try to open your AI's address. If it opens without a login, close it."}
+];
+const KEY="rai-check-v1";let A={};try{A=JSON.parse(localStorage.getItem(KEY)||"{}");}catch(e){A={};}
+const list=document.getElementById('list');
+C.forEach((c,i)=>{const d=document.createElement('div');d.className='item';d.innerHTML='<div class="q"><span class="n">'+String(i+1).padStart(2,'0')+'</span><div class="qt">'+c.q+'</div></div><div class="why">'+c.why+'</div><div class="how">How: '+c.how+'</div><div class="btns"><button data-i="'+i+'" data-v="yes" class="yes">Yes</button><button data-i="'+i+'" data-v="no" class="no">Not yet</button><button data-i="'+i+'" data-v="na" class="na">Doesn\'t apply</button></div>';list.appendChild(d);});
+function save(){try{localStorage.setItem(KEY,JSON.stringify(A));}catch(e){}}
+function render(){document.querySelectorAll('.btns button').forEach(b=>{b.classList.toggle('on',A[b.dataset.i]===b.dataset.v);});
+ const rel=C.map((c,i)=>i).filter(i=>A[i]!=='na');const yes=rel.filter(i=>A[i]==='yes');const open=rel.filter(i=>A[i]==='no');const answered=Object.keys(A).length;
+ document.getElementById('sc').textContent=yes.length;document.getElementById('tot').textContent=rel.length;
+ document.getElementById('state').textContent=answered<C.length?(C.length-answered)+' checks left.':(open.length?'Your open items:':'All done. Check again whenever you connect a new agent.');
+ document.getElementById('todo').innerHTML=open.map(i=>'<li><span>'+C[i].q+'</span></li>').join('');
+ document.getElementById('fScore').value=yes.length+'/'+rel.length;document.getElementById('fOpen').value=open.map(i=>i+1).join(',');}
+list.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;A[b.dataset.i]=b.dataset.v;save();render();document.getElementById('cNone').style.display='none';});
+function txt(){const lines=['RA(I) agent check, '+new Date().toISOString().slice(0,10),'Score '+document.getElementById('sc').textContent+'/'+document.getElementById('tot').textContent,''];C.forEach((c,i)=>{const v=A[i]==='yes'?'[x]':A[i]==='na'?'[-]':'[ ]';lines.push(v+' '+c.q);lines.push('    How: '+c.how);});lines.push('','withrai.xyz/check');return lines.join('\n');}
+document.getElementById('copy').onclick=()=>{navigator.clipboard.writeText(txt()).then(()=>{const o=document.getElementById('copied');o.style.display='block';setTimeout(()=>o.style.display='none',2000);});};
+document.getElementById('dl').onclick=()=>{const b=new Blob([txt()],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ai-agent-check.txt';a.click();};
+document.getElementById('countForm').addEventListener('submit',function(e){e.preventDefault();if(!Object.keys(A).length){document.getElementById('cNone').style.display='block';return;}
+ fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(new FormData(this)).toString()}).then(r=>{if(!r.ok)throw new Error(r.status);this.querySelector('button').style.display='none';document.getElementById('cOk').style.display='block';}).catch(()=>{document.getElementById('cErr').style.display='block';});});
+render();
+</script>
+</body>
+</html>
